@@ -23,7 +23,7 @@ const browserSave: Persistence = {
 export const session = new GameSession({
   content,
   persistence: dev.active ? undefined : browserSave,
-  start: { seed: dev.seed, unlocks: dev.unlocks, stage: dev.stage },
+  start: { seed: dev.seed, unlocks: dev.unlocks, stage: dev.stage, money: dev.money, completed: dev.completed },
 });
 
 // `$state.raw`: the engine state is immutable (every step returns a new one) and must stay a

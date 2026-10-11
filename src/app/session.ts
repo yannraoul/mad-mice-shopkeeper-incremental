@@ -19,6 +19,10 @@ export interface StartOptions {
   unlocks?: string[];
   /** Start in stage N (1-based); a developer hook. */
   stage?: number;
+  /** Starting coins; a developer hook. */
+  money?: number;
+  /** Start with the final stage cleared; a developer hook. */
+  completed?: boolean;
 }
 
 export interface SessionOptions {
@@ -67,9 +71,12 @@ export class GameSession {
   private fresh(o: StartOptions): State {
     const game = newGame(this.content, { seed: o.seed ?? this.randomSeed(), unlocks: o.unlocks });
     const stage = o.stage ?? 1;
-    return stage > 1
-      ? { ...game, stage: { ...game.stage, index: Math.min(stage, this.content.stages.length) - 1 } }
-      : game;
+    return {
+      ...game,
+      money: o.money ?? game.money,
+      completed: o.completed ?? game.completed,
+      stage: stage > 1 ? { ...game.stage, index: Math.min(stage, this.content.stages.length) - 1 } : game.stage,
+    };
   }
 
   /** Call `fn` after every change; returns the function that stops listening. */

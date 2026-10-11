@@ -26,13 +26,16 @@ function memoryStore(initial: State | null = null) {
 describe('dev options', () => {
   it('reads seed, unlocks and stage, and is inactive without any hook', () => {
     expect(parseDevOptions('')).toMatchObject({ active: false, unlocks: [] });
-    expect(parseDevOptions('?seed=7&unlocks=oven,clerk&stage=2')).toEqual({
+    expect(parseDevOptions('?seed=7&unlocks=oven,clerk&stage=2')).toMatchObject({
       active: true,
       seed: 7,
       unlocks: ['oven', 'clerk'],
       stage: 2,
+      completed: false,
     });
     expect(parseDevOptions('?stage=3').active).toBe(true);
+    expect(parseDevOptions('?money=250&completed=1')).toMatchObject({ active: true, money: 250, completed: true });
+    expect(parseDevOptions('?money=-5&completed=0')).toMatchObject({ money: undefined, completed: false });
   });
 });
 
@@ -42,6 +45,12 @@ describe('game session', () => {
     expect(s.state.unlocks).toEqual(['oven']);
     expect(s.state.stage.index).toBe(1);
     expect(s.persistent).toBe(false);
+  });
+  it('can start with coins and the final stage cleared (developer hooks)', () => {
+    const s = new GameSession({ content: c, start: { seed: 1, money: 300, completed: true } });
+    expect(s.state.money).toBe(300);
+    expect(s.state.completed).toBe(true);
+    expect(new GameSession({ content: c, start: { seed: 1 } }).state.money).toBe(0);
   });
   it('is deterministic for a seed', () => {
     const a = new GameSession({ content: c, start: { seed: 9 } });

@@ -58,4 +58,5 @@ Durable, one-line lessons — add a bullet when something fails repeatedly, the
 user needs to explain something again, or a workaround/limitation is
 discovered.
 
-- (none yet)
+- Dev server after many hot reloads can serve a component's raw `.svelte` source as its CSS (symptom: one component suddenly unstyled, e.g. images without `max-width`; the `<style data-vite-dev-id>` tag contains `<script ...>`). The production build is fine: restart `npm run dev` before debugging layout, and confirm against `npm run build`.
+- Never `import('/src/ui/game.svelte.ts')` from the browser console on a persistent game: after HMR it creates a second session that saves over the real save.
