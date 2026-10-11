@@ -10,7 +10,7 @@ import {
   stockedAtLeast,
   unlockedQualities,
 } from './economy.ts';
-import type { Action, Customer, DayReport, GameEvent, State, StepResult } from './types.ts';
+import type { Action, Customer, DayReport, Fail, FailCode, GameEvent, State, StepResult } from './types.ts';
 
 // Pure TypeScript, no UI imports. `step` never mutates its input: it clones the
 // state, applies one action and returns the new state plus what happened.
@@ -47,12 +47,14 @@ export function step(c: Content, prev: State, action: Action): StepResult {
   const s = structuredClone(prev);
   const events: GameEvent[] = [];
   const err = apply(c, s, action, events);
-  return err ? { ok: false, error: err } : { ok: true, state: s, events };
+  return err ? { ok: false, error: err.message, code: err.code, params: err.params } : { ok: true, state: s, events };
 }
 
 // ---------------------------------------------------------------- actions
 
-function apply(c: Content, s: State, a: Action, ev: GameEvent[]): string | null {
+const fail = (code: FailCode, params: Fail['params'], message: string): Fail => ({ code, params, message });
+
+function apply(c: Content, s: State, a: Action, ev: GameEvent[]): Fail | null {
   switch (a.type) {
     case 'craft':
       return craft(c, s, a, ev);
@@ -67,18 +69,18 @@ function apply(c: Content, s: State, a: Action, ev: GameEvent[]): string | null 
   }
 }
 
-function craft(c: Content, s: State, a: Extract<Action, { type: 'craft' }>, ev: GameEvent[]): string | null {
-  if (s.phase !== 'morning') return 'crafting is only possible in the morning';
+function craft(c: Content, s: State, a: Extract<Action, { type: 'craft' }>, ev: GameEvent[]): Fail | null {
+  if (s.phase !== 'morning') return fail('wrong-phase', { phase: 'morning' }, 'crafting is only possible in the morning');
   const station = s.stations[a.station];
-  if (!station) return `no station #${a.station}`;
+  if (!station) return fail('no-station', {}, `no station #${a.station}`);
   const type = c.stations.find((x) => x.id === station.type)!;
-  if (!c.candies.some((x) => x.id === a.candy)) return `unknown candy "${a.candy}"`;
-  if (!c.qualities.some((x) => x.id === a.quality)) return `unknown quality "${a.quality}"`;
-  if (!isQualityUnlocked(c, s, a.quality)) return `quality "${a.quality}" is locked`;
-  if (station.batchesLeft <= 0) return 'station has no batches left today';
+  if (!c.candies.some((x) => x.id === a.candy)) return fail('unknown-candy', { candy: a.candy }, `unknown candy "${a.candy}"`);
+  if (!c.qualities.some((x) => x.id === a.quality)) return fail('unknown-quality', { quality: a.quality }, `unknown quality "${a.quality}"`);
+  if (!isQualityUnlocked(c, s, a.quality)) return fail('quality-locked', { quality: a.quality }, `quality "${a.quality}" is locked`);
+  if (station.batchesLeft <= 0) return fail('no-batches', {}, 'station has no batches left today');
   const cost = batchCost(c, a.candy, a.quality);
   for (const [ing, qty] of Object.entries(cost))
-    if ((s.supply[ing] ?? 0) < qty) return `not enough ${ing}`;
+    if ((s.supply[ing] ?? 0) < qty) return fail('not-enough-ingredient', { ingredient: ing }, `not enough ${ing}`);
 
   for (const [ing, qty] of Object.entries(cost)) s.supply[ing] = (s.supply[ing] ?? 0) - qty;
   station.batchesLeft -= 1;
@@ -89,14 +91,14 @@ function craft(c: Content, s: State, a: Extract<Action, { type: 'craft' }>, ev: 
   return null;
 }
 
-function fulfill(c: Content, s: State, contractId: number, ev: GameEvent[]): string | null {
-  if (s.phase === 'evening') return 'contracts are delivered in the morning or afternoon';
+function fulfill(c: Content, s: State, contractId: number, ev: GameEvent[]): Fail | null {
+  if (s.phase === 'evening') return fail('wrong-phase', { phase: 'morning' }, 'contracts are delivered in the morning or afternoon');
   const idx = s.contracts.findIndex((x) => x.id === contractId);
-  if (idx < 0) return `no contract #${contractId}`;
+  if (idx < 0) return fail('no-contract', {}, `no contract #${contractId}`);
   const ct = s.contracts[idx]!;
   let need = ct.qty;
   const available = stockedAtLeast(c, s, ct.candy, ct.quality);
-  if (available.reduce((n, q) => n + s.stock[stockKey(ct.candy, q.id)]!, 0) < need) return 'not enough stock';
+  if (available.reduce((n, q) => n + s.stock[stockKey(ct.candy, q.id)]!, 0) < need) return fail('not-enough-stock', {}, 'not enough stock');
   for (const q of available) {
     const key = stockKey(ct.candy, q.id);
     const take = Math.min(need, s.stock[key]!);
@@ -112,17 +114,17 @@ function fulfill(c: Content, s: State, contractId: number, ev: GameEvent[]): str
   return null;
 }
 
-function serve(c: Content, s: State, customerId: number, quality: string, ev: GameEvent[]): string | null {
-  if (s.phase !== 'afternoon') return 'serving is only possible in the afternoon';
+function serve(c: Content, s: State, customerId: number, quality: string, ev: GameEvent[]): Fail | null {
+  if (s.phase !== 'afternoon') return fail('wrong-phase', { phase: 'afternoon' }, 'serving is only possible in the afternoon');
   const idx = s.queue.findIndex((x) => x.id === customerId);
-  if (idx < 0) return `customer #${customerId} is not at the counter`;
+  if (idx < 0) return fail('no-customer', {}, `customer #${customerId} is not at the counter`);
   const cu = s.queue[idx]!;
-  if (!c.qualities.some((x) => x.id === quality)) return `unknown quality "${quality}"`;
-  if (qualityRank(c, quality) < qualityRank(c, cu.minQuality)) return 'quality too low for this customer';
+  if (!c.qualities.some((x) => x.id === quality)) return fail('unknown-quality', { quality }, `unknown quality "${quality}"`);
+  if (qualityRank(c, quality) < qualityRank(c, cu.minQuality)) return fail('quality-too-low', {}, 'quality too low for this customer');
   const key = stockKey(cu.wants, quality);
-  if ((s.stock[key] ?? 0) < 1) return 'not in stock';
+  if ((s.stock[key] ?? 0) < 1) return fail('not-in-stock', {}, 'not in stock');
   const price = priceOf(c, cu.wants, quality);
-  if (price > cu.budget) return 'over this customer budget';
+  if (price > cu.budget) return fail('over-budget', {}, 'over this customer budget');
 
   s.stock[key]! -= 1;
   s.money += price;
@@ -133,10 +135,10 @@ function serve(c: Content, s: State, customerId: number, quality: string, ev: Ga
   return null;
 }
 
-function refuse(c: Content, s: State, customerId: number, ev: GameEvent[]): string | null {
-  if (s.phase !== 'afternoon') return 'refusing is only possible in the afternoon';
+function refuse(c: Content, s: State, customerId: number, ev: GameEvent[]): Fail | null {
+  if (s.phase !== 'afternoon') return fail('wrong-phase', { phase: 'afternoon' }, 'refusing is only possible in the afternoon');
   const idx = s.queue.findIndex((x) => x.id === customerId);
-  if (idx < 0) return `customer #${customerId} is not at the counter`;
+  if (idx < 0) return fail('no-customer', {}, `customer #${customerId} is not at the counter`);
   s.report.refused += 1;
   ev.push({ type: 'refused', customer: customerId });
   removeFromQueue(c, s, idx, ev);
@@ -164,7 +166,7 @@ function refill(c: Content, s: State) {
 
 // ------------------------------------------------------------ day cycle
 
-function endPhase(c: Content, s: State, ev: GameEvent[]): string | null {
+function endPhase(c: Content, s: State, ev: GameEvent[]): Fail | null {
   const { phase, newDay } = nextPhase(s.phase);
   if (s.phase === 'morning') {
     spawnCustomers(c, s);

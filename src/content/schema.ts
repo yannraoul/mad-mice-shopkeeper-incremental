@@ -19,6 +19,8 @@ export const Quality = z.object({
   unlock: z.string().optional(),
   /** Extra ingredients per batch on top of the recipe. */
   extraIngredients: z.array(IngredientQty).default([]),
+  /** Extra hand-crafting steps (after stirring, before forming), e.g. the oven. */
+  extraSteps: z.array(z.object({ id, nameKey: key })).default([]),
 });
 export const Ingredient = z.object({
   id,

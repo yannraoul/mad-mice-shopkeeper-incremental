@@ -13,3 +13,5 @@ lives in its own `bugs/MMSIB-y.md` file; this file is just the index.
 ## Bugs
 
 <!-- Format: - [MMSIB-1](bugs/MMSIB-1.md) — Short symptom-based title -->
+- [MMSIB-1](bugs/MMSIB-1.md) — Craft screen: untranslated error, stale feedback, misleading batch counter
+- [MMSIB-2](bugs/MMSIB-2.md) — Craft screen: slot images show as broken icons

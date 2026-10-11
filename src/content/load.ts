@@ -97,6 +97,12 @@ export function validateRefs(c: Content): string[] {
   if (c.qualities.length && !c.qualities.some((q) => q.rank === 0))
     errors.push('qualities: a rank 0 quality is required');
 
+  // Every craftable thing needs an image slot (placeholders at final size, swappable files).
+  const slots = ids(c.artSlots);
+  for (const [prefix, rows] of [['ingredient', c.ingredients], ['candy', c.candies], ['station', c.stations]] as const)
+    for (const r of rows)
+      if (!slots.has(`${prefix}-${r.id}`)) errors.push(`artSlots: missing slot "${prefix}-${r.id}"`);
+
   // Every *Key must exist in every language, and EN/FR must have the same keys.
   const used = collectKeys(c);
   for (const lang of LANGS)
@@ -115,9 +121,17 @@ function collectKeys(c: Content): Set<string> {
   const keys = new Set<string>();
   for (const [name, rows] of Object.entries(c)) {
     if (NOT_TABLES.has(name)) continue;
-    for (const row of rows as Record<string, unknown>[])
-      for (const [field, v] of Object.entries(row))
-        if (field.endsWith('Key') && typeof v === 'string') keys.add(v);
+    walkKeys(rows, keys);
   }
   return keys;
+}
+
+/** Collect every string-valued `*Key` property, at any depth. */
+function walkKeys(node: unknown, keys: Set<string>) {
+  if (Array.isArray(node)) for (const n of node) walkKeys(n, keys);
+  else if (node && typeof node === 'object')
+    for (const [field, v] of Object.entries(node)) {
+      if (field.endsWith('Key') && typeof v === 'string') keys.add(v);
+      else walkKeys(v, keys);
+    }
 }

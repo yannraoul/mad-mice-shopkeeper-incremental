@@ -1,0 +1,51 @@
+:root {
+  --bg: #fbf6ea;
+  --panel: #fffdf7;
+  --ink: #3a2f22;
+  --muted: #7a6b57;
+  --accent: #c9801f;
+  --accent-ink: #fff;
+  --line: #e2d6bc;
+  --ok: #3f7d3a;
+  --warn: #a8322a;
+  --gap: 0.75rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1e1a14;
+    --panel: #2a241b;
+    --ink: #f1e8d4;
+    --muted: #b3a58c;
+    --accent: #e0a043;
+    --accent-ink: #1e1a14;
+    --line: #473d2d;
+    --ok: #7fc279;
+    --warn: #e5857d;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, sans-serif;
+  line-height: 1.4;
+}
+button, select {
+  font: inherit;
+  color: inherit;
+  min-height: 44px; /* touch target */
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  cursor: pointer;
+}
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+button:disabled { opacity: 0.45; cursor: default; }
+button.selected { outline: 3px solid var(--accent); }
+h1, h2, h3 { margin: 0 0 0.5rem; }
+h2 { font-size: 1.15rem; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: var(--gap); }
+.muted { color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: var(--gap); align-items: center; }

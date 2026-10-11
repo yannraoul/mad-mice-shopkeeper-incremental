@@ -1,6 +1,13 @@
 [
   { "id": "plain", "rank": 0, "nameKey": "quality.plain", "priceMult": 1 },
-  { "id": "fine", "rank": 1, "nameKey": "quality.fine", "priceMult": 1.6, "unlock": "oven" },
+  {
+    "id": "fine",
+    "rank": 1,
+    "nameKey": "quality.fine",
+    "priceMult": 1.6,
+    "unlock": "oven",
+    "extraSteps": [{ "id": "oven", "nameKey": "step.oven" }]
+  },
   {
     "id": "perfect",
     "rank": 2,

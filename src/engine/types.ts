@@ -82,6 +82,30 @@ export type GameEvent =
   | { type: 'contractPosted'; contract: number }
   | { type: 'phase'; phase: Phase; day: number };
 
+/** Machine-readable reason an action was refused; the UI translates `code` (+ `params`). */
+export type FailCode =
+  | 'wrong-phase'
+  | 'no-station'
+  | 'unknown-candy'
+  | 'unknown-quality'
+  | 'quality-locked'
+  | 'no-batches'
+  | 'not-enough-ingredient'
+  | 'no-contract'
+  | 'not-enough-stock'
+  | 'no-customer'
+  | 'quality-too-low'
+  | 'not-in-stock'
+  | 'over-budget';
+
+export interface Fail {
+  code: FailCode;
+  /** Ids only (ingredient, quality, candy, phase), never display text. */
+  params: Record<string, string>;
+  /** English text for logs and tests; never shown to players. */
+  message: string;
+}
+
 export type StepResult =
   | { ok: true; state: State; events: GameEvent[] }
-  | { ok: false; error: string };
+  | { ok: false; error: string; code: FailCode; params: Fail['params'] };

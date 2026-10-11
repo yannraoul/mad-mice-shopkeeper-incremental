@@ -5,7 +5,7 @@ this repository.
 
 ## What this is
 
-An incremental game about mad mice running a shop.
+"Cult of Sweet Tooth" (EN) / "Culte de Bec Sucré" (FR): an active shopkeeper incremental about mad mice running a candy shop (repo folder: mad-mice-shopkeeper-incremental).
 
 Stack: web (PC + phone), TypeScript + Vite + Svelte 5, DOM/CSS UI, pure-TS engine, JSON content validated by zod, Vitest. Spec: `docs/incremental-game.md` (decisions) and `docs/incremental-game-v1-scope.md` (v1 scope and milestones M0-M6; no gameplay or style change without writing it there first).
 

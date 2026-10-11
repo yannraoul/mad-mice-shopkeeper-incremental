@@ -11,15 +11,22 @@ function initial(): Lang {
 
 export const i18n = $state({ lang: initial() });
 
+function syncDocument() {
+  document.documentElement.lang = i18n.lang;
+  document.title = content.strings[i18n.lang]['game.title'] ?? '';
+}
+syncDocument();
+
 export function setLang(lang: Lang) {
   i18n.lang = lang;
   try {
     localStorage.setItem('lang', lang);
   } catch {}
-  document.documentElement.lang = lang;
+  syncDocument();
 }
 
-/** Translate a string key; falls back to the key itself. */
-export function t(key: string): string {
-  return content.strings[i18n.lang][key] ?? key;
+/** Translate a string key, replacing `{name}` placeholders; falls back to the key itself. */
+export function t(key: string, params: Record<string, string | number> = {}): string {
+  const text = content.strings[i18n.lang][key] ?? key;
+  return text.replace(/\{(\w+)\}/g, (m, name: string) => (name in params ? String(params[name]) : m));
 }

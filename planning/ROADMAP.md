@@ -14,3 +14,4 @@ MMSIM vs MMSIB, etc).
 <!-- Format: - [MMSIM-1](features/MMSIM-1.md) — Short title -->
 - [MMSIM-1](features/MMSIM-1.md) — Project scaffolding (v1 scope M0)
 - [MMSIM-2](features/MMSIM-2.md) — Engine and headless simulator (v1 scope M1)
+- [MMSIM-3](features/MMSIM-3.md) — Craft screen (v1 scope M2)

@@ -4,12 +4,40 @@
 
   let { id }: { id: string } = $props();
   const slot = $derived(content.artSlots.find((s) => s.id === id));
+  // Resolved against the app base, not the current page path, so it works from any URL.
+  const src = $derived(slot ? `${import.meta.env.BASE_URL}${slot.file}` : '');
+
+  let failedSrc = $state('');
+  const failed = $derived(failedSrc === src);
+
+  function onerror() {
+    failedSrc = src;
+    console.warn(`art slot "${id}": could not load ${new URL(src, document.baseURI).href}`);
+  }
 </script>
 
 {#if slot}
-  <img src={slot.file} width={slot.width} height={slot.height} alt={t(slot.altKey)} class="slot" />
+  {#if failed}
+    <!-- Same fixed size as the real art, so layout never shifts when the file is missing. -->
+    <div class="slot missing" style:width="{slot.width}px" style:height="{slot.height}px" role="img" aria-label={t(slot.altKey)}>
+      <span>{slot.id}<br />{slot.width}×{slot.height}</span>
+    </div>
+  {:else}
+    <img {src} width={slot.width} height={slot.height} alt={t(slot.altKey)} class="slot" {onerror} />
+  {/if}
 {/if}
 
 <style>
   .slot { max-width: 100%; height: auto; }
+  .missing {
+    display: grid;
+    place-items: center;
+    max-width: 100%;
+    border: 2px dashed var(--line);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 0.7rem;
+    text-align: center;
+    overflow: hidden;
+  }
 </style>

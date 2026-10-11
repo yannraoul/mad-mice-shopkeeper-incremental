@@ -20,6 +20,10 @@ const fails = (s: State, a: Action) => {
   expect(r.ok).toBe(false);
   return r.ok ? '' : r.error;
 };
+const failCode = (s: State, a: Action) => {
+  const r = step(c, s, a);
+  return r.ok ? null : { code: r.code, params: r.params };
+};
 const craft = (quality = 'plain'): Action => ({ type: 'craft', station: 0, candy: 'honey-drop', quality });
 /** Morning of day 1, then advance to the afternoon with some stock. */
 function afternoon(seed = 1, unlocks: string[] = ['oven'], crafts: Action[] = [craft(), craft()]) {
@@ -78,6 +82,15 @@ describe('crafting', () => {
   });
   it('only works in the morning', () => {
     expect(fails(afternoon(), craft())).toMatch(/morning/);
+  });
+});
+
+describe('failures are machine-readable', () => {
+  it('carry a code and id params the UI can translate', () => {
+    const s = run(newGame(c, { seed: 1 }), craft(), craft());
+    expect(failCode(s, craft())).toEqual({ code: 'not-enough-ingredient', params: { ingredient: 'honey' } });
+    expect(failCode(newGame(c, { seed: 1 }), craft('fine'))).toEqual({ code: 'quality-locked', params: { quality: 'fine' } });
+    expect(failCode(afternoon(), craft())).toEqual({ code: 'wrong-phase', params: { phase: 'morning' } });
   });
 });
 

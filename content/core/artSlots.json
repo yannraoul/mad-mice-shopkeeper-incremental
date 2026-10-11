@@ -1,3 +1,7 @@
 [
-  { "id": "shop-counter", "width": 320, "height": 200, "file": "art/shop-counter.svg", "altKey": "art.shop-counter" }
+  { "id": "shop-counter", "width": 320, "height": 200, "file": "art/shop-counter.svg", "altKey": "art.shop-counter" },
+  { "id": "ingredient-honey", "width": 96, "height": 96, "file": "art/ingredient-honey.svg", "altKey": "ingredient.honey" },
+  { "id": "ingredient-dark-seed", "width": 96, "height": 96, "file": "art/ingredient-dark-seed.svg", "altKey": "ingredient.dark-seed" },
+  { "id": "candy-honey-drop", "width": 96, "height": 96, "file": "art/candy-honey-drop.svg", "altKey": "candy.honey-drop" },
+  { "id": "station-cauldron", "width": 240, "height": 180, "file": "art/station-cauldron.svg", "altKey": "station.cauldron" }
 ]

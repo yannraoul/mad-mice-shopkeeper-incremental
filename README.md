@@ -1,6 +1,6 @@
-# Mad Mice Shopkeeper Incremental
+# Cult of Sweet Tooth
 
-An incremental game about mad mice running a shop.
+*Culte de Bec Sucré* (FR). An active shopkeeper incremental about mad mice running a candy shop.
 
 Stack: TypeScript + Vite + Svelte 5, JSON content (FR/EN), Vitest.
 
@@ -15,7 +15,7 @@ Stack: TypeScript + Vite + Svelte 5, JSON content (FR/EN), Vitest.
 
 ```
 npm install
-npm run dev            # dev server
+npm run dev            # dev server (dev URL hooks: ?seed=3&unlocks=oven,dark-garden,contractBoard)
 npm test               # engine + content tests
 npm run check          # svelte-check / type-check
 npm run check:content  # validate content + FR/EN string parity
