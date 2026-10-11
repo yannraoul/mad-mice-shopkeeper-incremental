@@ -36,8 +36,8 @@ export const Candy = z.object({
   ingredients: z.array(IngredientQty).min(1),
   /** Tree unlock needed before this recipe can be crafted or wanted (absent = from the start). */
   unlock: z.string().optional(),
-  /** Made only for errands: customers and contracts never ask for it. */
-  errandOnly: z.boolean().default(false),
+  /** Only customer types that list it in `onlyWants` buy it: regular customers and contracts never ask for it. */
+  exclusive: z.boolean().default(false),
 });
 /** Stations are instances of a type (n cauldrons), never singletons. */
 export const Station = z.object({
@@ -59,6 +59,10 @@ export const CustomerType = z.object({
   budget: z.number().positive(),
   /** Base share of arrivals. */
   weight: z.number().positive(),
+  /** Appears only once this unlock id is owned (e.g. granted by an errand reward). */
+  unlock: z.string().optional(),
+  /** Always asks for one of these candies instead of the regular ones. */
+  onlyWants: z.array(id).optional(),
 });
 /** Rough walk-in forecast shown in the morning; the real day differs. */
 export const Forecast = z.object({
@@ -106,7 +110,14 @@ export const Stage = z.object({
   /** Multiplies the number of daily arrivals (later stages are busier). */
   arrivalsMult: z.number().positive(),
   /** A rival hive steals `amount` of an ingredient each morning until relieved (errand reward `rivalRelief`). */
-  rival: z.object({ ingredient: id, amount: z.number().int().positive() }).optional(),
+  rival: z
+    .object({
+      ingredient: id,
+      amount: z.number().int().positive(),
+      /** First day of the week (1-based) on which it steals: a grace period to prepare. */
+      startsOnDay: z.number().int().positive().default(1),
+    })
+    .optional(),
 });
 /** A scripted story errand with permanent rewards. Deliver stock, or send a worker away for some days. */
 export const Errand = z.object({
@@ -165,6 +176,8 @@ export const Settings = z.object({
   /** Relative random spread on the number of arrivals (0.25 = +-25%). */
   arrivalNoise: z.number().min(0).max(1),
   counterSpace: z.number().int().positive(),
+  /** The shop welcomes at most counterSpace x this many customers per day (extra ones never come in). */
+  customersPerSpace: z.number().int().positive(),
   /** The rival hive never pushes an ingredient below this many units (no fail state). */
   rivalMinSupply: z.number().int().min(0),
   /** Batches of a recipe the player must craft by hand before a worker can sell it. */

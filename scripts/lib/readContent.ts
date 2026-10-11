@@ -24,10 +24,10 @@ function readPack(packDir: string, pack: string): RawFile[] {
 }
 
 /** Core pack always; every directory under content/packs/ only when includePacks. */
-export function readContentFiles(includePacks: boolean): RawFile[] {
-  const files = readPack(join(CONTENT_DIR, 'core'), 'core');
+export function readContentFiles(includePacks: boolean, contentDir: string = CONTENT_DIR): RawFile[] {
+  const files = readPack(join(contentDir, 'core'), 'core');
   if (includePacks) {
-    const packsDir = join(CONTENT_DIR, 'packs');
+    const packsDir = join(contentDir, 'packs');
     if (existsSync(packsDir)) {
       for (const name of readdirSync(packsDir)) {
         files.push(...readPack(join(packsDir, name), name));

@@ -37,9 +37,8 @@
   {
     "id": "royal-tonic",
     "nameKey": "candy.royal-tonic",
-    "basePrice": 20,
+    "basePrice": 10,
     "unlock": "tonic-recipe",
-    "errandOnly": true,
     "ingredients": [
       {
         "ingredient": "honey",
@@ -49,6 +48,7 @@
         "ingredient": "dark-seed",
         "qty": 1
       }
-    ]
+    ],
+    "exclusive": true
   }
 ]

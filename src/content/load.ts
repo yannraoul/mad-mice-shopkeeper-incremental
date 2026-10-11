@@ -59,9 +59,9 @@ export function loadContent(files: RawFile[]): Content {
   return content;
 }
 
-/** capacity | counterSpace | patience | rivalRelief | supply:<ingredient> | weight:<customerType> */
+/** capacity | counterSpace | patience | rivalRelief | arrivals | supply:<ingredient> | weight:<customerType> */
 function validStat(c: Content, stat: string): boolean {
-  if (['capacity', 'counterSpace', 'patience', 'rivalRelief'].includes(stat)) return true;
+  if (['capacity', 'counterSpace', 'patience', 'rivalRelief', 'arrivals'].includes(stat)) return true;
   const [kind, id] = stat.split(':');
   if (kind === 'supply') return c.ingredients.some((i) => i.id === id);
   if (kind === 'weight') return c.customerTypes.some((t) => t.id === id);
@@ -96,6 +96,9 @@ export function validateRefs(c: Content): string[] {
   for (const q of c.qualities)
     for (const i of q.extraIngredients)
       if (!ingredients.has(i.ingredient)) errors.push(`qualities/${q.id}: unknown ingredient "${i.ingredient}"`);
+  for (const t of c.customerTypes)
+    for (const cd of t.onlyWants ?? [])
+      if (!c.candies.some((x) => x.id === cd)) errors.push(`customerTypes/${t.id}: unknown candy "${cd}"`);
   for (const w of c.workers)
     for (const t of w.serves)
       if (!customers.has(t)) errors.push(`workers/${w.id}: unknown customer type "${t}"`);

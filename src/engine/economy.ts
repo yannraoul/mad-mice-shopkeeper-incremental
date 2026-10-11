@@ -27,16 +27,29 @@ export function isCandyUnlocked(c: Content, s: Pick<State, 'unlocks'>, candy: st
 export const unlockedCandies = (c: Content, s: Pick<State, 'unlocks'>) =>
   c.candies.filter((x) => isCandyUnlocked(c, s, x.id));
 
+/** Customer types that can show up now (their unlock, if any, is owned). */
+export const presentCustomerTypes = (c: Content, s: Pick<State, 'unlocks'>) =>
+  c.customerTypes.filter((t) => t.unlock === undefined || s.unlocks.includes(t.unlock));
+
+/** Unlocked candies somebody present would actually buy: what is worth making right now. */
+export const demandedCandies = (c: Content, s: Pick<State, 'unlocks'>) =>
+  unlockedCandies(c, s).filter(
+    (x) => !x.exclusive || presentCustomerTypes(c, s).some((t) => t.onlyWants?.includes(x.id)),
+  );
+
 /** Recipes customers and contracts may ask for (errand-only recipes are excluded). */
 export const sellableCandies = (c: Content, s: Pick<State, 'unlocks'>) =>
-  unlockedCandies(c, s).filter((x) => !x.errandOnly);
+  unlockedCandies(c, s).filter((x) => !x.exclusive);
 
 export const currentStage = (c: Content, s: Pick<State, 'stage'>) => c.stages[s.stage.index]!;
 
 /** Units of `ingredient` the rival hive steals this morning (after relief from errands). */
 export function rivalPenalty(c: Content, s: Pick<State, 'stage' | 'nodes' | 'errands'>, ingredient: string): number {
   const rival = currentStage(c, s).rival;
-  return rival && rival.ingredient === ingredient ? Math.max(0, rival.amount - modifier(c, s, 'rivalRelief')) : 0;
+  if (!rival || rival.ingredient !== ingredient) return 0;
+  // stage.day counts finished days of the week, so today is day stage.day + 1
+  if (s.stage.day + 1 < rival.startsOnDay) return 0;
+  return Math.max(0, rival.amount - modifier(c, s, 'rivalRelief'));
 }
 
 /** Candies one batch at this station yields (base capacity plus tree bonuses). */

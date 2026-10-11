@@ -5,6 +5,7 @@ import {
   batchCost,
   batchSize,
   isCandyUnlocked,
+  presentCustomerTypes,
   currentStage,
   isQualityUnlocked,
   modifier,
@@ -468,16 +469,20 @@ function postContract(c: Content, s: State, ev: GameEvent[]) {
 function spawnCustomers(c: Content, s: State, ev: GameEvent[]) {
   const fc = c.forecasts.find((f) => f.id === s.forecast)!;
   const spread = 1 + c.settings.arrivalNoise * (rand(s) * 2 - 1);
-  const count = Math.max(0, Math.round(c.settings.baseArrivals * currentStage(c, s).arrivalsMult * fc.arrivalsMult * spread));
+  const wanted = Math.max(0, Math.round((c.settings.baseArrivals + modifier(c, s, 'arrivals')) * currentStage(c, s).arrivalsMult * fc.arrivalsMult * spread));
+  // The shop can only welcome so many people a day: counter space is what lets later stages pay off.
+  const count = Math.min(wanted, (c.settings.counterSpace + modifier(c, s, 'counterSpace')) * c.settings.customersPerSpace);
   // Customer types that need a quality the shop cannot make yet do not show up.
-  const types = c.customerTypes.filter((t) => isQualityUnlocked(c, s, t.minQuality));
-  const candies = sellableCandies(c, s);
+  const types = presentCustomerTypes(c, s).filter((t) => isQualityUnlocked(c, s, t.minQuality));
+  const regular = sellableCandies(c, s);
+  const special = unlockedCandies(c, s);
   const patienceBonus = modifier(c, s, 'patience');
   let arrived = 0;
   for (let i = 0; i < count; i++) {
     const t = pickWeighted(s, types, (x) => Math.max(0.1, x.weight + modifier(c, s, `weight:${x.id}`)) * (fc.weights[x.id] ?? 1));
     // Customers only ask for recipes they could afford at their minimum quality.
-    const wanted = candies.filter((cd) => priceOf(c, cd.id, t.minQuality) <= t.budget);
+    const pool = t.onlyWants ? special.filter((cd) => t.onlyWants!.includes(cd.id)) : regular;
+    const wanted = pool.filter((cd) => priceOf(c, cd.id, t.minQuality) <= t.budget);
     if (wanted.length === 0) continue;
     s.pending.push({
       id: s.nextId++,

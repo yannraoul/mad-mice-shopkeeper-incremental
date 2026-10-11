@@ -26,6 +26,10 @@
         "type": "modifier",
         "stat": "supply:honey",
         "add": 2
+      },
+      {
+        "type": "unlock",
+        "id": "bee-customers"
       }
     ]
   },
@@ -51,6 +55,11 @@
         "type": "modifier",
         "stat": "counterSpace",
         "add": 1
+      },
+      {
+        "type": "modifier",
+        "stat": "arrivals",
+        "add": 2
       }
     ]
   },
@@ -58,7 +67,7 @@
     "id": "rival-hive",
     "nameKey": "errand.rival-hive",
     "descKey": "errand.rival-hive.desc",
-    "minStage": 1,
+    "minStage": 0,
     "requires": [
       "errandsBoard",
       "clerk"

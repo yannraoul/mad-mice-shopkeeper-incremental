@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run check:content && vite build",
-    "build:preview": "npm run check:content && vite build --mode preview --outDir dist-preview",
+    "build:preview": "npm run check:content && vite build --mode preview --outDir dist-preview && tsx scripts/verify-preview.ts",
+    "verify:preview": "tsx scripts/verify-preview.ts",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "check:content": "tsx scripts/check-content.ts",
     "test": "vitest run",
-    "sim": "tsx scripts/simulate.ts"
+    "sim": "tsx scripts/simulate.ts",
+    "balance": "tsx scripts/balance.ts"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.3.1",

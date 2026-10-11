@@ -20,6 +20,8 @@ npm test               # engine + content tests
 npm run check          # svelte-check / type-check
 npm run check:content  # validate content + FR/EN string parity
 npm run sim -- --days 30 --seed 1   # headless balance simulation
+npm run balance -- --ablate      # balance report (see planning/PLAYTEST.md)
+npm run verify:preview            # check dist-preview/ has no pack content
 npm run build          # full build -> dist/
 npm run build:preview  # build WITHOUT optional packs -> dist-preview/
 ```

@@ -1,18 +1,18 @@
 import type { Content } from '../content/schema.ts';
-import { batchSize, sellableCandies, stockedAtLeast, unlockedQualities, canAfford, stockKey } from '../engine/economy.ts';
+import { batchSize, demandedCandies, stockedAtLeast, unlockedQualities, canAfford, stockKey } from '../engine/economy.ts';
 import { step } from '../engine/engine.ts';
 import type { Action, State } from '../engine/types.ts';
 
 // A simple "reasonable player": the baseline the simulator measures balance with.
 
-function must(c: Content, s: State, a: Action): State {
+export function must(c: Content, s: State, a: Action): State {
   const r = step(c, s, a);
   if (!r.ok) throw new Error(`bot made an illegal move ${JSON.stringify(a)}: ${r.error}`);
   return r.state;
 }
 
 /** Craft one batch by hand at the first station that can do it; null if none can. */
-function craftOnce(c: Content, s: State, candy: string, quality: string): State | null {
+export function craftOnce(c: Content, s: State, candy: string, quality: string): State | null {
   for (let i = 0; i < s.stations.length; i++) {
     if (c.stations.find((x) => x.id === s.stations[i]!.type)?.auto) continue;
     const r = step(c, s, { type: 'craft', station: i, candy, quality });
@@ -22,7 +22,7 @@ function craftOnce(c: Content, s: State, candy: string, quality: string): State 
 }
 
 /** Take every errand that is available, then make and deliver what the delivery errands ask for. */
-function botErrands(c: Content, s: State): State {
+export function botErrands(c: Content, s: State): State {
   for (const e of c.errands) {
     const r = step(c, s, { type: 'acceptErrand', errand: e.id });
     if (r.ok) s = r.state;
@@ -62,7 +62,7 @@ export function botMorning(c: Content, s: State): State {
       const qualities = unlockedQualities(c, s);
       // Try qualities starting from a rotating index; take the first one that is affordable.
       const order = qualities.map((_, k) => qualities[(n + k) % qualities.length]!);
-      const candies = sellableCandies(c, s);
+      const candies = demandedCandies(c, s);
       const candy = candies[n % candies.length]!;
       let crafted = false;
       for (const q of order) {
@@ -118,12 +118,25 @@ export function botEvening(c: Content, s: State): State {
   }
 }
 
+/** A simulated player: what it does in each phase of the day. */
+export interface Bot {
+  name: string;
+  morning(c: Content, s: State): State;
+  afternoon(c: Content, s: State): State;
+  evening(c: Content, s: State): State;
+}
+
+/** The naive baseline: rotates candies and qualities, serves in queue order, buys the cheapest upgrade. */
+export const cheapBot: Bot = { name: 'cheap', morning: botMorning, afternoon: botAfternoon, evening: botEvening };
+
 /** Play one full day (morning, afternoon, evening) and return the state at the next morning. */
-export function botDay(c: Content, s: State): State {
-  s = botMorning(c, s);
+export function playDay(c: Content, s: State, bot: Bot): State {
+  s = bot.morning(c, s);
   s = must(c, s, { type: 'endPhase' });
-  s = botAfternoon(c, s);
+  s = bot.afternoon(c, s);
   s = must(c, s, { type: 'endPhase' });
-  s = botEvening(c, s);
+  s = bot.evening(c, s);
   return must(c, s, { type: 'endPhase' });
 }
+
+export const botDay = (c: Content, s: State): State => playDay(c, s, cheapBot);

@@ -6,9 +6,9 @@
     "descKey": "node.honey-yield.desc",
     "costs": [
       20,
-      30,
-      45,
-      65
+      60,
+      150,
+      400
     ],
     "effects": [
       {
@@ -24,9 +24,9 @@
     "nameKey": "node.cauldron-size",
     "descKey": "node.cauldron-size.desc",
     "costs": [
-      30,
-      50,
-      80
+      40,
+      150,
+      450
     ],
     "effects": [
       {
@@ -42,7 +42,7 @@
     "nameKey": "node.auto-cauldron",
     "descKey": "node.auto-cauldron.desc",
     "costs": [
-      60
+      250
     ],
     "requires": [
       "honey-yield"
@@ -60,7 +60,7 @@
     "nameKey": "node.oven",
     "descKey": "node.oven.desc",
     "costs": [
-      40
+      60
     ],
     "effects": [
       {
@@ -75,7 +75,7 @@
     "nameKey": "node.dark-garden",
     "descKey": "node.dark-garden.desc",
     "costs": [
-      80
+      400
     ],
     "requires": [
       "oven"
@@ -93,9 +93,9 @@
     "nameKey": "node.counter-space",
     "descKey": "node.counter-space.desc",
     "costs": [
-      25,
-      40,
-      60
+      30,
+      120,
+      400
     ],
     "effects": [
       {
@@ -111,9 +111,9 @@
     "nameKey": "node.patience",
     "descKey": "node.patience.desc",
     "costs": [
-      25,
-      40,
-      60
+      30,
+      120,
+      400
     ],
     "effects": [
       {
@@ -129,7 +129,7 @@
     "nameKey": "node.recipe-2",
     "descKey": "node.recipe-2.desc",
     "costs": [
-      35
+      80
     ],
     "effects": [
       {
@@ -144,7 +144,7 @@
     "nameKey": "node.recipe-3",
     "descKey": "node.recipe-3.desc",
     "costs": [
-      70
+      350
     ],
     "requires": [
       "recipe-2"
@@ -162,7 +162,7 @@
     "nameKey": "node.clerk",
     "descKey": "node.clerk.desc",
     "costs": [
-      50
+      100
     ],
     "effects": [
       {
@@ -177,7 +177,7 @@
     "nameKey": "node.contract-board",
     "descKey": "node.contract-board.desc",
     "costs": [
-      45
+      120
     ],
     "effects": [
       {
@@ -192,15 +192,20 @@
     "nameKey": "node.faithful",
     "descKey": "node.faithful.desc",
     "costs": [
-      30,
-      50,
-      80
+      40,
+      200,
+      700
     ],
     "effects": [
       {
         "type": "modifier",
         "stat": "weight:faithful",
         "add": 2
+      },
+      {
+        "type": "modifier",
+        "stat": "arrivals",
+        "add": 1
       }
     ]
   },
@@ -210,9 +215,9 @@
     "nameKey": "node.hive-bond",
     "descKey": "node.hive-bond.desc",
     "costs": [
-      40,
-      70,
-      110
+      200,
+      500,
+      1100
     ],
     "requires": [
       "faithful"
@@ -221,6 +226,11 @@
       {
         "type": "modifier",
         "stat": "supply:honey",
+        "add": 1
+      },
+      {
+        "type": "modifier",
+        "stat": "arrivals",
         "add": 2
       }
     ]
@@ -231,7 +241,7 @@
     "nameKey": "node.errands-board",
     "descKey": "node.errands-board.desc",
     "costs": [
-      35
+      90
     ],
     "requires": [
       "faithful"
@@ -249,7 +259,7 @@
     "nameKey": "node.map",
     "descKey": "node.map.desc",
     "costs": [
-      30
+      60
     ],
     "requires": [
       "faithful"

@@ -1,0 +1,13 @@
+# MMSIB-6 — The rival hive is harsh at week start and does not say how to stop it
+
+**Reported (playtest):** (1) Nothing makes clear that a related errand makes the rival's honey theft go away. (2) It is harsh: at the start of the week you may have no money, production is cut, the clerk cannot be bought, the mission cannot be done and has a 2-day delay, so it feels like "I guess I have to brace for it".
+
+**Root cause:** (1) The warning only said what was stolen; the link to the relieving errands existed only in data (`rivalRelief` reward). (2) The rival hit at full size on day 1 of stage 2 (half the base honey) while every remedy needed things the player might not have yet: the Errands board (130 coins with its prerequisite), the clerk (100 coins) and 2 days of mission time.
+
+**Fix:** (1) The stage bar now explains the way out: if the Errands board is missing it says to buy it; otherwise one line per relieving errand ("can reduce it: take it on the Errands board", "can reduce it once you have: Hire a clerk", "is under way"). Those errands also carry an "Against the rival hive" tag in the errand list. (2) Four changes: a grace period (`rival.startsOnDay`: stage 2 steals from day 3, stage 3 from day 2) with an announcement on day 1 and a heads-up during the last 3 days of the previous week; a gentler first dose (stage 2 steals 1 honey, stage 3 steals 2); a new instant remedy, "A peace offering" (deliver 6 plain honey drops: -1 honey stolen for good, no clerk and no delay); and both rival errands now appear from stage 1 so the player can prepare before the first theft (a mission accepted on day 1 of stage 2 finishes before the grace period ends, so the theft never lands).
+
+**Verified:** 5 rewritten/new engine tests (no rival in stage 1, grace period, floor, relief by the mission and by the peace offering). `npm run balance` guards still pass with the gentler rival (competent player stage clears on days 7 / 28 / 42). In the browser (EN): day 1 of stage 2 without the board shows the announcement and "buy the Errands board"; with the board it lists "A splinter hive ... once you have: Hire a clerk" and "A peace offering ... take it on the Errands board", accepting changes it to "is under way"; day 3 shows the theft starting and honey 4 -> 3.
+
+**Open follow-up:** The mission's reward still needs the clerk, so the full cure needs 100 + 90 + 40 coins of upgrades; check in the next playtest whether stage 2 now feels like a challenge to answer rather than something to endure.
+
+**Update:** the instant remedy (the peace offering) was removed in MMSIB-8; everything else here stands.

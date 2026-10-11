@@ -3,6 +3,7 @@
   import { t } from '../i18n/i18n.svelte.ts';
   import { step } from '../engine/engine.ts';
   import { game, dispatch } from './game.svelte.ts';
+  import { rivalErrands, unlockName } from './names.ts';
 
   const s = $derived(game.s);
   const shown = $derived(
@@ -21,11 +22,6 @@
       }),
   );
 
-  /** Name of the upgrade that grants an unlock id, for "Needs: ..." lines. */
-  function unlockName(id: string): string {
-    const node = content.skillNodes.find((n) => n.effects.some((ef) => ef.type === 'unlock' && ef.id === id));
-    return node ? t(node.nameKey) : id;
-  }
 </script>
 
 {#if s.unlocks.includes('errandsBoard')}
@@ -34,6 +30,7 @@
     {#each shown as { e, state, missing, canAccept, canDeliver } (e.id)}
       <article class="errand" class:done={state?.status === 'done'}>
         <strong>{t(e.nameKey)}</strong>
+        {#if rivalErrands.includes(e)}<span class="tag">{t('errands.tagRival')}</span>{/if}
         <div class="muted">{t(e.descKey)}</div>
         {#each e.deliver as d}
           <div>{t('errands.deliverLine', { qty: d.qty, candy: t(`candy.${d.candy}`), quality: t(`quality.${d.quality}`) })}</div>
@@ -64,4 +61,5 @@
   .errand { border-top: 1px solid var(--line); padding: 0.6rem 0; display: grid; gap: 0.35rem; }
   .errand.done { opacity: 0.6; }
   .ok { color: var(--ok); }
+  .tag { justify-self: start; font-size: 0.8rem; border: 1px solid var(--warn); color: var(--warn); border-radius: 999px; padding: 0 0.5rem; }
 </style>

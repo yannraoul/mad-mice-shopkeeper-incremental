@@ -2,6 +2,7 @@
   "baseArrivals": 8,
   "arrivalNoise": 0.25,
   "counterSpace": 4,
+  "customersPerSpace": 4,
   "delegateAfterBatches": 2,
   "rivalMinSupply": 2,
   "startStations": ["cauldron"],

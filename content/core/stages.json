@@ -3,29 +3,31 @@
     "id": "week-1",
     "nameKey": "stage.week-1",
     "days": 7,
-    "target": 200,
+    "target": 240,
     "arrivalsMult": 1
   },
   {
     "id": "week-2",
     "nameKey": "stage.week-2",
     "days": 7,
-    "target": 400,
-    "arrivalsMult": 1.3,
+    "target": 800,
+    "arrivalsMult": 1.5,
     "rival": {
       "ingredient": "honey",
-      "amount": 2
+      "amount": 1,
+      "startsOnDay": 3
     }
   },
   {
     "id": "week-3",
     "nameKey": "stage.week-3",
     "days": 7,
-    "target": 700,
-    "arrivalsMult": 1.6,
+    "target": 1900,
+    "arrivalsMult": 2.8,
     "rival": {
       "ingredient": "honey",
-      "amount": 2
+      "amount": 2,
+      "startsOnDay": 2
     }
   }
 ]
