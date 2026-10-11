@@ -1,25 +1,17 @@
 <script lang="ts">
-  import { content } from '../content/index.ts';
-  import { t } from '../i18n/i18n.svelte.ts';
-  import { game } from './game.svelte.ts';
+  import type { MapView } from '../view/map.ts';
   import ImageSlot from './ImageSlot.svelte';
 
-  const s = $derived(game.s);
-  const places = $derived(
-    content.places.map((p) => ({
-      p,
-      open: (p.unlock === undefined || s.unlocks.includes(p.unlock)) && (s.stage.index >= p.minStage || s.completed),
-    })),
-  );
+  let { view }: { view: MapView | null } = $props();
 </script>
 
-{#if s.unlocks.includes('map')}
+{#if view}
   <section class="panel">
-    <h2>{t('map.title')}</h2>
-    <ImageSlot id="map-strip" />
+    <h2>{view.title}</h2>
+    <ImageSlot id={view.art} />
     <div class="row places">
-      {#each places as { p, open } (p.id)}
-        <span class="chip" class:locked={!open}>{open ? t(p.nameKey) : `🔒 ${t('map.locked')}`}</span>
+      {#each view.places as p (p.id)}
+        <span class="chip" class:locked={!p.open}>{p.text}</span>
       {/each}
     </div>
   </section>

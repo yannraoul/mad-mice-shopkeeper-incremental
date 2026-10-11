@@ -1,179 +1,99 @@
 <script lang="ts">
   import { content } from '../content/index.ts';
   import { t } from '../i18n/i18n.svelte.ts';
-  import { unlockedCandies, unlockedQualities } from '../engine/economy.ts';
-  import {
-    doStep,
-    hold,
-    isComplete,
-    nextStep,
-    place,
-    remaining,
-    startSession,
-    type CraftSession,
-  } from '../craft/session.ts';
+  import { buildCraftView, craftReduce, initialCraftUi, type CraftEvent, type CraftUi } from '../view/craft.ts';
   import { game, dispatch } from './game.svelte.ts';
-  import { describeFail } from './errors.ts';
   import ImageSlot from './ImageSlot.svelte';
 
-  let station = $state(0);
-  let candy = $state(content.candies[0]!.id);
-  let quality = $state('plain');
-  let session = $state<CraftSession | null>(null);
-  // Stored as data, not text, so it is translated at render time and follows a language switch.
-  type Note = { kind: 'made'; station: number; candy: string; quality: string };
-  let note = $state.raw<Note | null>(null);
-
-  const qualities = $derived(unlockedQualities(content, game.s));
-  const candies = $derived(unlockedCandies(content, game.s));
-  // Automated stations run by themselves every morning: only hand stations appear here.
-  const handStations = $derived(
-    game.s.stations
-      .map((inst, i) => ({ inst, i }))
-      .filter(({ inst }) => !content.stations.find((x) => x.id === inst.type)?.auto),
-  );
-  const st = $derived(game.s.stations[station]);
-  const stType = $derived(content.stations.find((x) => x.id === st?.type));
-  const batchesLeft = $derived(handStations.reduce((n, x) => n + x.inst.batchesLeft, 0));
-  const stepName = (id: string) => {
-    if (id === 'stir' || id === 'form') return t(`step.${id}`);
-    const extra = content.qualities.flatMap((q) => q.extraSteps).find((x) => x.id === id);
-    return extra ? t(extra.nameKey) : id;
-  };
-  const upcoming = $derived(session ? nextStep(session) : null);
-  // Dry-run of Start for the current selection: disables the button and says why.
-  const check = $derived(startSession(content, game.s, station, candy, quality));
-  const blocked = $derived('error' in check ? check : null);
-  const madeText = $derived(
-    note
-      ? t('craft.made', {
-          qty: content.stations.find((x) => x.id === game.s.stations[note!.station]!.type)!.capacity,
-          candy: t(`candy.${note.candy}`),
-          quality: t(`quality.${note.quality}`),
-        })
-      : '',
-  );
-
-  function start() {
-    if ('error' in check) return;
-    note = null;
-    session = check;
-  }
-
-  function tapShelf(ingredient: string) {
-    if (session) session = hold(session, ingredient);
-  }
-  function tapStation() {
-    if (session) session = place(session);
-  }
-  function runStep(id: string) {
-    if (!session) return;
-    session = doStep(session, id);
-    if (isComplete(session)) {
-      const { station: s, candy: c, quality: q } = session;
-      session = null;
-      if (dispatch({ type: 'craft', station: s, candy: c, quality: q })) note = { kind: 'made', station: s, candy: c, quality: q };
-    }
-  }
+  // The only state here is the small hand-crafting interaction; everything else is in the view.
+  let ui = $state.raw<CraftUi>(initialCraftUi(content));
+  const v = $derived(buildCraftView(content, game.s, ui, t));
+  const send = (ev: CraftEvent) => (ui = craftReduce(content, game.s, ui, ev, dispatch));
 </script>
 
 <section class="panel workshop">
-  <h2>{t('craft.title')}</h2>
+  <h2>{v.title}</h2>
 
-  {#if !session}
-    {#if batchesLeft === 0}
-      <p class="muted">{t('craft.noBatches')}</p>
-    {:else}
-      <h3>{t('craft.newBatch')}</h3>
+  {#if v.mode === 'idle'}
+    {#if v.noBatches}
+      <p class="muted">{v.noBatches}</p>
+    {:else if v.idle}
+      {@const f = v.idle}
+      <h3>{f.newBatchTitle}</h3>
       <div class="row">
-        {#if handStations.length > 1}
+        {#if f.stations.length > 0}
           <label>
-            {t('craft.station')}
-            <select bind:value={station}>
-              {#each handStations as { inst, i }}
-                <option value={i}>{t(`station.${inst.type}`)} #{i + 1}</option>
-              {/each}
+            {f.stationLabel}
+            <select value={ui.station} onchange={(e) => send({ type: 'select', field: 'station', value: Number(e.currentTarget.value) })}>
+              {#each f.stations as o}<option value={o.value}>{o.label}</option>{/each}
             </select>
           </label>
         {/if}
         <label>
-          {t('craft.candy')}
-          <select bind:value={candy}>
-            {#each candies as cd}<option value={cd.id}>{t(cd.nameKey)}</option>{/each}
+          {f.candyLabel}
+          <select value={ui.candy} onchange={(e) => send({ type: 'select', field: 'candy', value: e.currentTarget.value })}>
+            {#each f.candies as o}<option value={o.value}>{o.label}</option>{/each}
           </select>
         </label>
         <label>
-          {t('craft.quality')}
-          <select bind:value={quality}>
-            {#each qualities as q}<option value={q.id}>{t(q.nameKey)}</option>{/each}
+          {f.qualityLabel}
+          <select value={ui.quality} onchange={(e) => send({ type: 'select', field: 'quality', value: e.currentTarget.value })}>
+            {#each f.qualities as o}<option value={o.value}>{o.label}</option>{/each}
           </select>
         </label>
-        <button class="primary" onclick={start} disabled={!!blocked}>{t('craft.start')}</button>
+        <button class="primary" onclick={() => send({ type: 'start' })} disabled={!f.start.enabled}>{f.start.label}</button>
       </div>
-      {#if blocked}
-        <p class="blocked">{t('craft.cannot', { error: describeFail(blocked.code, blocked.params) })}</p>
-      {/if}
-      <p class="muted">{t('craft.batchesLeft', { n: st?.batchesLeft ?? 0 })}</p>
-      <h3>{t('craft.suppliesToday')}</h3>
+      {#if f.blocked}<p class="blocked">{f.blocked}</p>{/if}
+      <p class="muted">{f.batchesLeft}</p>
+      <h3>{f.suppliesTitle}</h3>
       <ul class="contents">
-        {#each content.ingredients as ing (ing.id)}
-          <li>{t(ing.nameKey)}: {game.s.supply[ing.id] ?? 0}</li>
-        {/each}
+        {#each f.supplies as line}<li>{line}</li>{/each}
       </ul>
     {/if}
-  {:else}
+  {:else if v.bench}
+    {@const b = v.bench}
     <div class="bench">
       <div class="shelf">
-        <h3>{t('craft.shelf')}</h3>
+        <h3>{b.shelfTitle}</h3>
         <div class="items">
-          {#each content.ingredients as ing (ing.id)}
+          {#each b.shelf as item (item.ingredient)}
             <button
               class="item"
-              class:selected={session.held === ing.id}
-              disabled={remaining(session, ing.id) <= 0}
-              onclick={() => tapShelf(ing.id)}
+              class:selected={item.held}
+              disabled={!item.enabled}
+              onclick={() => send({ type: 'tapShelf', ingredient: item.ingredient })}
             >
-              <ImageSlot id={`ingredient-${ing.id}`} />
-              <span>{t(ing.nameKey)}</span>
-              <span class="muted">{t('craft.supply', { n: (game.s.supply[ing.id] ?? 0) - (session.placed[ing.id] ?? 0) })}</span>
+              <ImageSlot id={item.art} />
+              <span>{item.name}</span>
+              <span class="muted">{item.supply}</span>
             </button>
           {/each}
         </div>
       </div>
 
       <div class="station">
-        <h3>{t('craft.inCauldron')}</h3>
-        <button class="stationbtn" class:armed={!!session.held} onclick={tapStation}>
-          <ImageSlot id={`station-${stType?.id}`} />
+        <h3>{b.stationTitle}</h3>
+        <button class="stationbtn" class:armed={b.stationArmed} onclick={() => send({ type: 'tapStation' })}>
+          <ImageSlot id={b.stationArt} />
         </button>
         <ul class="contents">
-          {#each Object.entries(session.need) as [ing, need]}
-            <li>{t(`ingredient.${ing}`)}: {session.placed[ing] ?? 0} / {need}</li>
-          {/each}
+          {#each b.contents as line (line.ingredient)}<li>{line.text}</li>{/each}
         </ul>
       </div>
     </div>
 
-    <p class="hint">
-      {#if upcoming}
-        {t('craft.hint.step', { step: stepName(upcoming) })}
-      {:else if session.held}
-        {t('craft.hint.place', { station: t(`station.${stType?.id}`) })}
-      {:else}
-        {t('craft.hint.pick')}
-      {/if}
-    </p>
+    <p class="hint">{b.hint}</p>
     <div class="row">
-      {#each session.steps as id, i (id)}
-        <button class:primary={upcoming === id} disabled={upcoming !== id} onclick={() => runStep(id)}>
-          {i < session.done ? '✓ ' : ''}{stepName(id)}
+      {#each b.steps as st (st.id)}
+        <button class:primary={st.primary} disabled={!st.enabled} onclick={() => send({ type: 'step', id: st.id })}>
+          {st.label}
         </button>
       {/each}
-      <button onclick={() => (session = null)}>{t('craft.cancel')}</button>
+      <button onclick={() => send({ type: 'cancel' })}>{b.cancelLabel}</button>
     </div>
   {/if}
 
-  {#if madeText && !session}<p class="message">{madeText}</p>{/if}
+  {#if v.made}<p class="message">{v.made}</p>{/if}
 </section>
 
 <style>

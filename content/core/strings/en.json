@@ -215,5 +215,12 @@
   "stage.rivalHelp.available": "The errand \"{name}\" can reduce it: take it on the Errands board.",
   "stage.rivalHelp.locked": "The errand \"{name}\" can reduce it once you have: {unlock}.",
   "stage.rivalHelp.active": "The errand \"{name}\" is under way.",
-  "customer.bee": "Bee"
+  "customer.bee": "Bee",
+  "settings.open": "Settings",
+  "settings.title": "Settings",
+  "settings.close": "Back to the game",
+  "settings.newGame": "Start over",
+  "save.seed": "Seed (optional)",
+  "save.seedHint": "Leave empty for a random game, or type a number to replay the same game.",
+  "save.seedInvalid": "The seed must be a whole number (digits only)."
 }

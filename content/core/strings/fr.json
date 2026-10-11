@@ -215,5 +215,12 @@
   "stage.rivalHelp.available": "La mission « {name} » peut la réduire : prenez-la au tableau des missions.",
   "stage.rivalHelp.locked": "La mission « {name} » peut la réduire dès que vous aurez : {unlock}.",
   "stage.rivalHelp.active": "La mission « {name} » est en cours.",
-  "customer.bee": "Abeille"
+  "customer.bee": "Abeille",
+  "settings.open": "Réglages",
+  "settings.title": "Réglages",
+  "settings.close": "Retour au jeu",
+  "settings.newGame": "Recommencer",
+  "save.seed": "Graine (facultative)",
+  "save.seedHint": "Laissez vide pour une partie aléatoire, ou saisissez un nombre pour rejouer la même partie.",
+  "save.seedInvalid": "La graine doit être un nombre entier (chiffres uniquement)."
 }

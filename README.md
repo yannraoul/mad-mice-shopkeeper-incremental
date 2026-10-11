@@ -10,6 +10,7 @@ Stack: TypeScript + Vite + Svelte 5, JSON content (FR/EN), Vitest.
 - `planning/` — `ROADMAP.md`, `CHANGELOG.md`, `BACKLOG.md`, with `features/` and `bugs/` write-ups.
 - `design/` — design handoffs and design decisions (read-only reference).
 - `docs/` — original documentation, briefs, research.
+- `src/` — layered: `engine` (rules), `view` (what each screen shows and can do), `app` (game session), `ui` (Svelte renderers); the boundary is tested (`scripts/architecture.test.ts`). The header's **Settings** button holds New game (optional seed) and the save tools.
 
 ## Setup
 
