@@ -1,3 +1,18 @@
 [
-  { "id": "cauldron", "nameKey": "station.cauldron", "capacity": 4, "batchesPerDay": 3 }
+  {
+    "id": "cauldron",
+    "nameKey": "station.cauldron",
+    "capacity": 4,
+    "batchesPerDay": 3
+  },
+  {
+    "id": "auto-cauldron",
+    "nameKey": "station.auto-cauldron",
+    "capacity": 4,
+    "batchesPerDay": 2,
+    "auto": {
+      "candy": "honey-drop",
+      "quality": "plain"
+    }
+  }
 ]

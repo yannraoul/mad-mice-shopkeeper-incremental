@@ -12,7 +12,7 @@ describe('simulator', () => {
   it('plays the requested number of days and earns money', () => {
     const r = simulate(c, { days: 15, seed: 1 });
     expect(r.history).toHaveLength(15);
-    expect(r.money).toBe(r.history.reduce((n, d) => n + d.revenue, 0));
+    expect(r.money).toBeLessThanOrEqual(r.history.reduce((n, d) => n + d.revenue, 0)); // the bot spends on upgrades
     expect(r.money).toBeGreaterThan(0);
   });
   it('earns more with the oven, the garden and contracts unlocked', () => {

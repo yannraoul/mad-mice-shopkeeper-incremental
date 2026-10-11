@@ -1,0 +1,228 @@
+[
+  {
+    "id": "honey-yield",
+    "branch": "kitchen",
+    "nameKey": "node.honey-yield",
+    "descKey": "node.honey-yield.desc",
+    "costs": [
+      20,
+      30,
+      45,
+      65
+    ],
+    "effects": [
+      {
+        "type": "modifier",
+        "stat": "supply:honey",
+        "add": 1
+      }
+    ]
+  },
+  {
+    "id": "cauldron-size",
+    "branch": "kitchen",
+    "nameKey": "node.cauldron-size",
+    "descKey": "node.cauldron-size.desc",
+    "costs": [
+      30,
+      50,
+      80
+    ],
+    "effects": [
+      {
+        "type": "modifier",
+        "stat": "capacity",
+        "add": 1
+      }
+    ]
+  },
+  {
+    "id": "auto-cauldron",
+    "branch": "kitchen",
+    "nameKey": "node.auto-cauldron",
+    "descKey": "node.auto-cauldron.desc",
+    "costs": [
+      60
+    ],
+    "requires": [
+      "honey-yield"
+    ],
+    "effects": [
+      {
+        "type": "addStation",
+        "station": "auto-cauldron"
+      }
+    ]
+  },
+  {
+    "id": "oven",
+    "branch": "kitchen",
+    "nameKey": "node.oven",
+    "descKey": "node.oven.desc",
+    "costs": [
+      40
+    ],
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "oven"
+      }
+    ]
+  },
+  {
+    "id": "dark-garden",
+    "branch": "kitchen",
+    "nameKey": "node.dark-garden",
+    "descKey": "node.dark-garden.desc",
+    "costs": [
+      80
+    ],
+    "requires": [
+      "oven"
+    ],
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "dark-garden"
+      }
+    ]
+  },
+  {
+    "id": "counter-space",
+    "branch": "shop",
+    "nameKey": "node.counter-space",
+    "descKey": "node.counter-space.desc",
+    "costs": [
+      25,
+      40,
+      60
+    ],
+    "effects": [
+      {
+        "type": "modifier",
+        "stat": "counterSpace",
+        "add": 1
+      }
+    ]
+  },
+  {
+    "id": "patience",
+    "branch": "shop",
+    "nameKey": "node.patience",
+    "descKey": "node.patience.desc",
+    "costs": [
+      25,
+      40,
+      60
+    ],
+    "effects": [
+      {
+        "type": "modifier",
+        "stat": "patience",
+        "add": 1
+      }
+    ]
+  },
+  {
+    "id": "recipe-2",
+    "branch": "shop",
+    "nameKey": "node.recipe-2",
+    "descKey": "node.recipe-2.desc",
+    "costs": [
+      35
+    ],
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "recipe-2"
+      }
+    ]
+  },
+  {
+    "id": "recipe-3",
+    "branch": "shop",
+    "nameKey": "node.recipe-3",
+    "descKey": "node.recipe-3.desc",
+    "costs": [
+      70
+    ],
+    "requires": [
+      "recipe-2"
+    ],
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "recipe-3"
+      }
+    ]
+  },
+  {
+    "id": "clerk",
+    "branch": "shop",
+    "nameKey": "node.clerk",
+    "descKey": "node.clerk.desc",
+    "costs": [
+      50
+    ],
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "clerk"
+      }
+    ]
+  },
+  {
+    "id": "contract-board",
+    "branch": "shop",
+    "nameKey": "node.contract-board",
+    "descKey": "node.contract-board.desc",
+    "costs": [
+      45
+    ],
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "contractBoard"
+      }
+    ]
+  },
+  {
+    "id": "faithful",
+    "branch": "temple",
+    "nameKey": "node.faithful",
+    "descKey": "node.faithful.desc",
+    "costs": [
+      30,
+      50,
+      80
+    ],
+    "effects": [
+      {
+        "type": "modifier",
+        "stat": "weight:faithful",
+        "add": 2
+      }
+    ]
+  },
+  {
+    "id": "hive-bond",
+    "branch": "temple",
+    "nameKey": "node.hive-bond",
+    "descKey": "node.hive-bond.desc",
+    "costs": [
+      40,
+      70,
+      110
+    ],
+    "requires": [
+      "faithful"
+    ],
+    "effects": [
+      {
+        "type": "modifier",
+        "stat": "supply:honey",
+        "add": 2
+      }
+    ]
+  }
+]

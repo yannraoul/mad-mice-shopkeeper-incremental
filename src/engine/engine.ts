@@ -3,7 +3,11 @@ import { nextPhase } from './phases.ts';
 import { pick, pickWeighted, rand, randInt } from './rng.ts';
 import {
   batchCost,
+  batchSize,
+  isCandyUnlocked,
   isQualityUnlocked,
+  modifier,
+  unlockedCandies,
   priceOf,
   qualityRank,
   stockKey,
@@ -28,6 +32,7 @@ export function newGame(c: Content, opts: NewGameOptions): State {
     rng: opts.seed | 0,
     nextId: 1,
     money: c.settings.startMoney,
+    nodes: {},
     unlocks: [...(opts.unlocks ?? [])],
     stations: c.settings.startStations.map((type) => ({ type, batchesLeft: 0 })),
     supply: {},
@@ -68,6 +73,8 @@ function apply(c: Content, s: State, a: Action, ev: GameEvent[]): Fail | null {
       return refuse(c, s, a.customer, ev);
     case 'delegate':
       return delegate(c, s, a.customerType, a.on, ev);
+    case 'buy':
+      return buy(c, s, a.node, ev);
     case 'endPhase':
       return endPhase(c, s, ev);
   }
@@ -78,8 +85,10 @@ function craft(c: Content, s: State, a: Extract<Action, { type: 'craft' }>, ev: 
   const station = s.stations[a.station];
   if (!station) return fail('no-station', {}, `no station #${a.station}`);
   const type = c.stations.find((x) => x.id === station.type)!;
+  if (type.auto) return fail('station-automated', {}, 'this station runs by itself');
   if (!c.candies.some((x) => x.id === a.candy)) return fail('unknown-candy', { candy: a.candy }, `unknown candy "${a.candy}"`);
   if (!c.qualities.some((x) => x.id === a.quality)) return fail('unknown-quality', { quality: a.quality }, `unknown quality "${a.quality}"`);
+  if (!isCandyUnlocked(c, s, a.candy)) return fail('candy-locked', { candy: a.candy }, `candy "${a.candy}" is locked`);
   if (!isQualityUnlocked(c, s, a.quality)) return fail('quality-locked', { quality: a.quality }, `quality "${a.quality}" is locked`);
   if (station.batchesLeft <= 0) return fail('no-batches', {}, 'station has no batches left today');
   const cost = batchCost(c, a.candy, a.quality);
@@ -90,9 +99,10 @@ function craft(c: Content, s: State, a: Extract<Action, { type: 'craft' }>, ev: 
   station.batchesLeft -= 1;
   s.batchesMade[a.candy] = (s.batchesMade[a.candy] ?? 0) + 1;
   const key = stockKey(a.candy, a.quality);
-  s.stock[key] = (s.stock[key] ?? 0) + type.capacity;
-  s.report.crafted += type.capacity;
-  ev.push({ type: 'crafted', candy: a.candy, quality: a.quality, qty: type.capacity });
+  const qty = batchSize(c, s, station.type);
+  s.stock[key] = (s.stock[key] ?? 0) + qty;
+  s.report.crafted += qty;
+  ev.push({ type: 'crafted', candy: a.candy, quality: a.quality, qty });
   return null;
 }
 
@@ -166,7 +176,8 @@ function removeFromQueue(c: Content, s: State, idx: number, ev: GameEvent[]) {
 }
 
 function refill(c: Content, s: State) {
-  while (s.queue.length < c.settings.counterSpace && s.pending.length > 0) s.queue.push(s.pending.shift()!);
+  const space = c.settings.counterSpace + modifier(c, s, 'counterSpace');
+  while (s.queue.length < space && s.pending.length > 0) s.queue.push(s.pending.shift()!);
 }
 
 /** Fill the counter, let workers sell to the customer types handed to them, repeat until stable. */
@@ -203,6 +214,49 @@ function sellByWorker(c: Content, s: State, idx: number, quality: string, ev: Ga
   s.report.served += 1;
   s.report.autoServed += 1;
   ev.push({ type: 'sold', customer: cu.id, customerType: cu.type, candy: cu.wants, quality, price, auto: true });
+}
+
+/** Spend money on a skill tree node (evening only). Unlock and station effects apply at level 1. */
+function buy(c: Content, s: State, nodeId: string, ev: GameEvent[]): Fail | null {
+  if (s.phase !== 'evening') return fail('wrong-phase', { phase: 'evening' }, 'upgrades are bought in the evening');
+  const node = c.skillNodes.find((n) => n.id === nodeId);
+  if (!node) return fail('unknown-node', {}, `unknown node "${nodeId}"`);
+  const level = s.nodes[nodeId] ?? 0;
+  if (level >= node.costs.length) return fail('node-maxed', {}, `"${nodeId}" is at its maximum level`);
+  const missing = node.requires.find((r) => (s.nodes[r] ?? 0) < 1);
+  if (missing) return fail('node-locked', { node: missing }, `"${nodeId}" requires "${missing}"`);
+  const cost = node.costs[level]!;
+  if (s.money < cost) return fail('not-enough-money', {}, `needs ${cost} coins`);
+
+  s.money -= cost;
+  s.nodes[nodeId] = level + 1;
+  if (level === 0)
+    for (const e of node.effects) {
+      if (e.type === 'unlock' && !s.unlocks.includes(e.id)) s.unlocks.push(e.id);
+      if (e.type === 'addStation')
+        s.stations.push({ type: e.station, batchesLeft: c.stations.find((x) => x.id === e.station)!.batchesPerDay });
+    }
+  ev.push({ type: 'bought', node: nodeId, level: level + 1 });
+  return null;
+}
+
+/** Automated stations make their candy at the start of the day, before the player acts. */
+function runAutoStations(c: Content, s: State, ev: GameEvent[]) {
+  for (const st of s.stations) {
+    const type = c.stations.find((x) => x.id === st.type)!;
+    if (!type.auto) continue;
+    const { candy, quality } = type.auto;
+    const cost = batchCost(c, candy, quality);
+    while (st.batchesLeft > 0 && Object.entries(cost).every(([ing, qty]) => (s.supply[ing] ?? 0) >= qty)) {
+      for (const [ing, qty] of Object.entries(cost)) s.supply[ing] = (s.supply[ing] ?? 0) - qty;
+      st.batchesLeft -= 1;
+      const qty = batchSize(c, s, st.type);
+      const key = stockKey(candy, quality);
+      s.stock[key] = (s.stock[key] ?? 0) + qty;
+      s.report.crafted += qty;
+      ev.push({ type: 'crafted', candy, quality, qty });
+    }
+  }
 }
 
 function delegate(c: Content, s: State, customerType: string, on: boolean, ev: GameEvent[]): Fail | null {
@@ -259,8 +313,9 @@ function startDay(c: Content, s: State, ev: GameEvent[]) {
   s.phase = 'morning';
   s.forecast = pick(s, c.forecasts).id;
   s.report = emptyReport(s.day, s.forecast);
-  s.supply = Object.fromEntries(c.ingredients.map((i) => [i.id, i.dailySupply]));
+  s.supply = Object.fromEntries(c.ingredients.map((i) => [i.id, i.dailySupply + modifier(c, s, `supply:${i.id}`)]));
   for (const st of s.stations) st.batchesLeft = c.stations.find((x) => x.id === st.type)!.batchesPerDay;
+  runAutoStations(c, s, ev);
 
   s.contracts = s.contracts.filter((ct) => {
     if (ct.deadlineDay >= s.day) return true;
@@ -275,7 +330,7 @@ function startDay(c: Content, s: State, ev: GameEvent[]) {
 function postContract(c: Content, s: State, ev: GameEvent[]) {
   const [qMin, qMax] = c.settings.contractQty;
   const [dMin, dMax] = c.settings.contractDeadlineDays;
-  const candy = pick(s, c.candies);
+  const candy = pick(s, unlockedCandies(c, s));
   const quality = pick(s, unlockedQualities(c, s));
   const qty = randInt(s, qMin, qMax);
   const contract = {
@@ -297,17 +352,24 @@ function spawnCustomers(c: Content, s: State, ev: GameEvent[]) {
   const count = Math.max(0, Math.round(c.settings.baseArrivals * fc.arrivalsMult * spread));
   // Customer types that need a quality the shop cannot make yet do not show up.
   const types = c.customerTypes.filter((t) => isQualityUnlocked(c, s, t.minQuality));
+  const candies = unlockedCandies(c, s);
+  const patienceBonus = modifier(c, s, 'patience');
+  let arrived = 0;
   for (let i = 0; i < count; i++) {
-    const t = pickWeighted(s, types, (x) => x.weight * (fc.weights[x.id] ?? 1));
+    const t = pickWeighted(s, types, (x) => Math.max(0.1, x.weight + modifier(c, s, `weight:${x.id}`)) * (fc.weights[x.id] ?? 1));
+    // Customers only ask for recipes they could afford at their minimum quality.
+    const wanted = candies.filter((cd) => priceOf(c, cd.id, t.minQuality) <= t.budget);
+    if (wanted.length === 0) continue;
     s.pending.push({
       id: s.nextId++,
       type: t.id,
-      wants: pick(s, c.candies).id,
+      wants: pick(s, wanted).id,
       minQuality: t.minQuality,
-      patience: t.patience,
+      patience: t.patience + patienceBonus,
       budget: t.budget,
     });
+    arrived++;
   }
-  s.report.arrivals = count;
+  s.report.arrivals = arrived;
   settle(c, s, ev);
 }

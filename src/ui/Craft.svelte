@@ -1,7 +1,7 @@
 <script lang="ts">
   import { content } from '../content/index.ts';
   import { t } from '../i18n/i18n.svelte.ts';
-  import { unlockedQualities } from '../engine/economy.ts';
+  import { unlockedCandies, unlockedQualities } from '../engine/economy.ts';
   import {
     doStep,
     hold,
@@ -25,9 +25,16 @@
   let note = $state.raw<Note | null>(null);
 
   const qualities = $derived(unlockedQualities(content, game.s));
+  const candies = $derived(unlockedCandies(content, game.s));
+  // Automated stations run by themselves every morning: only hand stations appear here.
+  const handStations = $derived(
+    game.s.stations
+      .map((inst, i) => ({ inst, i }))
+      .filter(({ inst }) => !content.stations.find((x) => x.id === inst.type)?.auto),
+  );
   const st = $derived(game.s.stations[station]);
   const stType = $derived(content.stations.find((x) => x.id === st?.type));
-  const batchesLeft = $derived(game.s.stations.reduce((n, x) => n + x.batchesLeft, 0));
+  const batchesLeft = $derived(handStations.reduce((n, x) => n + x.inst.batchesLeft, 0));
   const stepName = (id: string) => {
     if (id === 'stir' || id === 'form') return t(`step.${id}`);
     const extra = content.qualities.flatMap((q) => q.extraSteps).find((x) => x.id === id);
@@ -79,11 +86,11 @@
     {:else}
       <h3>{t('craft.newBatch')}</h3>
       <div class="row">
-        {#if game.s.stations.length > 1}
+        {#if handStations.length > 1}
           <label>
             {t('craft.station')}
             <select bind:value={station}>
-              {#each game.s.stations as inst, i}
+              {#each handStations as { inst, i }}
                 <option value={i}>{t(`station.${inst.type}`)} #{i + 1}</option>
               {/each}
             </select>
@@ -92,7 +99,7 @@
         <label>
           {t('craft.candy')}
           <select bind:value={candy}>
-            {#each content.candies as cd}<option value={cd.id}>{t(cd.nameKey)}</option>{/each}
+            {#each candies as cd}<option value={cd.id}>{t(cd.nameKey)}</option>{/each}
           </select>
         </label>
         <label>

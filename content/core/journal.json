@@ -1,0 +1,55 @@
+[
+  {
+    "id": "first",
+    "textKey": "journal.first",
+    "when": {
+      "maxDay": 1
+    }
+  },
+  {
+    "id": "quiet",
+    "textKey": "journal.quiet",
+    "when": {
+      "revenueBelow": 20
+    }
+  },
+  {
+    "id": "busy",
+    "textKey": "journal.busy",
+    "when": {
+      "revenueAtLeast": 50
+    }
+  },
+  {
+    "id": "rich",
+    "textKey": "journal.rich",
+    "when": {
+      "revenueAtLeast": 100
+    }
+  },
+  {
+    "id": "lost",
+    "textKey": "journal.lost",
+    "when": {
+      "lostAtLeast": 3
+    }
+  },
+  {
+    "id": "clerk",
+    "textKey": "journal.clerk",
+    "when": {
+      "autoServedAtLeast": 1
+    }
+  },
+  {
+    "id": "garden",
+    "textKey": "journal.garden",
+    "when": {
+      "node": "dark-garden"
+    }
+  },
+  {
+    "id": "fallback",
+    "textKey": "journal.fallback"
+  }
+]

@@ -1,5 +1,5 @@
 import type { Content } from '../content/schema.ts';
-import { stockedAtLeast, unlockedQualities, priceOf, stockKey } from '../engine/economy.ts';
+import { stockedAtLeast, unlockedCandies, unlockedQualities, priceOf, stockKey } from '../engine/economy.ts';
 import { step } from '../engine/engine.ts';
 import type { Action, State } from '../engine/types.ts';
 
@@ -23,11 +23,13 @@ export function botMorning(c: Content, s: State): State {
   }
   let n = 0;
   for (let i = 0; i < s.stations.length; i++) {
+    if (c.stations.find((x) => x.id === s.stations[i]!.type)?.auto) continue; // runs by itself
     while (s.stations[i]!.batchesLeft > 0) {
       const qualities = unlockedQualities(c, s);
       // Try qualities starting from a rotating index; take the first one that is affordable.
       const order = qualities.map((_, k) => qualities[(n + k) % qualities.length]!);
-      const candy = c.candies[n % c.candies.length]!;
+      const candies = unlockedCandies(c, s);
+      const candy = candies[n % candies.length]!;
       let crafted = false;
       for (const q of order) {
         const r = step(c, s, { type: 'craft', station: i, candy: candy.id, quality: q.id });
@@ -62,11 +64,32 @@ export function botAfternoon(c: Content, s: State): State {
   return s;
 }
 
+/** Evening: keep buying the cheapest upgrade that is available and affordable. */
+export function botEvening(c: Content, s: State): State {
+  for (;;) {
+    const options = c.skillNodes
+      .map((n) => ({ n, cost: n.costs[s.nodes[n.id] ?? 0] }))
+      .filter((o): o is { n: typeof o.n; cost: number } => o.cost !== undefined)
+      .sort((a, b) => a.cost - b.cost);
+    let bought = false;
+    for (const o of options) {
+      const r = step(c, s, { type: 'buy', node: o.n.id });
+      if (r.ok) {
+        s = r.state;
+        bought = true;
+        break;
+      }
+    }
+    if (!bought) return s;
+  }
+}
+
 /** Play one full day (morning, afternoon, evening) and return the state at the next morning. */
 export function botDay(c: Content, s: State): State {
   s = botMorning(c, s);
   s = must(c, s, { type: 'endPhase' });
   s = botAfternoon(c, s);
   s = must(c, s, { type: 'endPhase' });
+  s = botEvening(c, s);
   return must(c, s, { type: 'endPhase' });
 }

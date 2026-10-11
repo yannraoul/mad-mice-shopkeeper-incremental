@@ -34,6 +34,8 @@ export const Candy = z.object({
   basePrice: z.number().positive(),
   /** Ingredients consumed per batch. */
   ingredients: z.array(IngredientQty).min(1),
+  /** Tree unlock needed before this recipe can be crafted or wanted (absent = from the start). */
+  unlock: z.string().optional(),
 });
 /** Stations are instances of a type (n cauldrons), never singletons. */
 export const Station = z.object({
@@ -42,6 +44,8 @@ export const Station = z.object({
   /** Candies produced per batch. */
   capacity: z.number().int().positive(),
   batchesPerDay: z.number().int().positive(),
+  /** Automated station: runs its batches by itself every morning (not craftable by hand). */
+  auto: z.object({ candy: id, quality: id }).optional(),
 });
 /** Customer axes: wants (picked per visit), min quality, patience, budget. */
 export const CustomerType = z.object({
@@ -70,6 +74,42 @@ export const Worker = z.object({
   unlock: z.string(),
   /** Customer types this worker can serve. */
   serves: z.array(id).min(1),
+});
+const Effect = z.discriminatedUnion('type', [
+  /** Adds an unlock id (first level only). */
+  z.object({ type: z.literal('unlock'), id: z.string() }),
+  /** Adds `add` to a stat for every level owned: capacity, counterSpace, patience, supply:<ingredient>, weight:<customerType>. */
+  z.object({ type: z.literal('modifier'), stat: z.string(), add: z.number() }),
+  /** Adds a station instance (first level only). */
+  z.object({ type: z.literal('addStation'), station: id }),
+]);
+export type Effect = z.infer<typeof Effect>;
+/** A skill tree node. `costs` has one price per level: repeatable nodes have several, unlocks one. */
+export const SkillNode = z.object({
+  id,
+  branch: z.enum(['kitchen', 'shop', 'temple']),
+  nameKey: key,
+  descKey: key,
+  costs: z.array(z.number().int().positive()).min(1),
+  /** Nodes that must be owned (level >= 1) first: how branches link to each other. */
+  requires: z.array(id).default([]),
+  effects: z.array(Effect).min(1),
+});
+/** Evening journal line, shown when `when` matches the day's report; all conditions optional. */
+export const JournalLine = z.object({
+  id,
+  textKey: key,
+  when: z
+    .object({
+      minDay: z.number().int().optional(),
+      maxDay: z.number().int().optional(),
+      revenueAtLeast: z.number().optional(),
+      revenueBelow: z.number().optional(),
+      lostAtLeast: z.number().int().optional(),
+      autoServedAtLeast: z.number().int().optional(),
+      node: z.string().optional(),
+    })
+    .default({}),
 });
 /** Fixed-size image slot; swap the file, never the code. */
 export const ArtSlot = z.object({
@@ -107,6 +147,8 @@ export const tables = {
   customerTypes: CustomerType,
   forecasts: Forecast,
   workers: Worker,
+  skillNodes: SkillNode,
+  journal: JournalLine,
   artSlots: ArtSlot,
 } as const;
 

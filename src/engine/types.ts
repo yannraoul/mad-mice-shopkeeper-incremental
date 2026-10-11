@@ -49,6 +49,8 @@ export interface State {
   rng: number;
   nextId: number;
   money: number;
+  /** Skill tree levels owned, by node id. */
+  nodes: Record<string, number>;
   /** Tree unlock ids (e.g. "oven", "contractBoard"). */
   unlocks: string[];
   stations: StationInstance[];
@@ -77,6 +79,7 @@ export type Action =
   | { type: 'serve'; customer: number; quality: string }
   | { type: 'refuse'; customer: number }
   | { type: 'delegate'; customerType: string; on: boolean }
+  | { type: 'buy'; node: string }
   | { type: 'endPhase' };
 
 export type GameEvent =
@@ -85,6 +88,7 @@ export type GameEvent =
   | { type: 'refused'; customer: number; customerType: string }
   | { type: 'left'; customer: number; customerType: string }
   | { type: 'delegated'; customerType: string; on: boolean }
+  | { type: 'bought'; node: string; level: number }
   | { type: 'contractDone'; contract: number; reward: number }
   | { type: 'contractExpired'; contract: number }
   | { type: 'contractPosted'; contract: number }
@@ -105,7 +109,13 @@ export type FailCode =
   | 'quality-too-low'
   | 'not-in-stock'
   | 'over-budget'
-  | 'cannot-delegate';
+  | 'cannot-delegate'
+  | 'unknown-node'
+  | 'node-maxed'
+  | 'node-locked'
+  | 'not-enough-money'
+  | 'candy-locked'
+  | 'station-automated';
 
 export interface Fail {
   code: FailCode;

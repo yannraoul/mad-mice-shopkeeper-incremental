@@ -59,6 +59,15 @@ export function loadContent(files: RawFile[]): Content {
   return content;
 }
 
+/** capacity | counterSpace | patience | supply:<ingredient> | weight:<customerType> */
+function validStat(c: Content, stat: string): boolean {
+  if (['capacity', 'counterSpace', 'patience'].includes(stat)) return true;
+  const [kind, id] = stat.split(':');
+  if (kind === 'supply') return c.ingredients.some((i) => i.id === id);
+  if (kind === 'weight') return c.customerTypes.some((t) => t.id === id);
+  return false;
+}
+
 const NOT_TABLES = new Set(['strings', 'settings']);
 
 /** Cross-references, duplicate ids, and FR/EN string parity. */
@@ -95,6 +104,23 @@ export function validateRefs(c: Content): string[] {
       if (!customers.has(t)) errors.push(`forecasts/${f.id}: unknown customer type "${t}"`);
   for (const s of c.settings.startStations)
     if (!stations.has(s)) errors.push(`settings: unknown start station "${s}"`);
+  const nodes = ids(c.skillNodes);
+  for (const n of c.skillNodes) {
+    for (const r of n.requires) if (!nodes.has(r)) errors.push(`skillNodes/${n.id}: unknown required node "${r}"`);
+    for (const e of n.effects) {
+      if (e.type === 'addStation' && !stations.has(e.station))
+        errors.push(`skillNodes/${n.id}: unknown station "${e.station}"`);
+      if (e.type === 'modifier' && !validStat(c, e.stat))
+        errors.push(`skillNodes/${n.id}: unknown stat "${e.stat}"`);
+    }
+  }
+  for (const st of c.stations)
+    if (st.auto) {
+      if (!c.candies.some((x) => x.id === st.auto!.candy)) errors.push(`stations/${st.id}: unknown auto candy`);
+      if (!qualities.has(st.auto.quality)) errors.push(`stations/${st.id}: unknown auto quality`);
+    }
+  for (const j of c.journal)
+    if (j.when.node && !nodes.has(j.when.node)) errors.push(`journal/${j.id}: unknown node "${j.when.node}"`);
   if (new Set(c.qualities.map((q) => q.rank)).size !== c.qualities.length)
     errors.push('qualities: ranks must be unique');
   if (c.qualities.length && !c.qualities.some((q) => q.rank === 0))

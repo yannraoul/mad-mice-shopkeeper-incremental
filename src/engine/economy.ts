@@ -3,6 +3,29 @@ import type { State } from './types.ts';
 
 // Read-only helpers over Content/State. No mutation here.
 
+/** Sum of every owned node's modifier on `stat` (per level owned). */
+export function modifier(c: Content, s: Pick<State, 'nodes'>, stat: string): number {
+  let total = 0;
+  for (const n of c.skillNodes) {
+    const level = s.nodes[n.id] ?? 0;
+    if (level === 0) continue;
+    for (const e of n.effects) if (e.type === 'modifier' && e.stat === stat) total += e.add * level;
+  }
+  return total;
+}
+
+export function isCandyUnlocked(c: Content, s: Pick<State, 'unlocks'>, candy: string): boolean {
+  const cd = c.candies.find((x) => x.id === candy);
+  return !!cd && (cd.unlock === undefined || s.unlocks.includes(cd.unlock));
+}
+
+export const unlockedCandies = (c: Content, s: Pick<State, 'unlocks'>) =>
+  c.candies.filter((x) => isCandyUnlocked(c, s, x.id));
+
+/** Candies one batch at this station yields (base capacity plus tree bonuses). */
+export const batchSize = (c: Content, s: Pick<State, 'nodes'>, stationType: string) =>
+  c.stations.find((x) => x.id === stationType)!.capacity + modifier(c, s, 'capacity');
+
 export const stockKey = (candy: string, quality: string) => `${candy}:${quality}`;
 
 export function qualityRank(c: Content, quality: string): number {

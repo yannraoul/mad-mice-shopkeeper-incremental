@@ -1,3 +1,37 @@
 [
-  { "id": "honey-drop", "nameKey": "candy.honey-drop", "basePrice": 5, "ingredients": [{ "ingredient": "honey", "qty": 2 }] }
+  {
+    "id": "honey-drop",
+    "nameKey": "candy.honey-drop",
+    "basePrice": 5,
+    "ingredients": [
+      {
+        "ingredient": "honey",
+        "qty": 2
+      }
+    ]
+  },
+  {
+    "id": "sunflower-brittle",
+    "nameKey": "candy.sunflower-brittle",
+    "basePrice": 8,
+    "unlock": "recipe-2",
+    "ingredients": [
+      {
+        "ingredient": "honey",
+        "qty": 3
+      }
+    ]
+  },
+  {
+    "id": "honey-toffee",
+    "nameKey": "candy.honey-toffee",
+    "basePrice": 12,
+    "unlock": "recipe-3",
+    "ingredients": [
+      {
+        "ingredient": "honey",
+        "qty": 4
+      }
+    ]
+  }
 ]
