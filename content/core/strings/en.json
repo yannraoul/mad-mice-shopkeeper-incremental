@@ -1,0 +1,19 @@
+{
+  "game.title": "Mad Mice Candy Shop",
+  "game.tagline": "Craft in the morning. Serve in the afternoon. Spend in the evening.",
+  "ui.language": "Language",
+  "phase.morning": "Morning",
+  "phase.afternoon": "Afternoon",
+  "phase.evening": "Evening",
+  "quality.plain": "Plain",
+  "quality.fine": "Fine",
+  "quality.perfect": "Perfect",
+  "ingredient.honey": "Honey",
+  "ingredient.dark-seed": "Dark sunflower seed",
+  "candy.honey-drop": "Honey drop",
+  "station.cauldron": "Cauldron",
+  "customer.faithful": "Faithful",
+  "customer.traveler": "Traveler",
+  "customer.merchant": "Merchant",
+  "art.shop-counter": "The shop counter"
+}

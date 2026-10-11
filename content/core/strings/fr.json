@@ -1,0 +1,19 @@
+{
+  "game.title": "La Confiserie des Souris Folles",
+  "game.tagline": "Cuisiner le matin. Servir l'après-midi. Dépenser le soir.",
+  "ui.language": "Langue",
+  "phase.morning": "Matin",
+  "phase.afternoon": "Après-midi",
+  "phase.evening": "Soir",
+  "quality.plain": "Simple",
+  "quality.fine": "Fin",
+  "quality.perfect": "Parfait",
+  "ingredient.honey": "Miel",
+  "ingredient.dark-seed": "Graine de tournesol sombre",
+  "candy.honey-drop": "Goutte de miel",
+  "station.cauldron": "Chaudron",
+  "customer.faithful": "Fidèle",
+  "customer.traveler": "Voyageur",
+  "customer.merchant": "Marchand",
+  "art.shop-counter": "Le comptoir de la boutique"
+}

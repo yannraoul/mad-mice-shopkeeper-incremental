@@ -1,0 +1,5 @@
+[
+  { "id": "plain", "rank": 0, "nameKey": "quality.plain" },
+  { "id": "fine", "rank": 1, "nameKey": "quality.fine" },
+  { "id": "perfect", "rank": 2, "nameKey": "quality.perfect" }
+]

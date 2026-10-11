@@ -1,0 +1,3 @@
+[
+  { "id": "honey-drop", "nameKey": "candy.honey-drop", "basePrice": 5, "ingredients": [{ "ingredient": "honey", "qty": 1 }] }
+]

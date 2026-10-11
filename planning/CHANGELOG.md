@@ -1,0 +1,15 @@
+# Changelog: bug fixes outside the milestone cycle
+
+Small fixes discovered outside of a milestone's own development/testing cycle
+live here, each with a **MMSIB-y** (Mad Mice Shopkeeper Incremental Bug) identifier — as
+opposed to `ROADMAP.md`'s **MMSIM-x** (Mad Mice Shopkeeper Incremental Milestone) entries, which
+are for new features/scope. A bug found and fixed *while a milestone is still
+in progress* stays folded into that milestone's own `features/MMSIM-x.md`
+entry instead of getting a MMSIB id here — this file is only for bugs
+that surface after the milestone that introduced them has already shipped. See
+`../instructions.md` for the full logging convention. Full detail for each bug
+lives in its own `bugs/MMSIB-y.md` file; this file is just the index.
+
+## Bugs
+
+<!-- Format: - [MMSIB-1](bugs/MMSIB-1.md) — Short symptom-based title -->

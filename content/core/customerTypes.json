@@ -1,0 +1,5 @@
+[
+  { "id": "faithful", "nameKey": "customer.faithful", "minQuality": "plain", "patience": 8, "budget": 6 },
+  { "id": "traveler", "nameKey": "customer.traveler", "minQuality": "plain", "patience": 5, "budget": 12 },
+  { "id": "merchant", "nameKey": "customer.merchant", "minQuality": "fine", "patience": 3, "budget": 30 }
+]
