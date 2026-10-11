@@ -224,5 +224,41 @@
         "add": 2
       }
     ]
+  },
+  {
+    "id": "errands-board",
+    "branch": "temple",
+    "nameKey": "node.errands-board",
+    "descKey": "node.errands-board.desc",
+    "costs": [
+      35
+    ],
+    "requires": [
+      "faithful"
+    ],
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "errandsBoard"
+      }
+    ]
+  },
+  {
+    "id": "map",
+    "branch": "temple",
+    "nameKey": "node.map",
+    "descKey": "node.map.desc",
+    "costs": [
+      30
+    ],
+    "requires": [
+      "faithful"
+    ],
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "map"
+      }
+    ]
   }
 ]

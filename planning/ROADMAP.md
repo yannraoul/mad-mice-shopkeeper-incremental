@@ -17,3 +17,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-3](features/MMSIM-3.md) — Craft screen (v1 scope M2)
 - [MMSIM-4](features/MMSIM-4.md) — Serve screen and clerk (v1 scope M3)
 - [MMSIM-5](features/MMSIM-5.md) — Evening screen: skill tree, journal, save/load (v1 scope M4)
+- [MMSIM-6](features/MMSIM-6.md) — Weekly stages, errands, map strip, rival pressure (v1 scope M5)

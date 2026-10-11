@@ -16,6 +16,7 @@ describe('craft session', () => {
     expect(start('plain').need).toEqual({ honey: 2 });
     expect(start('plain').steps).toEqual(['stir', 'form']);
     expect(start('fine').steps).toEqual(['stir', 'oven', 'form']);
+    expect(start('fine').need).toEqual({ honey: 3 }); // fine costs more than plain
     expect(start('perfect').need).toEqual({ honey: 2, 'dark-seed': 1 });
   });
   it('refuses to start what the engine would refuse', () => {
@@ -52,7 +53,8 @@ describe('craft session', () => {
     let cs: CraftSession = start('fine');
     expect(nextStep(cs)).toBeNull();
     expect(doStep(cs, 'stir')).toBe(cs);
-    cs = place(hold(place(hold(cs, 'honey')), 'honey'));
+    cs = hold(cs, 'honey');
+    for (let i = 0; i < 3; i++) cs = place(cs); // fine needs 3 honey: 2 + 1 extra
     expect(nextStep(cs)).toBe('stir');
     expect(doStep(cs, 'oven')).toBe(cs);
     cs = doStep(cs, 'stir');

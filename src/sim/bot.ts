@@ -1,5 +1,5 @@
 import type { Content } from '../content/schema.ts';
-import { stockedAtLeast, unlockedCandies, unlockedQualities, priceOf, stockKey } from '../engine/economy.ts';
+import { batchSize, sellableCandies, stockedAtLeast, unlockedQualities, canAfford, stockKey } from '../engine/economy.ts';
 import { step } from '../engine/engine.ts';
 import type { Action, State } from '../engine/types.ts';
 
@@ -9,6 +9,39 @@ function must(c: Content, s: State, a: Action): State {
   const r = step(c, s, a);
   if (!r.ok) throw new Error(`bot made an illegal move ${JSON.stringify(a)}: ${r.error}`);
   return r.state;
+}
+
+/** Craft one batch by hand at the first station that can do it; null if none can. */
+function craftOnce(c: Content, s: State, candy: string, quality: string): State | null {
+  for (let i = 0; i < s.stations.length; i++) {
+    if (c.stations.find((x) => x.id === s.stations[i]!.type)?.auto) continue;
+    const r = step(c, s, { type: 'craft', station: i, candy, quality });
+    if (r.ok) return r.state;
+  }
+  return null;
+}
+
+/** Take every errand that is available, then make and deliver what the delivery errands ask for. */
+function botErrands(c: Content, s: State): State {
+  for (const e of c.errands) {
+    const r = step(c, s, { type: 'acceptErrand', errand: e.id });
+    if (r.ok) s = r.state;
+  }
+  for (const e of c.errands) {
+    if (e.kind !== 'deliver' || s.errands[e.id]?.status !== 'active') continue;
+    for (const d of e.deliver) {
+      for (;;) {
+        const have = stockedAtLeast(c, s, d.candy, d.quality).reduce((n, q) => n + s.stock[stockKey(d.candy, q.id)]!, 0);
+        if (have >= d.qty) break;
+        const made = craftOnce(c, s, d.candy, d.quality);
+        if (!made) break;
+        s = made;
+      }
+    }
+    const r = step(c, s, { type: 'deliverErrand', errand: e.id });
+    if (r.ok) s = r.state;
+  }
+  return s;
 }
 
 /** Morning: spread batches across candies and unlocked qualities, then deliver contracts. */
@@ -21,6 +54,7 @@ export function botMorning(c: Content, s: State): State {
       if (r.ok) s = r.state;
     }
   }
+  s = botErrands(c, s);
   let n = 0;
   for (let i = 0; i < s.stations.length; i++) {
     if (c.stations.find((x) => x.id === s.stations[i]!.type)?.auto) continue; // runs by itself
@@ -28,7 +62,7 @@ export function botMorning(c: Content, s: State): State {
       const qualities = unlockedQualities(c, s);
       // Try qualities starting from a rotating index; take the first one that is affordable.
       const order = qualities.map((_, k) => qualities[(n + k) % qualities.length]!);
-      const candies = unlockedCandies(c, s);
+      const candies = sellableCandies(c, s);
       const candy = candies[n % candies.length]!;
       let crafted = false;
       for (const q of order) {
@@ -55,7 +89,7 @@ export function botAfternoon(c: Content, s: State): State {
   while (s.queue.length > 0) {
     const cu = s.queue[0]!;
     const fit = stockedAtLeast(c, s, cu.wants, cu.minQuality).find(
-      (q) => priceOf(c, cu.wants, q.id) <= cu.budget && (s.stock[stockKey(cu.wants, q.id)] ?? 0) > 0,
+      (q) => canAfford(c, cu) && (s.stock[stockKey(cu.wants, q.id)] ?? 0) > 0,
     );
     s = fit
       ? must(c, s, { type: 'serve', customer: cu.id, quality: fit.id })

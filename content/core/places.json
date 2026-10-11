@@ -1,0 +1,20 @@
+[
+  {
+    "id": "millpond",
+    "nameKey": "place.millpond",
+    "minStage": 0,
+    "unlock": "map"
+  },
+  {
+    "id": "old-orchard",
+    "nameKey": "place.old-orchard",
+    "minStage": 1,
+    "unlock": "map"
+  },
+  {
+    "id": "sunflower-hollow",
+    "nameKey": "place.sunflower-hollow",
+    "minStage": 2,
+    "unlock": "map"
+  }
+]

@@ -59,9 +59,9 @@ export function loadContent(files: RawFile[]): Content {
   return content;
 }
 
-/** capacity | counterSpace | patience | supply:<ingredient> | weight:<customerType> */
+/** capacity | counterSpace | patience | rivalRelief | supply:<ingredient> | weight:<customerType> */
 function validStat(c: Content, stat: string): boolean {
-  if (['capacity', 'counterSpace', 'patience'].includes(stat)) return true;
+  if (['capacity', 'counterSpace', 'patience', 'rivalRelief'].includes(stat)) return true;
   const [kind, id] = stat.split(':');
   if (kind === 'supply') return c.ingredients.some((i) => i.id === id);
   if (kind === 'weight') return c.customerTypes.some((t) => t.id === id);
@@ -119,6 +119,23 @@ export function validateRefs(c: Content): string[] {
       if (!c.candies.some((x) => x.id === st.auto!.candy)) errors.push(`stations/${st.id}: unknown auto candy`);
       if (!qualities.has(st.auto.quality)) errors.push(`stations/${st.id}: unknown auto quality`);
     }
+  if (c.stages.length === 0) errors.push('stages: at least one stage is required');
+  for (const st of c.stages)
+    if (st.rival && !ingredients.has(st.rival.ingredient)) errors.push(`stages/${st.id}: unknown ingredient "${st.rival.ingredient}"`);
+  const workerIds = ids(c.workers);
+  for (const e of c.errands) {
+    if (e.kind === 'deliver' && e.deliver.length === 0) errors.push(`errands/${e.id}: a deliver errand needs deliver rows`);
+    if (e.kind === 'mission' && !e.mission) errors.push(`errands/${e.id}: a mission errand needs a mission`);
+    if (e.mission && !workerIds.has(e.mission.worker)) errors.push(`errands/${e.id}: unknown worker "${e.mission.worker}"`);
+    for (const d of e.deliver) {
+      if (!c.candies.some((x) => x.id === d.candy)) errors.push(`errands/${e.id}: unknown candy "${d.candy}"`);
+      if (!qualities.has(d.quality)) errors.push(`errands/${e.id}: unknown quality "${d.quality}"`);
+    }
+    for (const ef of [...e.onAccept, ...e.reward]) {
+      if (ef.type === 'addStation' && !stations.has(ef.station)) errors.push(`errands/${e.id}: unknown station "${ef.station}"`);
+      if (ef.type === 'modifier' && !validStat(c, ef.stat)) errors.push(`errands/${e.id}: unknown stat "${ef.stat}"`);
+    }
+  }
   for (const j of c.journal)
     if (j.when.node && !nodes.has(j.when.node)) errors.push(`journal/${j.id}: unknown node "${j.when.node}"`);
   if (new Set(c.qualities.map((q) => q.rank)).size !== c.qualities.length)

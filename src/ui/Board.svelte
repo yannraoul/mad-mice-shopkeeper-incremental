@@ -2,6 +2,7 @@
   import { content } from '../content/index.ts';
   import { t } from '../i18n/i18n.svelte.ts';
   import { game, dispatch } from './game.svelte.ts';
+  import Errands from './Errands.svelte';
 
   const forecast = $derived(content.forecasts.find((f) => f.id === game.s.forecast)!);
   const stockRows = $derived(
@@ -18,6 +19,7 @@
   };
 </script>
 
+<div class="col">
 <section class="panel">
   <h2>{t('board.title')}</h2>
   <p>{t(forecast.nameKey)}</p>
@@ -47,3 +49,10 @@
     <p class="muted">{t('ui.stockEmpty')}</p>
   {/each}
 </section>
+
+<Errands />
+</div>
+
+<style>
+  .col { display: grid; gap: var(--gap); align-content: start; }
+</style>

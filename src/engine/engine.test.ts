@@ -263,3 +263,40 @@ describe('clerk (delegation)', () => {
     expect(sale).toMatchObject({ type: 'sold', auto: true, customerType: 'faithful' });
   });
 });
+
+describe('selling a better quality than asked for', () => {
+  const withStock = (stock: Record<string, number>) => {
+    const s = afternoon(1, ['oven'], []);
+    s.stock = stock;
+    return s;
+  };
+  it('is always possible and the customer pays at most their budget', () => {
+    const s = withStock({ 'honey-drop:fine': 2 });
+    s.queue[0] = { ...s.queue[0]!, wants: 'honey-drop', minQuality: 'plain', budget: 6 };
+    expect(priceOf(c, 'honey-drop', 'fine')).toBe(8);
+    const r = run(s, { type: 'serve', customer: s.queue[0]!.id, quality: 'fine' });
+    expect(r.money).toBe(6); // min(8, budget 6): a Fine drop sold to a plain-budget customer
+  });
+  it('pays the full price when the budget allows', () => {
+    const s = withStock({ 'honey-drop:fine': 1 });
+    s.queue[0] = { ...s.queue[0]!, wants: 'honey-drop', minQuality: 'plain', budget: 12 };
+    expect(run(s, { type: 'serve', customer: s.queue[0]!.id, quality: 'fine' }).money).toBe(8);
+  });
+  it('is refused only when even the asked-for quality is beyond their budget', () => {
+    const s = withStock({ 'honey-drop:fine': 1 });
+    s.queue[0] = { ...s.queue[0]!, wants: 'honey-drop', minQuality: 'plain', budget: 4 };
+    expect(fails(s, { type: 'serve', customer: s.queue[0]!.id, quality: 'fine' })).toMatch(/budget/);
+  });
+  it('the clerk sells the better quality when that is all there is', () => {
+    let s = newGame(c, { seed: 1, unlocks: ['clerk', 'oven'] });
+    s.batchesMade['honey-drop'] = 2;
+    s = run(s, { type: 'delegate', customerType: 'faithful', on: true }, craft('fine'), { type: 'endPhase' });
+    expect(s.report.autoServed).toBeGreaterThan(0);
+    expect(s.money).toBe(s.report.autoServed * 6); // faithful budget is 6, Fine costs 8
+  });
+  it('fine costs more honey than plain, so plain stays worth making', () => {
+    const s = run(newGame(c, { seed: 1, unlocks: ['oven'] }), craft('fine'));
+    expect(s.supply.honey).toBe(1); // 4 - 3
+    expect(run(newGame(c, { seed: 1 }), craft()).supply.honey).toBe(2); // 4 - 2
+  });
+});

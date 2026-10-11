@@ -28,6 +28,8 @@ export interface StationInstance {
 
 export interface DayReport {
   day: number;
+  /** Stage index (0-based) the day was played in. */
+  stage: number;
   forecast: string;
   crafted: number;
   arrivals: number;
@@ -42,6 +44,19 @@ export interface DayReport {
   revenue: number;
 }
 
+export interface ErrandState {
+  status: 'active' | 'done';
+  /** Missions only: days until the worker is back. */
+  daysLeft?: number;
+}
+
+export interface WeekResult {
+  stage: number;
+  passed: boolean;
+  revenue: number;
+  target: number;
+}
+
 export interface State {
   day: number;
   phase: Phase;
@@ -49,6 +64,14 @@ export interface State {
   rng: number;
   nextId: number;
   money: number;
+  /** Current weekly stage: index into `stages`, days played this week, revenue earned this week. */
+  stage: { index: number; day: number; revenue: number };
+  /** Outcome of the most recent finished week (null before the first). */
+  lastWeek: WeekResult | null;
+  /** True once the final stage has been cleared (play can continue). */
+  completed: boolean;
+  /** Errands taken or finished, by errand id. */
+  errands: Record<string, ErrandState>;
   /** Skill tree levels owned, by node id. */
   nodes: Record<string, number>;
   /** Tree unlock ids (e.g. "oven", "contractBoard"). */
@@ -80,6 +103,8 @@ export type Action =
   | { type: 'refuse'; customer: number }
   | { type: 'delegate'; customerType: string; on: boolean }
   | { type: 'buy'; node: string }
+  | { type: 'acceptErrand'; errand: string }
+  | { type: 'deliverErrand'; errand: string }
   | { type: 'endPhase' };
 
 export type GameEvent =
@@ -89,6 +114,9 @@ export type GameEvent =
   | { type: 'left'; customer: number; customerType: string }
   | { type: 'delegated'; customerType: string; on: boolean }
   | { type: 'bought'; node: string; level: number }
+  | { type: 'errandAccepted'; errand: string }
+  | { type: 'errandDone'; errand: string }
+  | ({ type: 'weekEnded' } & WeekResult)
   | { type: 'contractDone'; contract: number; reward: number }
   | { type: 'contractExpired'; contract: number }
   | { type: 'contractPosted'; contract: number }
@@ -115,7 +143,11 @@ export type FailCode =
   | 'node-locked'
   | 'not-enough-money'
   | 'candy-locked'
-  | 'station-automated';
+  | 'station-automated'
+  | 'unknown-errand'
+  | 'errand-taken'
+  | 'errand-unavailable'
+  | 'errand-not-active';
 
 export interface Fail {
   code: FailCode;

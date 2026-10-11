@@ -1,0 +1,79 @@
+[
+  {
+    "id": "queen-fever",
+    "nameKey": "errand.queen-fever",
+    "descKey": "errand.queen-fever.desc",
+    "minStage": 0,
+    "requires": [
+      "errandsBoard"
+    ],
+    "kind": "deliver",
+    "deliver": [
+      {
+        "candy": "royal-tonic",
+        "quality": "plain",
+        "qty": 4
+      }
+    ],
+    "onAccept": [
+      {
+        "type": "unlock",
+        "id": "tonic-recipe"
+      }
+    ],
+    "reward": [
+      {
+        "type": "modifier",
+        "stat": "supply:honey",
+        "add": 2
+      }
+    ]
+  },
+  {
+    "id": "pilgrim-feast",
+    "nameKey": "errand.pilgrim-feast",
+    "descKey": "errand.pilgrim-feast.desc",
+    "minStage": 1,
+    "requires": [
+      "errandsBoard",
+      "oven"
+    ],
+    "kind": "deliver",
+    "deliver": [
+      {
+        "candy": "honey-drop",
+        "quality": "fine",
+        "qty": 8
+      }
+    ],
+    "reward": [
+      {
+        "type": "modifier",
+        "stat": "counterSpace",
+        "add": 1
+      }
+    ]
+  },
+  {
+    "id": "rival-hive",
+    "nameKey": "errand.rival-hive",
+    "descKey": "errand.rival-hive.desc",
+    "minStage": 1,
+    "requires": [
+      "errandsBoard",
+      "clerk"
+    ],
+    "kind": "mission",
+    "mission": {
+      "worker": "clerk",
+      "days": 2
+    },
+    "reward": [
+      {
+        "type": "modifier",
+        "stat": "rivalRelief",
+        "add": 9
+      }
+    ]
+  }
+]

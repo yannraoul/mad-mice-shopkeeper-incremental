@@ -43,3 +43,22 @@ describe('save', () => {
     expect(deserialize(c, JSON.stringify(bad))).toMatchObject({ ok: false, code: 'unknown-content', error: expect.stringMatching(/unknown station/) });
   });
 });
+
+describe('save migration', () => {
+  it('upgrades a v1 save (before weekly stages) and keeps its progress', () => {
+    const s = played();
+    const env = JSON.parse(serialize(s));
+    env.v = 1;
+    for (const k of ['stage', 'lastWeek', 'completed', 'errands']) delete env.state[k];
+    for (const h of env.state.history) delete h.stage;
+    delete env.state.report.stage;
+    const r = deserialize(c, JSON.stringify(env));
+    if (!r.ok) throw new Error(r.error);
+    expect(r.state.stage).toEqual({ index: 0, day: 0, revenue: 0 });
+    expect(r.state.errands).toEqual({});
+    expect(r.state.completed).toBe(false);
+    expect(r.state.money).toBe(s.money);
+    expect(r.state.nodes).toEqual(s.nodes);
+    expect(r.state.history).toHaveLength(s.history.length);
+  });
+});

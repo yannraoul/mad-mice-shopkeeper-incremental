@@ -15,7 +15,7 @@ Stack: TypeScript + Vite + Svelte 5, JSON content (FR/EN), Vitest.
 
 ```
 npm install
-npm run dev            # dev server (dev URL hooks: ?seed=3&unlocks=oven,dark-garden,contractBoard)
+npm run dev            # dev server (dev URL hooks: ?seed=3&unlocks=oven,clerk,errandsBoard,map&stage=2)
 npm test               # engine + content tests
 npm run check          # svelte-check / type-check
 npm run check:content  # validate content + FR/EN string parity

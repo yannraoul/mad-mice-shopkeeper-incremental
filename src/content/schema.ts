@@ -36,6 +36,8 @@ export const Candy = z.object({
   ingredients: z.array(IngredientQty).min(1),
   /** Tree unlock needed before this recipe can be crafted or wanted (absent = from the start). */
   unlock: z.string().optional(),
+  /** Made only for errands: customers and contracts never ask for it. */
+  errandOnly: z.boolean().default(false),
 });
 /** Stations are instances of a type (n cauldrons), never singletons. */
 export const Station = z.object({
@@ -95,6 +97,41 @@ export const SkillNode = z.object({
   requires: z.array(id).default([]),
   effects: z.array(Effect).min(1),
 });
+/** A weekly stage: reach `target` coins of revenue within `days` days to open the next one. */
+export const Stage = z.object({
+  id,
+  nameKey: key,
+  days: z.number().int().positive(),
+  target: z.number().positive(),
+  /** Multiplies the number of daily arrivals (later stages are busier). */
+  arrivalsMult: z.number().positive(),
+  /** A rival hive steals `amount` of an ingredient each morning until relieved (errand reward `rivalRelief`). */
+  rival: z.object({ ingredient: id, amount: z.number().int().positive() }).optional(),
+});
+/** A scripted story errand with permanent rewards. Deliver stock, or send a worker away for some days. */
+export const Errand = z.object({
+  id,
+  nameKey: key,
+  descKey: key,
+  /** First stage index (0-based) at which it appears. */
+  minStage: z.number().int().min(0).default(0),
+  /** Unlock ids the player must own (e.g. "errandsBoard"). */
+  requires: z.array(z.string()).default([]),
+  kind: z.enum(['deliver', 'mission']),
+  deliver: z.array(z.object({ candy: id, quality: id.default('plain'), qty: z.number().int().positive() })).default([]),
+  mission: z.object({ worker: id, days: z.number().int().positive() }).optional(),
+  /** Applied when the errand is accepted (e.g. unlocking its special recipe). */
+  onAccept: z.array(Effect).default([]),
+  /** Permanent rewards, applied on completion. */
+  reward: z.array(Effect).min(1),
+});
+/** A place on the map strip: flavor only; it shows once its unlock and stage are reached. */
+export const Place = z.object({
+  id,
+  nameKey: key,
+  minStage: z.number().int().min(0).default(0),
+  unlock: z.string().optional(),
+});
 /** Evening journal line, shown when `when` matches the day's report; all conditions optional. */
 export const JournalLine = z.object({
   id,
@@ -108,6 +145,8 @@ export const JournalLine = z.object({
       lostAtLeast: z.number().int().optional(),
       autoServedAtLeast: z.number().int().optional(),
       node: z.string().optional(),
+      /** Result of the week that just ended (set on the first morning/evening after it). */
+      weekResult: z.enum(['passed', 'missed']).optional(),
     })
     .default({}),
 });
@@ -126,6 +165,8 @@ export const Settings = z.object({
   /** Relative random spread on the number of arrivals (0.25 = +-25%). */
   arrivalNoise: z.number().min(0).max(1),
   counterSpace: z.number().int().positive(),
+  /** The rival hive never pushes an ingredient below this many units (no fail state). */
+  rivalMinSupply: z.number().int().min(0),
   /** Batches of a recipe the player must craft by hand before a worker can sell it. */
   delegateAfterBatches: z.number().int().min(0),
   startStations: z.array(id).min(1),
@@ -148,6 +189,9 @@ export const tables = {
   forecasts: Forecast,
   workers: Worker,
   skillNodes: SkillNode,
+  stages: Stage,
+  errands: Errand,
+  places: Place,
   journal: JournalLine,
   artSlots: ArtSlot,
 } as const;

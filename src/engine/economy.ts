@@ -4,8 +4,13 @@ import type { State } from './types.ts';
 // Read-only helpers over Content/State. No mutation here.
 
 /** Sum of every owned node's modifier on `stat` (per level owned). */
-export function modifier(c: Content, s: Pick<State, 'nodes'>, stat: string): number {
+export function modifier(c: Content, s: Pick<State, 'nodes' | 'errands'>, stat: string): number {
   let total = 0;
+  // Permanent rewards of finished errands count like owned upgrades.
+  for (const e of c.errands) {
+    if (s.errands[e.id]?.status !== 'done') continue;
+    for (const ef of e.reward) if (ef.type === 'modifier' && ef.stat === stat) total += ef.add;
+  }
   for (const n of c.skillNodes) {
     const level = s.nodes[n.id] ?? 0;
     if (level === 0) continue;
@@ -22,8 +27,20 @@ export function isCandyUnlocked(c: Content, s: Pick<State, 'unlocks'>, candy: st
 export const unlockedCandies = (c: Content, s: Pick<State, 'unlocks'>) =>
   c.candies.filter((x) => isCandyUnlocked(c, s, x.id));
 
+/** Recipes customers and contracts may ask for (errand-only recipes are excluded). */
+export const sellableCandies = (c: Content, s: Pick<State, 'unlocks'>) =>
+  unlockedCandies(c, s).filter((x) => !x.errandOnly);
+
+export const currentStage = (c: Content, s: Pick<State, 'stage'>) => c.stages[s.stage.index]!;
+
+/** Units of `ingredient` the rival hive steals this morning (after relief from errands). */
+export function rivalPenalty(c: Content, s: Pick<State, 'stage' | 'nodes' | 'errands'>, ingredient: string): number {
+  const rival = currentStage(c, s).rival;
+  return rival && rival.ingredient === ingredient ? Math.max(0, rival.amount - modifier(c, s, 'rivalRelief')) : 0;
+}
+
 /** Candies one batch at this station yields (base capacity plus tree bonuses). */
-export const batchSize = (c: Content, s: Pick<State, 'nodes'>, stationType: string) =>
+export const batchSize = (c: Content, s: Pick<State, 'nodes' | 'errands'>, stationType: string) =>
   c.stations.find((x) => x.id === stationType)!.capacity + modifier(c, s, 'capacity');
 
 export const stockKey = (candy: string, quality: string) => `${candy}:${quality}`;
@@ -50,6 +67,17 @@ export function priceOf(c: Content, candy: string, quality: string): number {
   if (!cd || !q) throw new Error(`unknown candy/quality "${candy}"/"${quality}"`);
   return Math.round(cd.basePrice * q.priceMult);
 }
+
+/**
+ * What a customer pays for `quality`: its price, but never more than their budget. A better quality
+ * than they asked for is therefore always acceptable (they just pay at most their budget).
+ */
+export const salePrice = (c: Content, cu: { wants: string; budget: number }, quality: string): number =>
+  Math.min(priceOf(c, cu.wants, quality), cu.budget);
+
+/** Can this customer buy at all? They must afford the quality they asked for as a minimum. */
+export const canAfford = (c: Content, cu: { wants: string; minQuality: string; budget: number }): boolean =>
+  priceOf(c, cu.wants, cu.minQuality) <= cu.budget;
 
 /** Total ingredients one batch of candy at this quality consumes. */
 export function batchCost(c: Content, candy: string, quality: string): Record<string, number> {

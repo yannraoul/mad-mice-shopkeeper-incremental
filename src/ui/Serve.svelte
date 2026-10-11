@@ -1,7 +1,7 @@
 <script lang="ts">
   import { content } from '../content/index.ts';
   import { t } from '../i18n/i18n.svelte.ts';
-  import { priceOf, qualityRank, stockKey } from '../engine/economy.ts';
+  import { canAfford, qualityRank, salePrice, stockKey } from '../engine/economy.ts';
   import type { GameEvent } from '../engine/types.ts';
   import { game, dispatch } from './game.svelte.ts';
   import ImageSlot from './ImageSlot.svelte';
@@ -15,7 +15,7 @@
       const options = content.qualities
         .filter((q) => q.rank >= min && (s.stock[stockKey(cu.wants, q.id)] ?? 0) > 0)
         .sort((a, b) => a.rank - b.rank)
-        .map((q) => ({ id: q.id, name: t(q.nameKey), price: priceOf(content, cu.wants, q.id) }));
+        .map((q) => ({ id: q.id, name: t(q.nameKey), price: salePrice(content, cu, q.id) }));
       return { cu, options };
     }),
   );
@@ -67,7 +67,7 @@
         {#each options as o (o.id)}
           <button
             class="primary"
-            disabled={o.price > cu.budget}
+            disabled={!canAfford(content, cu)}
             onclick={() => dispatch({ type: 'serve', customer: cu.id, quality: o.id })}
           >
             {t('serve.serve', { quality: o.name, price: o.price })}

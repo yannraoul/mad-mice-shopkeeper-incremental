@@ -5,7 +5,7 @@ import type { State } from '../engine/types.ts';
 
 // Saves are a versioned envelope around the plain engine State. Bump SAVE_VERSION whenever the
 // State shape changes and add a step to `migrate`, so old saves keep loading.
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 const EXPORT_PREFIX = 'CST1:';
 
 const num = z.number();
@@ -14,7 +14,7 @@ const Customer = z.object({
   id: num, type: z.string(), wants: z.string(), minQuality: z.string(), patience: num, budget: num,
 });
 const Report = z.object({
-  day: num, forecast: z.string(), crafted: num, arrivals: num, served: num, autoServed: num,
+  day: num, stage: num.default(0), forecast: z.string(), crafted: num, arrivals: num, served: num, autoServed: num,
   refused: num, lost: num, contractsDone: num, contractsExpired: num, revenue: num,
 });
 const StateSchema = z.object({
@@ -23,6 +23,10 @@ const StateSchema = z.object({
   rng: num,
   nextId: num,
   money: num.min(0),
+  stage: z.object({ index: num.int().min(0), day: num.min(0), revenue: num.min(0) }),
+  lastWeek: z.object({ stage: num, passed: z.boolean(), revenue: num, target: num }).nullable(),
+  completed: z.boolean(),
+  errands: rec(z.object({ status: z.enum(['active', 'done']), daysLeft: num.optional() })),
   nodes: rec(num),
   unlocks: z.array(z.string()),
   stations: z.array(z.object({ type: z.string(), batchesLeft: num })),
@@ -57,14 +61,23 @@ export function serialize(state: State, now: Date = new Date()): string {
   return JSON.stringify(env);
 }
 
+/** MIGRATIONS[n] upgrades a version-n state to version n+1. */
+const MIGRATIONS: Record<number, (state: unknown) => unknown> = {
+  // v1 (M4) -> v2 (M5): weekly stages and errands. Old games restart the week counter at stage 1.
+  1: (state) => {
+    if (typeof state !== 'object' || state === null) return state;
+    return { ...state, stage: { index: 0, day: 0, revenue: 0 }, lastWeek: null, completed: false, errands: {} };
+  },
+};
+
 /** Upgrade an older envelope to the current shape (none exist yet). */
 function migrate(env: { v: unknown; state: unknown }): { state: unknown } | { code: LoadErrorCode; error: string } {
   if (typeof env.v !== 'number') return { code: 'not-a-save', error: 'missing save version' };
   if (env.v > SAVE_VERSION)
     return { code: 'newer-version', error: `save version ${env.v} is newer than this game (${SAVE_VERSION})` };
-  let state = env.state;
-  // for (let v = env.v; v < SAVE_VERSION; v++) state = MIGRATIONS[v](state);
   if (env.v < 1) return { code: 'not-a-save', error: `unsupported save version ${env.v}` };
+  let state = env.state;
+  for (let v = env.v; v < SAVE_VERSION; v++) state = MIGRATIONS[v]!(state);
   return { state };
 }
 
@@ -89,6 +102,8 @@ export function checkAgainstContent(c: Content, s: State): string | null {
   const has = (rows: { id: string }[], id: string) => rows.some((r) => r.id === id);
   for (const st of s.stations) if (!has(c.stations, st.type)) return `unknown station "${st.type}"`;
   for (const n of Object.keys(s.nodes)) if (!has(c.skillNodes, n)) return `unknown upgrade "${n}"`;
+  if (s.stage.index >= c.stages.length) return `unknown stage ${s.stage.index}`;
+  for (const e of Object.keys(s.errands)) if (!has(c.errands, e)) return `unknown errand "${e}"`;
   if (!has(c.forecasts, s.forecast)) return `unknown forecast "${s.forecast}"`;
   for (const t of s.delegated) if (!has(c.customerTypes, t)) return `unknown customer type "${t}"`;
   for (const k of Object.keys(s.stock)) {

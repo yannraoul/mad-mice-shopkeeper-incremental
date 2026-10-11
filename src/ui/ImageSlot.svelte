@@ -23,12 +23,22 @@
       <span>{slot.id}<br />{slot.width}×{slot.height}</span>
     </div>
   {:else}
-    <img {src} width={slot.width} height={slot.height} alt={t(slot.altKey)} class="slot" {onerror} />
+    <img
+      {src}
+      width={slot.width}
+      height={slot.height}
+      style:aspect-ratio="{slot.width} / {slot.height}"
+      style:width="{slot.width}px"
+      alt={t(slot.altKey)}
+      class="slot"
+      {onerror}
+    />
   {/if}
 {/if}
 
 <style>
-  .slot { max-width: 100%; height: auto; }
+  /* The box is sized from the slot (aspect-ratio + width) so nothing moves when the file arrives. */
+  .slot { display: block; max-width: 100%; height: auto; background: var(--line); }
   .missing {
     display: grid;
     place-items: center;

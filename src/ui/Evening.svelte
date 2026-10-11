@@ -5,6 +5,8 @@
   import { journalKey } from '../engine/journal.ts';
   import { game, dispatch, exportSave, importSave, newGameNow } from './game.svelte.ts';
   import { describeFail } from './errors.ts';
+  import Errands from './Errands.svelte';
+  import MapStrip from './MapStrip.svelte';
   import type { LoadErrorCode } from '../save/save.ts';
 
   const s = $derived(game.s);
@@ -95,7 +97,10 @@
     {/each}
   </section>
 
-    <section class="panel savebox">
+  <div class="extras">
+    <MapStrip />
+    <Errands />
+    <section class="panel">
       <h2>{t('save.title')}</h2>
       <p class="muted">{game.devMode ? t('save.devMode') : t('save.autosaved')}</p>
       <div class="row">
@@ -114,6 +119,7 @@
         <p class="bad">{t('save.error', { error: t(`save.error.${saveResult}`) })}</p>
       {/if}
     </section>
+  </div>
 </div>
 
 <style>
@@ -122,9 +128,10 @@
     .screen { grid-template-columns: 20rem 1fr; grid-template-rows: repeat(3, auto) 1fr; align-items: start; }
     .report { grid-column: 1; grid-row: 1; }
     .journalbox { grid-column: 1; grid-row: 2; }
-    .savebox { grid-column: 1; grid-row: 3; }
+    .extras { grid-column: 1; grid-row: 3; }
     .tree { grid-column: 2; grid-row: 1 / span 4; }
   }
+  .extras { display: grid; gap: var(--gap); }
   .journal { font-style: italic; margin: 0; }
   .nodes { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); margin-bottom: var(--gap); }
   .node { border: 1px solid var(--line); border-radius: 10px; padding: 0.6rem; display: grid; gap: 0.35rem; align-content: start; }

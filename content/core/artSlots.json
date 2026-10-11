@@ -1,11 +1,79 @@
 [
-  { "id": "shop-counter", "width": 320, "height": 200, "file": "art/shop-counter.svg", "altKey": "art.shop-counter" },
-  { "id": "ingredient-honey", "width": 96, "height": 96, "file": "art/ingredient-honey.svg", "altKey": "ingredient.honey" },
-  { "id": "ingredient-dark-seed", "width": 96, "height": 96, "file": "art/ingredient-dark-seed.svg", "altKey": "ingredient.dark-seed" },
-  { "id": "candy-honey-drop", "width": 96, "height": 96, "file": "art/candy-honey-drop.svg", "altKey": "candy.honey-drop" },
-  { "id": "candy-sunflower-brittle", "width": 96, "height": 96, "file": "art/candy-sunflower-brittle.svg", "altKey": "candy.sunflower-brittle" },
-  { "id": "candy-honey-toffee", "width": 96, "height": 96, "file": "art/candy-honey-toffee.svg", "altKey": "candy.honey-toffee" },
-  { "id": "station-auto-cauldron", "width": 240, "height": 180, "file": "art/station-auto-cauldron.svg", "altKey": "station.auto-cauldron" },
-  { "id": "worker-clerk", "width": 96, "height": 96, "file": "art/worker-clerk.svg", "altKey": "worker.clerk" },
-  { "id": "station-cauldron", "width": 240, "height": 180, "file": "art/station-cauldron.svg", "altKey": "station.cauldron" }
+  {
+    "id": "shop-counter",
+    "width": 320,
+    "height": 200,
+    "file": "art/shop-counter.svg",
+    "altKey": "art.shop-counter"
+  },
+  {
+    "id": "ingredient-honey",
+    "width": 96,
+    "height": 96,
+    "file": "art/ingredient-honey.svg",
+    "altKey": "ingredient.honey"
+  },
+  {
+    "id": "ingredient-dark-seed",
+    "width": 96,
+    "height": 96,
+    "file": "art/ingredient-dark-seed.svg",
+    "altKey": "ingredient.dark-seed"
+  },
+  {
+    "id": "candy-honey-drop",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-honey-drop.svg",
+    "altKey": "candy.honey-drop"
+  },
+  {
+    "id": "candy-sunflower-brittle",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-sunflower-brittle.svg",
+    "altKey": "candy.sunflower-brittle"
+  },
+  {
+    "id": "candy-honey-toffee",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-honey-toffee.svg",
+    "altKey": "candy.honey-toffee"
+  },
+  {
+    "id": "station-auto-cauldron",
+    "width": 240,
+    "height": 180,
+    "file": "art/station-auto-cauldron.svg",
+    "altKey": "station.auto-cauldron"
+  },
+  {
+    "id": "worker-clerk",
+    "width": 96,
+    "height": 96,
+    "file": "art/worker-clerk.svg",
+    "altKey": "worker.clerk"
+  },
+  {
+    "id": "station-cauldron",
+    "width": 240,
+    "height": 180,
+    "file": "art/station-cauldron.svg",
+    "altKey": "station.cauldron"
+  },
+  {
+    "id": "candy-royal-tonic",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-royal-tonic.svg",
+    "altKey": "candy.royal-tonic"
+  },
+  {
+    "id": "map-strip",
+    "width": 640,
+    "height": 120,
+    "file": "art/map-strip.svg",
+    "altKey": "art.map-strip"
+  }
 ]

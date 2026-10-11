@@ -5,16 +5,22 @@ import {
   batchCost,
   batchSize,
   isCandyUnlocked,
+  currentStage,
   isQualityUnlocked,
   modifier,
+  rivalPenalty,
+  sellableCandies,
   unlockedCandies,
+  canAfford,
   priceOf,
+  salePrice,
   qualityRank,
   stockKey,
   stockedAtLeast,
   unlockedQualities,
 } from './economy.ts';
 import type { Action, Customer, DayReport, Fail, FailCode, GameEvent, State, StepResult } from './types.ts';
+import type { Effect } from '../content/schema.ts';
 
 // Pure TypeScript, no UI imports. `step` never mutates its input: it clones the
 // state, applies one action and returns the new state plus what happened.
@@ -32,6 +38,10 @@ export function newGame(c: Content, opts: NewGameOptions): State {
     rng: opts.seed | 0,
     nextId: 1,
     money: c.settings.startMoney,
+    stage: { index: 0, day: 0, revenue: 0 },
+    lastWeek: null,
+    completed: false,
+    errands: {},
     nodes: {},
     unlocks: [...(opts.unlocks ?? [])],
     stations: c.settings.startStations.map((type) => ({ type, batchesLeft: 0 })),
@@ -43,7 +53,7 @@ export function newGame(c: Content, opts: NewGameOptions): State {
     batchesMade: {},
     pending: [],
     queue: [],
-    report: emptyReport(0, ''),
+    report: emptyReport(0, 0, ''),
     history: [],
   };
   startDay(c, s, []);
@@ -75,6 +85,10 @@ function apply(c: Content, s: State, a: Action, ev: GameEvent[]): Fail | null {
       return delegate(c, s, a.customerType, a.on, ev);
     case 'buy':
       return buy(c, s, a.node, ev);
+    case 'acceptErrand':
+      return acceptErrand(c, s, a.errand, ev);
+    case 'deliverErrand':
+      return deliverErrand(c, s, a.errand, ev);
     case 'endPhase':
       return endPhase(c, s, ev);
   }
@@ -138,8 +152,8 @@ function serve(c: Content, s: State, customerId: number, quality: string, ev: Ga
   if (qualityRank(c, quality) < qualityRank(c, cu.minQuality)) return fail('quality-too-low', {}, 'quality too low for this customer');
   const key = stockKey(cu.wants, quality);
   if ((s.stock[key] ?? 0) < 1) return fail('not-in-stock', {}, 'not in stock');
-  const price = priceOf(c, cu.wants, quality);
-  if (price > cu.budget) return fail('over-budget', {}, 'over this customer budget');
+  if (!canAfford(c, cu)) return fail('over-budget', {}, 'over this customer budget');
+  const price = salePrice(c, cu, quality);
 
   s.stock[key]! -= 1;
   s.money += price;
@@ -199,15 +213,17 @@ function settle(c: Content, s: State, ev: GameEvent[]) {
 /** Worker sale: cheapest stocked quality that satisfies the customer, only for trained recipes. */
 function workerChoice(c: Content, s: State, cu: Customer): string | null {
   if (!s.delegated.includes(cu.type)) return null;
+  if (workerAway(c, s, cu.type)) return null;
   if ((s.batchesMade[cu.wants] ?? 0) < c.settings.delegateAfterBatches) return null;
-  const fit = stockedAtLeast(c, s, cu.wants, cu.minQuality).find((q) => priceOf(c, cu.wants, q.id) <= cu.budget);
+  if (!canAfford(c, cu)) return null;
+  const fit = stockedAtLeast(c, s, cu.wants, cu.minQuality)[0]; // cheapest quality that satisfies them
   return fit ? fit.id : null;
 }
 
 /** Unlike a player action, a worker serving does not make the other customers wait longer. */
 function sellByWorker(c: Content, s: State, idx: number, quality: string, ev: GameEvent[]) {
   const cu = s.queue.splice(idx, 1)[0]!;
-  const price = priceOf(c, cu.wants, quality);
+  const price = salePrice(c, cu, quality);
   s.stock[stockKey(cu.wants, quality)]! -= 1;
   s.money += price;
   s.report.revenue += price;
@@ -230,14 +246,114 @@ function buy(c: Content, s: State, nodeId: string, ev: GameEvent[]): Fail | null
 
   s.money -= cost;
   s.nodes[nodeId] = level + 1;
-  if (level === 0)
-    for (const e of node.effects) {
-      if (e.type === 'unlock' && !s.unlocks.includes(e.id)) s.unlocks.push(e.id);
-      if (e.type === 'addStation')
-        s.stations.push({ type: e.station, batchesLeft: c.stations.find((x) => x.id === e.station)!.batchesPerDay });
-    }
+  if (level === 0) applyEffects(c, s, node.effects);
   ev.push({ type: 'bought', node: nodeId, level: level + 1 });
   return null;
+}
+
+// ------------------------------------------------------- stages & errands
+
+/** Ingredients delivered this morning: base + upgrades, minus the rival hive (never below the floor). */
+function morningSupply(c: Content, s: State, ingredient: string, base: number): number {
+  const raw = base + modifier(c, s, `supply:${ingredient}`);
+  const penalty = rivalPenalty(c, s, ingredient);
+  return penalty > 0 ? Math.max(Math.min(raw, c.settings.rivalMinSupply), raw - penalty) : raw;
+}
+
+/** End of a played day: count it toward the week; on the last day of the week, judge the target. */
+function closeDay(c: Content, s: State, ev: GameEvent[]) {
+  const stage = currentStage(c, s);
+  s.stage.revenue += s.report.revenue;
+  s.stage.day += 1;
+  if (s.stage.day < stage.days) return;
+  const passed = s.stage.revenue >= stage.target;
+  const result = { stage: s.stage.index, passed, revenue: s.stage.revenue, target: stage.target };
+  s.lastWeek = result;
+  ev.push({ type: 'weekEnded', ...result });
+  // No fail state: a missed week simply repeats the same stage; everything bought is kept.
+  if (passed) {
+    if (s.stage.index + 1 < c.stages.length) s.stage.index += 1;
+    else s.completed = true;
+  }
+  s.stage.day = 0;
+  s.stage.revenue = 0;
+}
+
+function applyEffects(c: Content, s: State, effects: Effect[]) {
+  for (const e of effects) {
+    if (e.type === 'unlock' && !s.unlocks.includes(e.id)) s.unlocks.push(e.id);
+    if (e.type === 'addStation')
+      s.stations.push({ type: e.station, batchesLeft: c.stations.find((x) => x.id === e.station)!.batchesPerDay });
+  }
+}
+
+function errandAvailable(c: Content, s: State, e: Content['errands'][number]): boolean {
+  return s.stage.index >= e.minStage && e.requires.every((u) => s.unlocks.includes(u));
+}
+
+/** A worker on a mission cannot sell to customers meanwhile. */
+function workerAway(c: Content, s: State, customerType: string): boolean {
+  const worker = c.workers.find((w) => s.unlocks.includes(w.unlock) && w.serves.includes(customerType));
+  return (
+    !!worker && c.errands.some((e) => e.mission?.worker === worker.id && s.errands[e.id]?.status === 'active')
+  );
+}
+
+function acceptErrand(c: Content, s: State, id: string, ev: GameEvent[]): Fail | null {
+  const e = c.errands.find((x) => x.id === id);
+  if (!e) return fail('unknown-errand', {}, `unknown errand "${id}"`);
+  if (s.errands[id]) return fail('errand-taken', {}, `errand "${id}" was already taken`);
+  if (!errandAvailable(c, s, e)) return fail('errand-unavailable', {}, `errand "${id}" is not available yet`);
+  s.errands[id] = e.kind === 'mission' ? { status: 'active', daysLeft: e.mission!.days } : { status: 'active' };
+  applyEffects(c, s, e.onAccept);
+  ev.push({ type: 'errandAccepted', errand: id });
+  return null;
+}
+
+function deliverErrand(c: Content, s: State, id: string, ev: GameEvent[]): Fail | null {
+  if (s.phase === 'evening') return fail('wrong-phase', { phase: 'morning' }, 'errands are delivered in the morning or afternoon');
+  const e = c.errands.find((x) => x.id === id);
+  if (!e) return fail('unknown-errand', {}, `unknown errand "${id}"`);
+  if (e.kind !== 'deliver' || s.errands[id]?.status !== 'active')
+    return fail('errand-not-active', {}, `errand "${id}" is not a delivery under way`);
+  // All rows must be satisfiable before anything is taken.
+  const probe = structuredClone(s);
+  for (const d of e.deliver) if (!takeStock(c, probe, d.candy, d.quality, d.qty)) return fail('not-enough-stock', {}, 'not enough stock');
+  for (const d of e.deliver) takeStock(c, s, d.candy, d.quality, d.qty);
+  completeErrand(c, s, e.id, ev);
+  return null;
+}
+
+/** Remove `qty` candies of at least `minQuality` (cheapest qualities first); false if there are not enough. */
+function takeStock(c: Content, s: State, candy: string, minQuality: string, qty: number): boolean {
+  const available = stockedAtLeast(c, s, candy, minQuality);
+  if (available.reduce((n, q) => n + s.stock[stockKey(candy, q.id)]!, 0) < qty) return false;
+  let need = qty;
+  for (const q of available) {
+    const key = stockKey(candy, q.id);
+    const take = Math.min(need, s.stock[key]!);
+    s.stock[key]! -= take;
+    need -= take;
+    if (need === 0) break;
+  }
+  return true;
+}
+
+function completeErrand(c: Content, s: State, id: string, ev: GameEvent[]) {
+  const e = c.errands.find((x) => x.id === id)!;
+  s.errands[id] = { status: 'done' };
+  applyEffects(c, s, e.reward);
+  ev.push({ type: 'errandDone', errand: id });
+}
+
+/** A new day: missions get one day closer; finished ones pay out. */
+function progressMissions(c: Content, s: State, ev: GameEvent[]) {
+  for (const e of c.errands) {
+    const st = s.errands[e.id];
+    if (e.kind !== 'mission' || st?.status !== 'active') continue;
+    st.daysLeft = (st.daysLeft ?? 1) - 1;
+    if (st.daysLeft <= 0) completeErrand(c, s, e.id, ev);
+  }
 }
 
 /** Automated stations make their candy at the start of the day, before the player acts. */
@@ -284,6 +400,7 @@ function endPhase(c: Content, s: State, ev: GameEvent[]): Fail | null {
   }
   if (newDay) {
     s.history.push(s.report);
+    closeDay(c, s, ev);
     startDay(c, s, ev);
   } else {
     s.phase = phase;
@@ -292,9 +409,10 @@ function endPhase(c: Content, s: State, ev: GameEvent[]): Fail | null {
   return null;
 }
 
-function emptyReport(day: number, forecast: string): DayReport {
+function emptyReport(day: number, stage: number, forecast: string): DayReport {
   return {
     day,
+    stage,
     forecast,
     crafted: 0,
     arrivals: 0,
@@ -312,8 +430,9 @@ function startDay(c: Content, s: State, ev: GameEvent[]) {
   s.day += 1;
   s.phase = 'morning';
   s.forecast = pick(s, c.forecasts).id;
-  s.report = emptyReport(s.day, s.forecast);
-  s.supply = Object.fromEntries(c.ingredients.map((i) => [i.id, i.dailySupply + modifier(c, s, `supply:${i.id}`)]));
+  s.report = emptyReport(s.day, s.stage.index, s.forecast);
+  progressMissions(c, s, ev);
+  s.supply = Object.fromEntries(c.ingredients.map((i) => [i.id, morningSupply(c, s, i.id, i.dailySupply)]));
   for (const st of s.stations) st.batchesLeft = c.stations.find((x) => x.id === st.type)!.batchesPerDay;
   runAutoStations(c, s, ev);
 
@@ -330,7 +449,7 @@ function startDay(c: Content, s: State, ev: GameEvent[]) {
 function postContract(c: Content, s: State, ev: GameEvent[]) {
   const [qMin, qMax] = c.settings.contractQty;
   const [dMin, dMax] = c.settings.contractDeadlineDays;
-  const candy = pick(s, unlockedCandies(c, s));
+  const candy = pick(s, sellableCandies(c, s));
   const quality = pick(s, unlockedQualities(c, s));
   const qty = randInt(s, qMin, qMax);
   const contract = {
@@ -349,10 +468,10 @@ function postContract(c: Content, s: State, ev: GameEvent[]) {
 function spawnCustomers(c: Content, s: State, ev: GameEvent[]) {
   const fc = c.forecasts.find((f) => f.id === s.forecast)!;
   const spread = 1 + c.settings.arrivalNoise * (rand(s) * 2 - 1);
-  const count = Math.max(0, Math.round(c.settings.baseArrivals * fc.arrivalsMult * spread));
+  const count = Math.max(0, Math.round(c.settings.baseArrivals * currentStage(c, s).arrivalsMult * fc.arrivalsMult * spread));
   // Customer types that need a quality the shop cannot make yet do not show up.
   const types = c.customerTypes.filter((t) => isQualityUnlocked(c, s, t.minQuality));
-  const candies = unlockedCandies(c, s);
+  const candies = sellableCandies(c, s);
   const patienceBonus = modifier(c, s, 'patience');
   let arrived = 0;
   for (let i = 0; i < count; i++) {

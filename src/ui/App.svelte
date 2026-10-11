@@ -8,6 +8,7 @@
   import Craft from './Craft.svelte';
   import Serve from './Serve.svelte';
   import Evening from './Evening.svelte';
+  import StageBar from './StageBar.svelte';
 
   const endLabel = $derived(
     game.s.phase === 'morning' ? 'ui.endMorning' : game.s.phase === 'afternoon' ? 'ui.endAfternoon' : 'ui.endEvening',
@@ -30,6 +31,8 @@
     <span>{t(`phase.${game.s.phase}`)}</span>
     <span>{t('ui.money', { n: game.s.money })}</span>
   </div>
+
+  <StageBar />
 
   {#if game.s.phase === 'morning'}
     <div class="screen">

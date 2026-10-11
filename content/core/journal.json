@@ -1,5 +1,19 @@
 [
   {
+    "id": "week-passed",
+    "textKey": "journal.week-passed",
+    "when": {
+      "weekResult": "passed"
+    }
+  },
+  {
+    "id": "week-missed",
+    "textKey": "journal.week-missed",
+    "when": {
+      "weekResult": "missed"
+    }
+  },
+  {
     "id": "first",
     "textKey": "journal.first",
     "when": {

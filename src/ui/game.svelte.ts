@@ -4,10 +4,10 @@ import type { Action, FailCode, GameEvent, State } from '../engine/types.ts';
 import { exportString, importString, type LoadErrorCode } from '../save/save.ts';
 import { clearSave, loadSaved, writeSave } from '../save/storage.ts';
 
-// The one place UI state meets the engine and the save. Dev hooks: ?seed=12&unlocks=oven,clerk
+// The one place UI state meets the engine and the save. Dev hooks: ?seed=12&unlocks=oven,clerk&stage=2
 // start a throwaway game and never touch the real save.
 const params = new URLSearchParams(location.search);
-const devMode = params.has('seed') || params.has('unlocks');
+const devMode = params.has('seed') || params.has('unlocks') || params.has('stage');
 const randomSeed = () => Math.floor(Math.random() * 2 ** 31);
 const seed = Number(params.get('seed')) || randomSeed();
 const unlocks = (params.get('unlocks') ?? '').split(',').filter(Boolean);
@@ -17,7 +17,9 @@ function initialState(): State {
     const saved = loadSaved(content);
     if (saved?.ok) return saved.state;
   }
-  return newGame(content, { seed, unlocks });
+  const fresh = newGame(content, { seed, unlocks });
+  const stage = Number(params.get('stage')) || 0; // dev hook: start in stage N (1-based)
+  return stage > 1 ? { ...fresh, stage: { ...fresh.stage, index: Math.min(stage, content.stages.length) - 1 } } : fresh;
 }
 
 // `$state.raw`: the engine state is immutable (every step returns a new one) and must stay a

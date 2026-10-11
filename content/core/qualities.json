@@ -1,12 +1,28 @@
 [
-  { "id": "plain", "rank": 0, "nameKey": "quality.plain", "priceMult": 1 },
+  {
+    "id": "plain",
+    "rank": 0,
+    "nameKey": "quality.plain",
+    "priceMult": 1
+  },
   {
     "id": "fine",
     "rank": 1,
     "nameKey": "quality.fine",
     "priceMult": 1.6,
     "unlock": "oven",
-    "extraSteps": [{ "id": "oven", "nameKey": "step.oven" }]
+    "extraSteps": [
+      {
+        "id": "oven",
+        "nameKey": "step.oven"
+      }
+    ],
+    "extraIngredients": [
+      {
+        "ingredient": "honey",
+        "qty": 1
+      }
+    ]
   },
   {
     "id": "perfect",
@@ -14,6 +30,11 @@
     "nameKey": "quality.perfect",
     "priceMult": 3,
     "unlock": "dark-garden",
-    "extraIngredients": [{ "ingredient": "dark-seed", "qty": 1 }]
+    "extraIngredients": [
+      {
+        "ingredient": "dark-seed",
+        "qty": 1
+      }
+    ]
   }
 ]
