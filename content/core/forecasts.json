@@ -1,0 +1,7 @@
+[
+  { "id": "quiet", "nameKey": "forecast.quiet", "arrivalsMult": 0.6 },
+  { "id": "normal", "nameKey": "forecast.normal", "arrivalsMult": 1 },
+  { "id": "busy", "nameKey": "forecast.busy", "arrivalsMult": 1.5 },
+  { "id": "pilgrims", "nameKey": "forecast.pilgrims", "arrivalsMult": 1.1, "weights": { "faithful": 2.5 } },
+  { "id": "travelers", "nameKey": "forecast.travelers", "arrivalsMult": 1.1, "weights": { "traveler": 2, "merchant": 2 } }
+]

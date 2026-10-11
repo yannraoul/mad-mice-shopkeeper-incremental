@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "check:content": "tsx scripts/check-content.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "sim": "tsx scripts/simulate.ts"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.3.1",

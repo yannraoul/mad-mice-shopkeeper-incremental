@@ -1,4 +1,4 @@
 [
-  { "id": "honey", "nameKey": "ingredient.honey" },
-  { "id": "dark-seed", "nameKey": "ingredient.dark-seed" }
+  { "id": "honey", "nameKey": "ingredient.honey", "dailySupply": 4 },
+  { "id": "dark-seed", "nameKey": "ingredient.dark-seed", "dailySupply": 2 }
 ]

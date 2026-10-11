@@ -1,0 +1,11 @@
+{
+  "baseArrivals": 8,
+  "arrivalNoise": 0.25,
+  "counterSpace": 4,
+  "startStations": ["cauldron"],
+  "startMoney": 0,
+  "contractChance": 0.5,
+  "contractMult": 1.25,
+  "contractQty": [3, 6],
+  "contractDeadlineDays": [2, 4]
+}

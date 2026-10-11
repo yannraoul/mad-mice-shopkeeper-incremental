@@ -19,6 +19,7 @@ npm run dev            # dev server
 npm test               # engine + content tests
 npm run check          # svelte-check / type-check
 npm run check:content  # validate content + FR/EN string parity
+npm run sim -- --days 30 --seed 1   # headless balance simulation
 npm run build          # full build -> dist/
 npm run build:preview  # build WITHOUT optional packs -> dist-preview/
 ```
