@@ -87,6 +87,9 @@ export function validateRefs(c: Content): string[] {
   for (const q of c.qualities)
     for (const i of q.extraIngredients)
       if (!ingredients.has(i.ingredient)) errors.push(`qualities/${q.id}: unknown ingredient "${i.ingredient}"`);
+  for (const w of c.workers)
+    for (const t of w.serves)
+      if (!customers.has(t)) errors.push(`workers/${w.id}: unknown customer type "${t}"`);
   for (const f of c.forecasts)
     for (const t of Object.keys(f.weights))
       if (!customers.has(t)) errors.push(`forecasts/${f.id}: unknown customer type "${t}"`);
@@ -99,7 +102,7 @@ export function validateRefs(c: Content): string[] {
 
   // Every craftable thing needs an image slot (placeholders at final size, swappable files).
   const slots = ids(c.artSlots);
-  for (const [prefix, rows] of [['ingredient', c.ingredients], ['candy', c.candies], ['station', c.stations]] as const)
+  for (const [prefix, rows] of [['ingredient', c.ingredients], ['candy', c.candies], ['station', c.stations], ['worker', c.workers]] as const)
     for (const r of rows)
       if (!slots.has(`${prefix}-${r.id}`)) errors.push(`artSlots: missing slot "${prefix}-${r.id}"`);
 

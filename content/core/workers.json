@@ -1,0 +1,3 @@
+[
+  { "id": "clerk", "nameKey": "worker.clerk", "unlock": "clerk", "serves": ["faithful"] }
+]

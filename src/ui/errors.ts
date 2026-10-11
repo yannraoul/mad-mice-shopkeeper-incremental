@@ -11,6 +11,7 @@ export function describeFail(code: FailCode, params: Record<string, string> = {}
       : k === 'quality' ? t(`quality.${v}`)
       : k === 'candy' ? t(`candy.${v}`)
       : k === 'phase' ? t(`phase.${v}`)
+      : k === 'customerType' ? t(`customer.${v}`)
       : v;
     names[k] = name.toLocaleLowerCase(i18n.lang);
   }

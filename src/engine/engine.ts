@@ -34,6 +34,8 @@ export function newGame(c: Content, opts: NewGameOptions): State {
     stock: {},
     forecast: '',
     contracts: [],
+    delegated: [],
+    batchesMade: {},
     pending: [],
     queue: [],
     report: emptyReport(0, ''),
@@ -64,6 +66,8 @@ function apply(c: Content, s: State, a: Action, ev: GameEvent[]): Fail | null {
       return serve(c, s, a.customer, a.quality, ev);
     case 'refuse':
       return refuse(c, s, a.customer, ev);
+    case 'delegate':
+      return delegate(c, s, a.customerType, a.on, ev);
     case 'endPhase':
       return endPhase(c, s, ev);
   }
@@ -84,6 +88,7 @@ function craft(c: Content, s: State, a: Extract<Action, { type: 'craft' }>, ev: 
 
   for (const [ing, qty] of Object.entries(cost)) s.supply[ing] = (s.supply[ing] ?? 0) - qty;
   station.batchesLeft -= 1;
+  s.batchesMade[a.candy] = (s.batchesMade[a.candy] ?? 0) + 1;
   const key = stockKey(a.candy, a.quality);
   s.stock[key] = (s.stock[key] ?? 0) + type.capacity;
   s.report.crafted += type.capacity;
@@ -130,7 +135,7 @@ function serve(c: Content, s: State, customerId: number, quality: string, ev: Ga
   s.money += price;
   s.report.revenue += price;
   s.report.served += 1;
-  ev.push({ type: 'sold', customer: cu.id, candy: cu.wants, quality, price });
+  ev.push({ type: 'sold', customer: cu.id, customerType: cu.type, candy: cu.wants, quality, price, auto: false });
   removeFromQueue(c, s, idx, ev);
   return null;
 }
@@ -140,7 +145,7 @@ function refuse(c: Content, s: State, customerId: number, ev: GameEvent[]): Fail
   const idx = s.queue.findIndex((x) => x.id === customerId);
   if (idx < 0) return fail('no-customer', {}, `customer #${customerId} is not at the counter`);
   s.report.refused += 1;
-  ev.push({ type: 'refused', customer: customerId });
+  ev.push({ type: 'refused', customer: customerId, customerType: s.queue[idx]!.type });
   removeFromQueue(c, s, idx, ev);
   return null;
 }
@@ -153,15 +158,61 @@ function removeFromQueue(c: Content, s: State, idx: number, ev: GameEvent[]) {
   for (const cu of s.queue) {
     if (cu.patience <= 0) {
       s.report.lost += 1;
-      ev.push({ type: 'left', customer: cu.id });
+      ev.push({ type: 'left', customer: cu.id, customerType: cu.type });
     } else stay.push(cu);
   }
   s.queue = stay;
-  refill(c, s);
+  settle(c, s, ev);
 }
 
 function refill(c: Content, s: State) {
   while (s.queue.length < c.settings.counterSpace && s.pending.length > 0) s.queue.push(s.pending.shift()!);
+}
+
+/** Fill the counter, let workers sell to the customer types handed to them, repeat until stable. */
+function settle(c: Content, s: State, ev: GameEvent[]) {
+  for (;;) {
+    refill(c, s);
+    let sold = false;
+    for (let i = 0; i < s.queue.length && !sold; i++) {
+      const quality = workerChoice(c, s, s.queue[i]!);
+      if (quality) {
+        sellByWorker(c, s, i, quality, ev);
+        sold = true;
+      }
+    }
+    if (!sold) return;
+  }
+}
+
+/** Worker sale: cheapest stocked quality that satisfies the customer, only for trained recipes. */
+function workerChoice(c: Content, s: State, cu: Customer): string | null {
+  if (!s.delegated.includes(cu.type)) return null;
+  if ((s.batchesMade[cu.wants] ?? 0) < c.settings.delegateAfterBatches) return null;
+  const fit = stockedAtLeast(c, s, cu.wants, cu.minQuality).find((q) => priceOf(c, cu.wants, q.id) <= cu.budget);
+  return fit ? fit.id : null;
+}
+
+/** Unlike a player action, a worker serving does not make the other customers wait longer. */
+function sellByWorker(c: Content, s: State, idx: number, quality: string, ev: GameEvent[]) {
+  const cu = s.queue.splice(idx, 1)[0]!;
+  const price = priceOf(c, cu.wants, quality);
+  s.stock[stockKey(cu.wants, quality)]! -= 1;
+  s.money += price;
+  s.report.revenue += price;
+  s.report.served += 1;
+  s.report.autoServed += 1;
+  ev.push({ type: 'sold', customer: cu.id, customerType: cu.type, candy: cu.wants, quality, price, auto: true });
+}
+
+function delegate(c: Content, s: State, customerType: string, on: boolean, ev: GameEvent[]): Fail | null {
+  const worker = c.workers.find((w) => s.unlocks.includes(w.unlock) && w.serves.includes(customerType));
+  if (!worker) return fail('cannot-delegate', { customerType }, `nobody can serve "${customerType}" customers`);
+  s.delegated = s.delegated.filter((t) => t !== customerType);
+  if (on) s.delegated.push(customerType);
+  ev.push({ type: 'delegated', customerType, on });
+  if (s.phase === 'afternoon') settle(c, s, ev);
+  return null;
 }
 
 // ------------------------------------------------------------ day cycle
@@ -169,11 +220,11 @@ function refill(c: Content, s: State) {
 function endPhase(c: Content, s: State, ev: GameEvent[]): Fail | null {
   const { phase, newDay } = nextPhase(s.phase);
   if (s.phase === 'morning') {
-    spawnCustomers(c, s);
+    spawnCustomers(c, s, ev);
   } else if (s.phase === 'afternoon') {
     const left = s.queue.length + s.pending.length;
     s.report.lost += left;
-    for (const cu of [...s.queue, ...s.pending]) ev.push({ type: 'left', customer: cu.id });
+    for (const cu of [...s.queue, ...s.pending]) ev.push({ type: 'left', customer: cu.id, customerType: cu.type });
     s.queue = [];
     s.pending = [];
   }
@@ -194,6 +245,7 @@ function emptyReport(day: number, forecast: string): DayReport {
     crafted: 0,
     arrivals: 0,
     served: 0,
+    autoServed: 0,
     refused: 0,
     lost: 0,
     contractsDone: 0,
@@ -239,7 +291,7 @@ function postContract(c: Content, s: State, ev: GameEvent[]) {
 }
 
 /** The real afternoon: the forecast shifts the odds, it does not fix the outcome. */
-function spawnCustomers(c: Content, s: State) {
+function spawnCustomers(c: Content, s: State, ev: GameEvent[]) {
   const fc = c.forecasts.find((f) => f.id === s.forecast)!;
   const spread = 1 + c.settings.arrivalNoise * (rand(s) * 2 - 1);
   const count = Math.max(0, Math.round(c.settings.baseArrivals * fc.arrivalsMult * spread));
@@ -257,5 +309,5 @@ function spawnCustomers(c: Content, s: State) {
     });
   }
   s.report.arrivals = count;
-  refill(c, s);
+  settle(c, s, ev);
 }

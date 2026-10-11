@@ -32,6 +32,8 @@ export interface DayReport {
   crafted: number;
   arrivals: number;
   served: number;
+  /** Part of `served` that was sold by a worker. */
+  autoServed: number;
   refused: number;
   /** Customers who left impatient or were still waiting when the afternoon ended. */
   lost: number;
@@ -58,6 +60,10 @@ export interface State {
   contracts: Contract[];
   /** Customers who have not yet reached the counter. */
   pending: Customer[];
+  /** Customer types handed over to a worker (see `delegate`). */
+  delegated: string[];
+  /** Batches crafted by hand per candy id; workers can sell a recipe once enough exist. */
+  batchesMade: Record<string, number>;
   /** Customers at the counter (bounded by settings.counterSpace). */
   queue: Customer[];
   report: DayReport;
@@ -70,13 +76,15 @@ export type Action =
   | { type: 'fulfill'; contract: number }
   | { type: 'serve'; customer: number; quality: string }
   | { type: 'refuse'; customer: number }
+  | { type: 'delegate'; customerType: string; on: boolean }
   | { type: 'endPhase' };
 
 export type GameEvent =
   | { type: 'crafted'; candy: string; quality: string; qty: number }
-  | { type: 'sold'; customer: number; candy: string; quality: string; price: number }
-  | { type: 'refused'; customer: number }
-  | { type: 'left'; customer: number }
+  | { type: 'sold'; customer: number; customerType: string; candy: string; quality: string; price: number; auto: boolean }
+  | { type: 'refused'; customer: number; customerType: string }
+  | { type: 'left'; customer: number; customerType: string }
+  | { type: 'delegated'; customerType: string; on: boolean }
   | { type: 'contractDone'; contract: number; reward: number }
   | { type: 'contractExpired'; contract: number }
   | { type: 'contractPosted'; contract: number }
@@ -96,7 +104,8 @@ export type FailCode =
   | 'no-customer'
   | 'quality-too-low'
   | 'not-in-stock'
-  | 'over-budget';
+  | 'over-budget'
+  | 'cannot-delegate';
 
 export interface Fail {
   code: FailCode;

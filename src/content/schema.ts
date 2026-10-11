@@ -62,6 +62,15 @@ export const Forecast = z.object({
   /** Per customer type multiplier on its weight (default 1). */
   weights: z.record(z.string(), z.number().positive()).default({}),
 });
+/** A hired helper: once unlocked it can take over customer types the player delegates. */
+export const Worker = z.object({
+  id,
+  nameKey: key,
+  /** Tree unlock that hires the worker (e.g. "clerk"). */
+  unlock: z.string(),
+  /** Customer types this worker can serve. */
+  serves: z.array(id).min(1),
+});
 /** Fixed-size image slot; swap the file, never the code. */
 export const ArtSlot = z.object({
   id,
@@ -77,6 +86,8 @@ export const Settings = z.object({
   /** Relative random spread on the number of arrivals (0.25 = +-25%). */
   arrivalNoise: z.number().min(0).max(1),
   counterSpace: z.number().int().positive(),
+  /** Batches of a recipe the player must craft by hand before a worker can sell it. */
+  delegateAfterBatches: z.number().int().min(0),
   startStations: z.array(id).min(1),
   startMoney: z.number().min(0),
   /** Chance per day of a new contract (needs the `contractBoard` unlock). */
@@ -95,6 +106,7 @@ export const tables = {
   stations: Station,
   customerTypes: CustomerType,
   forecasts: Forecast,
+  workers: Worker,
   artSlots: ArtSlot,
 } as const;
 

@@ -6,6 +6,7 @@
   import { describeFail } from './errors.ts';
   import Board from './Board.svelte';
   import Craft from './Craft.svelte';
+  import Serve from './Serve.svelte';
 
   const endLabel = $derived(
     game.s.phase === 'morning' ? 'ui.endMorning' : game.s.phase === 'afternoon' ? 'ui.endAfternoon' : 'ui.endEvening',
@@ -33,6 +34,11 @@
     <div class="screen">
       <Board />
       <Craft />
+    </div>
+  {:else if game.s.phase === 'afternoon'}
+    <div class="screen">
+      <Board />
+      <Serve />
     </div>
   {:else}
     <section class="panel"><p class="muted">{t('ui.comingSoon')}</p></section>

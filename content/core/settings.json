@@ -2,6 +2,7 @@
   "baseArrivals": 8,
   "arrivalNoise": 0.25,
   "counterSpace": 4,
+  "delegateAfterBatches": 2,
   "startStations": ["cauldron"],
   "startMoney": 0,
   "contractChance": 0.5,

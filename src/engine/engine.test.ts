@@ -210,3 +210,56 @@ describe('contracts', () => {
     expect(posted(['contractBoard'])).toBeGreaterThan(0);
   });
 });
+
+describe('clerk (delegation)', () => {
+  const withClerk = (trained = 2): State => {
+    const s = newGame(c, { seed: 1, unlocks: ['clerk'] });
+    s.batchesMade['honey-drop'] = trained;
+    return run(s, { type: 'delegate', customerType: 'faithful', on: true });
+  };
+  const toAfternoon = (s: State) => run(run(s, craft(), craft()), { type: 'endPhase' });
+
+  it('needs a hired worker that serves that customer type', () => {
+    expect(failCode(newGame(c, { seed: 1 }), { type: 'delegate', customerType: 'faithful', on: true })).toEqual({
+      code: 'cannot-delegate',
+      params: { customerType: 'faithful' },
+    });
+    expect(failCode(newGame(c, { seed: 1, unlocks: ['clerk'] }), { type: 'delegate', customerType: 'traveler', on: true })?.code).toBe(
+      'cannot-delegate',
+    );
+  });
+  it('counts hand-crafted batches per candy', () => {
+    const s = run(newGame(c, { seed: 1 }), craft(), craft());
+    expect(s.batchesMade['honey-drop']).toBe(2);
+  });
+  it('sells to delegated customers on its own once trained, without draining others patience', () => {
+    const s = toAfternoon(withClerk());
+    expect(s.report.autoServed).toBeGreaterThan(0);
+    expect(s.report.served).toBe(s.report.autoServed);
+    expect(s.money).toBeGreaterThan(0);
+    for (const cu of s.queue) expect(cu.type === 'faithful' && s.stock['honey-drop:plain']! > 0).toBe(false);
+    for (const cu of s.queue) expect(cu.patience).toBe(c.customerTypes.find((t) => t.id === cu.type)!.patience);
+  });
+  it('does nothing for a recipe that has not been crafted by hand enough', () => {
+    // 2 batches are crafted today by this test, so require more than that.
+    const s0 = newGame(c, { seed: 1, unlocks: ['clerk'] });
+    s0.batchesMade['honey-drop'] = 0;
+    const s = run(s0, { type: 'delegate', customerType: 'faithful', on: true }, craft(), { type: 'endPhase' });
+    expect(s.batchesMade['honey-drop']).toBe(1);
+    expect(s.report.autoServed).toBe(0);
+  });
+  it('can be switched off, and leaves customers it cannot serve to the player', () => {
+    const on = withClerk();
+    const off = run(on, { type: 'delegate', customerType: 'faithful', on: false });
+    expect(off.delegated).toEqual([]);
+    const s = run(withClerk(), { type: 'endPhase' }); // no stock: nothing sold, customers stay
+    expect(s.report.autoServed).toBe(0);
+    expect(s.queue.length).toBeGreaterThan(0);
+  });
+  it('reports who bought in events', () => {
+    const r = step(c, run(withClerk(), craft(), craft()), { type: 'endPhase' });
+    if (!r.ok) throw new Error(r.error);
+    const sale = r.events.find((e) => e.type === 'sold');
+    expect(sale).toMatchObject({ type: 'sold', auto: true, customerType: 'faithful' });
+  });
+});

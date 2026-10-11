@@ -28,3 +28,10 @@ describe('simulator', () => {
     expect(formatReport(simulate(c, { days: 3, seed: 1 }))).toMatch(/total revenue/);
   });
 });
+
+describe('simulator with a clerk', () => {
+  it('runs legally and the clerk sells once the recipe is trained', () => {
+    const r = simulate(c, { days: 20, seed: 6, unlocks: ['clerk'] });
+    expect(r.history.reduce((n, d) => n + d.autoServed, 0)).toBeGreaterThan(0);
+  });
+});

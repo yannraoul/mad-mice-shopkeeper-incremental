@@ -13,6 +13,14 @@ function must(c: Content, s: State, a: Action): State {
 
 /** Morning: spread batches across candies and unlocked qualities, then deliver contracts. */
 export function botMorning(c: Content, s: State): State {
+  // Hand over every customer type a hired worker can take.
+  for (const w of c.workers) {
+    if (!s.unlocks.includes(w.unlock)) continue;
+    for (const type of w.serves) {
+      const r = step(c, s, { type: 'delegate', customerType: type, on: true });
+      if (r.ok) s = r.state;
+    }
+  }
   let n = 0;
   for (let i = 0; i < s.stations.length; i++) {
     while (s.stations[i]!.batchesLeft > 0) {

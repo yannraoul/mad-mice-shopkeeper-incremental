@@ -23,11 +23,11 @@ export function simulate(c: Content, opts: SimOptions): SimResult {
 
 /** Plain-text table of the revenue curve. */
 export function formatReport(r: SimResult): string {
-  const head = 'day  forecast   crafted  arrivals  served  refused  lost  contracts  revenue';
+  const head = 'day  forecast   crafted  arrivals  served  clerk  refused  lost  contracts  revenue';
   const rows = r.history.map(
     (d) =>
       `${String(d.day).padStart(3)}  ${d.forecast.padEnd(9)}  ${String(d.crafted).padStart(7)}  ` +
-      `${String(d.arrivals).padStart(8)}  ${String(d.served).padStart(6)}  ${String(d.refused).padStart(7)}  ` +
+      `${String(d.arrivals).padStart(8)}  ${String(d.served).padStart(6)}  ${String(d.autoServed).padStart(5)}  ${String(d.refused).padStart(7)}  ` +
       `${String(d.lost).padStart(4)}  ${String(d.contractsDone).padStart(9)}  ${String(d.revenue).padStart(7)}`,
   );
   const total = r.history.reduce((n, d) => n + d.revenue, 0);
