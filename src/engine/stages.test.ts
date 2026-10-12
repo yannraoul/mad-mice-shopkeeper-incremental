@@ -54,13 +54,13 @@ describe('weekly stages', () => {
   it('missing the target repeats the week and keeps everything (no fail state)', () => {
     const s0 = newGame(c, { seed: 1, unlocks: ['clerk'] });
     s0.nodes.oven = 1;
-    s0.stock['honey-drop:plain'] = 5;
+    s0.stock['candy-cane:plain'] = 5;
     const s = days(s0, 7, 10); // 70 is far below any stage target
     expect(s.stage).toEqual({ index: 0, day: 0, revenue: 0 });
     expect(s.lastWeek).toMatchObject({ stage: 0, passed: false, revenue: 70 });
     expect(s.nodes.oven).toBe(1);
     expect(s.unlocks).toContain('clerk');
-    expect(s.stock['honey-drop:plain']).toBe(5);
+    expect(s.stock['candy-cane:plain']).toBe(5);
     expect(s.day).toBe(8);
   });
   it('clearing the final stage sets completed and play continues on that stage', () => {
@@ -105,13 +105,13 @@ describe('rival hive', () => {
     return s.supply.honey;
   };
   it('does not exist in stage 1', () => {
-    expect(run(newGame(c, { seed: 1 }), end, end, end).supply.honey).toBe(4);
+    expect(run(newGame(c, { seed: 1 }), end, end, end).supply.honey).toBe(3);
   });
   it('gives a grace period: no theft before startsOnDay, then it steals', () => {
     const { startsOnDay, amount } = c.stages[1]!.rival!;
     expect(startsOnDay).toBeGreaterThan(1);
-    expect(honeyOnDay(stageN(1), startsOnDay - 1)).toBe(4);
-    expect(honeyOnDay(stageN(1), startsOnDay)).toBe(4 - amount);
+    expect(honeyOnDay(stageN(1), startsOnDay - 1)).toBe(3);
+    expect(honeyOnDay(stageN(1), startsOnDay)).toBe(3 - amount);
   });
   it('never takes supply below the floor', () => {
     const supply = honeyOnDay(stageN(2), c.stages[2]!.rival!.startsOnDay + 1);
@@ -120,38 +120,26 @@ describe('rival hive', () => {
   it('is handled for good by the rival-hive errand', () => {
     const s = stageN(2);
     s.errands['rival-hive'] = { status: 'done' };
-    expect(honeyOnDay(s, 4)).toBe(4);
+    expect(honeyOnDay(s, 4)).toBe(3);
   });
 });
 
 describe('errands', () => {
-  const board = (extra: string[] = []): State => newGame(c, { seed: 2, unlocks: ['errandsBoard', ...extra] });
+  const board = (extra: string[] = []): State => newGame(c, { seed: 2, unlocks: ['errandsBoard', 'oven', ...extra] });
   const accept = (errand: string): Action => ({ type: 'acceptErrand', errand });
   const deliver = (errand: string): Action => ({ type: 'deliverErrand', errand });
-  const tonic: Action = { type: 'craft', station: 0, candy: 'royal-tonic', quality: 'plain' };
+  const craft = (): Action => ({ type: 'craft', station: 0, candy: 'candy-cane', quality: 'plain' });
+  const fineCane: Action = { type: 'craft', station: 0, candy: 'candy-cane', quality: 'fine' };
 
   it('need the board unlock and the stage, and can only be taken once', () => {
     expect(failCode(newGame(c, { seed: 1 }), accept('queen-fever'))).toBe('errand-unavailable');
-    expect(failCode(board(), accept('pilgrim-feast'))).toBe('errand-unavailable'); // stage 2 + oven
+    expect(failCode(newGame(c, { seed: 1, unlocks: ['errandsBoard'] }), accept('queen-fever'))).toBe('errand-unavailable'); // needs the oven too
+    expect(failCode(board(), accept('pilgrim-feast'))).toBe('errand-unavailable'); // stage 2
     expect(failCode(board(), accept('nope'))).toBe('unknown-errand');
     expect(failCode(run(board(), accept('queen-fever')), accept('queen-fever'))).toBe('errand-taken');
   });
-  it('accepting unlocks the special recipe, which customers and contracts never ask for', () => {
-    const s = run(board(), accept('queen-fever'));
-    expect(s.unlocks).toContain('tonic-recipe');
-    expect(run(s, tonic).stock['royal-tonic:plain']).toBe(4);
-    for (let seed = 1; seed <= 20; seed++) {
-      const g = newGame(c, { seed, unlocks: ['errandsBoard', 'tonic-recipe', 'contractBoard'] });
-      const o = run(g, end);
-      for (const cu of [...o.queue, ...o.pending]) expect(cu.wants).not.toBe('royal-tonic');
-      expect(g.contracts.every((ct) => ct.candy !== 'royal-tonic')).toBe(true);
-    }
-  });
-  describe('bees and the royal tonic', () => {
-    const queenDone = (): State => {
-      let s = run(board(), accept('queen-fever'), tonic);
-      return run(s, deliver('queen-fever'));
-    };
+  describe('bees and royal jelly', () => {
+    const queenDone = (): State => run(board(), accept('queen-fever'), fineCane, deliver('queen-fever'));
     const customersOver = (start: () => State, seeds: number): { type: string; wants: string }[] => {
       const out: { type: string; wants: string }[] = [];
       for (let seed = 1; seed <= seeds; seed++) {
@@ -162,49 +150,48 @@ describe('errands', () => {
       }
       return out;
     };
-    it('the tonic recipe stays available after the errand', () => {
-      expect(run(queenDone(), tonic).stock['royal-tonic:plain']).toBe(4);
+    it('the queen reward opens royal jelly: it arrives by chance, never before', () => {
+      expect(queenDone().unlocks).toEqual(expect.arrayContaining(['royal-jelly', 'bee-customers']));
+      expect(run(board(), accept('queen-fever'), end, end, end).supply['royal-jelly']).toBeUndefined();
+      let jelly = 0;
+      for (let seed = 1; seed <= 40; seed++) {
+        const g = queenDone();
+        g.rng = seed;
+        jelly += run(g, end, end, end).supply['royal-jelly'] ?? 0;
+      }
+      expect(jelly).toBeGreaterThan(0);
     });
-    it('no bee comes before the queen is well, even once the recipe is unlocked', () => {
+    it('no bee comes before the queen is well', () => {
       const asked = customersOver(() => run(board(), accept('queen-fever')), 30);
       expect(asked.some((x) => x.type === 'bee')).toBe(false);
     });
-    it('after the errand bees come sometimes, and they only ever ask for the tonic', () => {
+    it('after the errand bees come sometimes, and they only ask for what honey makes', () => {
       const asked = customersOver(queenDone, 40);
       const bees = asked.filter((x) => x.type === 'bee');
       expect(bees.length).toBeGreaterThan(0);
-      expect(bees.every((b) => b.wants === 'royal-tonic')).toBe(true);
-      expect(asked.filter((x) => x.type !== 'bee').every((x) => x.wants !== 'royal-tonic')).toBe(true);
+      expect(bees.every((b) => b.wants === 'candy-cane')).toBe(true); // nougat needs the sunflower patch
       expect(bees.length).toBeLessThan(asked.length / 2); // sometimes, not most of the time
     });
-    it('a bee pays for the tonic', () => {
-      let s = run(queenDone(), tonic, end);
-      const bee = { id: 9999, type: 'bee', wants: 'royal-tonic', minQuality: 'plain', patience: 5, budget: 10 };
+    it('a bee pays for candy', () => {
+      let s = run(queenDone(), craft(), end);
+      const bee = { id: 9999, type: 'bee', wants: 'candy-cane', minQuality: 'plain', patience: 5, budget: 10 };
       s.queue = [bee];
       s = run(s, { type: 'serve', customer: 9999, quality: 'plain' });
-      expect(s.money).toBe(10);
-    });
-    it('contracts never ask for the tonic', () => {
-      const g = queenDone();
-      g.unlocks.push('contractBoard');
-      for (let i = 0; i < 40; i++) {
-        const next = run(structuredClone(g), end, end, end);
-        expect(next.contracts.every((ct) => ct.candy !== 'royal-tonic')).toBe(true);
-        g.rng = next.rng;
-      }
+      expect(s.money).toBe(5);
     });
   });
   it('delivery takes the stock and pays a permanent reward from the next morning', () => {
-    let s = run(board(), accept('queen-fever'), tonic);
+    let s = run(board(), accept('queen-fever'), fineCane);
     expect(failCode(run(board(), accept('queen-fever')), deliver('queen-fever'))).toBe('not-enough-stock');
     s = run(s, deliver('queen-fever'));
     expect(s.errands['queen-fever']).toEqual({ status: 'done' });
-    expect(s.stock['royal-tonic:plain']).toBe(0);
-    expect(run(s, end, end, end).supply.honey).toBe(6); // 4 base + 2 reward
+    expect(s.stock['candy-cane:fine']).toBe(0);
+    const next = run(s, end, end, end).supply;
+    expect(next.honey! + (next['royal-jelly'] ?? 0)).toBe(5); // 3 base + 2 reward (some may arrive as jelly)
     expect(failCode(s, deliver('queen-fever'))).toBe('errand-not-active');
   });
   it('cannot be delivered in the evening', () => {
-    const s = run(board(), accept('queen-fever'), tonic, end, end);
+    const s = run(board(), accept('queen-fever'), fineCane, end, end);
     expect(failCode(s, deliver('queen-fever'))).toBe('wrong-phase');
   });
   describe('mission', () => {
@@ -225,10 +212,10 @@ describe('errands', () => {
     it('the clerk does not sell while away', () => {
       const withClerk = (accepted: boolean) => {
         let s = ready();
-        s.batchesMade['honey-drop'] = 2;
+        s.batchesMade['candy-cane'] = 2;
         if (accepted) s = run(s, accept('rival-hive'));
         s = run(s, { type: 'delegate', customerType: 'faithful', on: true });
-        s = run(s, { type: 'craft', station: 0, candy: 'honey-drop', quality: 'plain' }, end);
+        s = run(s, { type: 'craft', station: 0, candy: 'candy-cane', quality: 'plain' }, end);
         return s;
       };
       expect(withClerk(false).report.autoServed).toBeGreaterThan(0);
@@ -238,7 +225,7 @@ describe('errands', () => {
       let s = run(ready(), accept('rival-hive'));
       s = run(s, end, end, end, end, end, end);
       expect(s.errands['rival-hive']?.status).toBe('done');
-      expect(s.supply.honey).toBe(4); // rival would take 2 in stage 2
+      expect(s.supply.honey).toBe(3); // rival would take 2 in stage 2
     });
   });
 });

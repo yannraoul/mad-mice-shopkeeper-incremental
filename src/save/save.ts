@@ -5,7 +5,7 @@ import type { State } from '../engine/types.ts';
 
 // Saves are a versioned envelope around the plain engine State. Bump SAVE_VERSION whenever the
 // State shape changes and add a step to `migrate`, so old saves keep loading.
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 const EXPORT_PREFIX = 'CST1:';
 
 const num = z.number();
@@ -74,6 +74,45 @@ const MIGRATIONS: Record<number, (state: unknown) => unknown> = {
     if (typeof state !== 'object' || state === null) return state;
     const supply = (state as { supply?: Record<string, number> }).supply ?? {};
     return { ...state, supplyToday: { ...supply } };
+  },
+  // v3 -> v4 (MMSIM-11): ingredients, qualities and candies were redesigned. Legacy ids are renamed or dropped;
+  // anything already in the new vocabulary is left alone.
+  3: (state) => {
+    if (typeof state !== 'object' || state === null) return state;
+    const s = state as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const RENAME: Record<string, string> = { 'honey-drop': 'candy-cane' };
+    const GONE = new Set(['royal-tonic', 'honey-toffee']);
+    const candy = (id: string) => RENAME[id] ?? id;
+    const byCandy = (rec: Record<string, number> | undefined, sep: string) =>
+      Object.fromEntries(Object.entries(rec ?? {}).filter(([k]) => !GONE.has(k.split(sep)[0]!)).map(([k, v]) => {
+        const [head, ...rest] = k.split(sep);
+        return [[candy(head!), ...rest].join(sep), v];
+      }));
+    const unlocks = ((s.unlocks ?? []) as string[]).flatMap((u) => (u === 'recipe-2' ? ['sunflower'] : u === 'recipe-3' || u === 'tonic-recipe' ? [] : [u]));
+    const nodes: Record<string, number> = {};
+    for (const [k, v] of Object.entries((s.nodes ?? {}) as Record<string, number>)) {
+      if (k === 'recipe-3') continue;
+      nodes[k === 'recipe-2' ? 'sunflower-patch' : k] = v;
+    }
+    const seedless = (rec: Record<string, number> | undefined) => {
+      const out = { ...(rec ?? {}) };
+      if (!unlocks.includes('dark-garden')) delete out['dark-seed'];
+      return out;
+    };
+    const customers = (list: { wants: string }[] | undefined) =>
+      (list ?? []).filter((x) => !GONE.has(x.wants)).map((x) => ({ ...x, wants: candy(x.wants) }));
+    return {
+      ...s,
+      unlocks,
+      nodes,
+      supply: seedless(s.supply),
+      supplyToday: seedless(s.supplyToday),
+      stock: byCandy(s.stock, ':'),
+      batchesMade: byCandy(s.batchesMade, ':'),
+      contracts: ((s.contracts ?? []) as { candy: string }[]).filter((x) => !GONE.has(x.candy)).map((x) => ({ ...x, candy: candy(x.candy) })),
+      queue: customers(s.queue),
+      pending: customers(s.pending),
+    };
   },
 };
 

@@ -19,9 +19,22 @@ export function modifier(c: Content, s: Pick<State, 'nodes' | 'errands'>, stat: 
   return total;
 }
 
+export function isIngredientUnlocked(c: Content, s: Pick<State, 'unlocks'>, ingredient: string): boolean {
+  const i = c.ingredients.find((x) => x.id === ingredient);
+  return !!i && (i.unlock === undefined || s.unlocks.includes(i.unlock));
+}
+
+export const unlockedIngredients = (c: Content, s: Pick<State, 'unlocks'>) =>
+  c.ingredients.filter((i) => isIngredientUnlocked(c, s, i.id));
+
+/** A recipe opens by itself once every ingredient of its plain version is unlocked (plus its own gate, if any). */
 export function isCandyUnlocked(c: Content, s: Pick<State, 'unlocks'>, candy: string): boolean {
   const cd = c.candies.find((x) => x.id === candy);
-  return !!cd && (cd.unlock === undefined || s.unlocks.includes(cd.unlock));
+  return (
+    !!cd &&
+    (cd.unlock === undefined || s.unlocks.includes(cd.unlock)) &&
+    cd.ingredients.every((i) => isIngredientUnlocked(c, s, i.ingredient))
+  );
 }
 
 export const unlockedCandies = (c: Content, s: Pick<State, 'unlocks'>) =>
@@ -92,13 +105,22 @@ export const salePrice = (c: Content, cu: { wants: string; budget: number }, qua
 export const canAfford = (c: Content, cu: { wants: string; minQuality: string; budget: number }): boolean =>
   priceOf(c, cu.wants, cu.minQuality) <= cu.budget;
 
-/** Total ingredients one batch of candy at this quality consumes. */
+/**
+ * Total ingredients one batch of candy at this quality consumes. Fine and the like add units listed in
+ * the candy's `extra`; an `alternates` quality (Perfect) keeps the plain quantities but every ingredient
+ * is its rare alternate.
+ */
 export function batchCost(c: Content, candy: string, quality: string): Record<string, number> {
   const cd = c.candies.find((x) => x.id === candy);
   const q = c.qualities.find((x) => x.id === quality);
   if (!cd || !q) throw new Error(`unknown candy/quality "${candy}"/"${quality}"`);
   const cost: Record<string, number> = {};
-  for (const i of [...cd.ingredients, ...q.extraIngredients]) cost[i.ingredient] = (cost[i.ingredient] ?? 0) + i.qty;
+  const add = (ingredient: string, qty: number) => (cost[ingredient] = (cost[ingredient] ?? 0) + qty);
+  if (q.alternates) {
+    for (const i of cd.ingredients) add(c.ingredients.find((x) => x.alternateOf === i.ingredient)!.id, i.qty);
+  } else {
+    for (const i of [...cd.ingredients, ...(cd.extra[quality] ?? [])]) add(i.ingredient, i.qty);
+  }
   return cost;
 }
 

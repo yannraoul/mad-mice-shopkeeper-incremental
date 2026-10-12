@@ -8,7 +8,7 @@ Play from a fresh game on the plain URL (not the dev hooks), in the language you
 | Stage | Cleared around | Week feels like |
 |---|---|---|
 | 1 The first week | day 7 | learning the loop; a handful of cheap upgrades |
-| 2 Gathering pilgrims | day 28 | rival hive steals honey; the tree opens up; errands appear |
+| 2 Gathering pilgrims | day 21 to 28 | rival hive steals honey; the tree opens up; errands appear |
 | 3 The feast of Sweet Tooth | day 49 | demand needs counter space and Faithful; everything matters |
 
 Total: about 7 weeks of in-game days. Re-measure any time with `npm run balance` (see `instructions.md`).

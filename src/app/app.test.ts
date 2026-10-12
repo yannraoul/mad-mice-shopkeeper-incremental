@@ -61,8 +61,8 @@ describe('game session', () => {
     const s = new GameSession({ content: c, start: { seed: 1 } });
     let calls = 0;
     const stop = s.subscribe(() => (calls += 1));
-    expect(s.dispatch({ type: 'craft', station: 0, candy: 'honey-drop', quality: 'plain' })).toBe(true);
-    expect(s.state.stock['honey-drop:plain']).toBe(4);
+    expect(s.dispatch({ type: 'craft', station: 0, candy: 'candy-cane', quality: 'plain' })).toBe(true);
+    expect(s.state.stock['candy-cane:plain']).toBe(4);
     expect(s.dispatch({ type: 'serve', customer: 1, quality: 'plain' })).toBe(false);
     expect(s.error).toEqual({ code: 'wrong-phase', params: { phase: 'afternoon' } });
     expect(calls).toBe(2);
@@ -73,7 +73,7 @@ describe('game session', () => {
   });
   it('the feed collects sales and restarts with each phase', () => {
     const s = new GameSession({ content: c, start: { seed: 3 } });
-    s.dispatch({ type: 'craft', station: 0, candy: 'honey-drop', quality: 'plain' });
+    s.dispatch({ type: 'craft', station: 0, candy: 'candy-cane', quality: 'plain' });
     s.dispatch({ type: 'endPhase' });
     const cu = s.state.queue[0]!;
     s.dispatch({ type: 'serve', customer: cu.id, quality: 'plain' });
@@ -85,7 +85,7 @@ describe('game session', () => {
   it('saves after every change when persistent, and loads the saved game on start', () => {
     const { store, persistence } = memoryStore();
     const a = new GameSession({ content: c, persistence, start: { seed: 2 } });
-    a.dispatch({ type: 'craft', station: 0, candy: 'honey-drop', quality: 'plain' });
+    a.dispatch({ type: 'craft', station: 0, candy: 'candy-cane', quality: 'plain' });
     expect(store.saves).toBe(1);
     const b = new GameSession({ content: c, persistence, start: { seed: 99 } });
     expect(b.state).toEqual(a.state); // resumed, the start options are ignored
@@ -93,12 +93,12 @@ describe('game session', () => {
   });
   it('a throwaway session (no persistence) never saves', () => {
     const s = new GameSession({ content: c, start: { seed: 2 } });
-    expect(() => s.dispatch({ type: 'craft', station: 0, candy: 'honey-drop', quality: 'plain' })).not.toThrow();
+    expect(() => s.dispatch({ type: 'craft', station: 0, candy: 'candy-cane', quality: 'plain' })).not.toThrow();
   });
   it('newGame clears the save and starts again, reproducibly with a seed', () => {
     const { store, persistence } = memoryStore();
     const s = new GameSession({ content: c, persistence, start: { seed: 2 } });
-    s.dispatch({ type: 'craft', station: 0, candy: 'honey-drop', quality: 'plain' });
+    s.dispatch({ type: 'craft', station: 0, candy: 'candy-cane', quality: 'plain' });
     s.newGame({ seed: 42 });
     expect(store.clears).toBe(1);
     expect(s.state.day).toBe(1);
@@ -111,7 +111,7 @@ describe('game session', () => {
   });
   it('export then import restores the same game; bad text is refused with a code', () => {
     const s = new GameSession({ content: c, start: { seed: 4 } });
-    s.dispatch({ type: 'craft', station: 0, candy: 'honey-drop', quality: 'plain' });
+    s.dispatch({ type: 'craft', station: 0, candy: 'candy-cane', quality: 'plain' });
     const text = s.exportSave();
     const before = structuredClone(s.state);
     s.newGame({ seed: 1 });

@@ -16,24 +16,36 @@
         "id": "oven",
         "nameKey": "step.oven"
       }
-    ],
-    "extraIngredients": [
+    ]
+  },
+  {
+    "id": "excellent",
+    "rank": 2,
+    "nameKey": "quality.excellent",
+    "priceMult": 2.2,
+    "unlock": "pulling-machine",
+    "extraSteps": [
       {
-        "ingredient": "honey",
-        "qty": 1
+        "id": "oven",
+        "nameKey": "step.oven"
+      },
+      {
+        "id": "pull",
+        "nameKey": "step.pull"
       }
     ]
   },
   {
     "id": "perfect",
-    "rank": 2,
+    "rank": 3,
     "nameKey": "quality.perfect",
-    "priceMult": 3,
-    "unlock": "dark-garden",
-    "extraIngredients": [
+    "priceMult": 3.5,
+    "unlock": "magic-cauldron",
+    "alternates": true,
+    "extraSteps": [
       {
-        "ingredient": "dark-seed",
-        "qty": 1
+        "id": "magic",
+        "nameKey": "step.magic"
       }
     ]
   }

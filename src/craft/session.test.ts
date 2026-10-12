@@ -5,32 +5,39 @@ import { newGame, step } from '../engine/engine.ts';
 import { doStep, hold, isComplete, nextStep, place, placementDone, startSession, type CraftSession } from './session.ts';
 
 const c = loadContent(readContentFiles(false));
-const start = (quality: string, unlocks: string[] = ['oven', 'dark-garden']) => {
-  const r = startSession(c, newGame(c, { seed: 1, unlocks }), 0, 'honey-drop', quality);
+const start = (quality: string, unlocks: string[] = ['oven', 'pulling-machine', 'magic-cauldron', 'royal-jelly']) => {
+  const s = newGame(c, { seed: 1, unlocks });
+  s.supply.honey = 4;
+  s.supply['royal-jelly'] = 1; // alternates arrive by chance: give one
+  const r = startSession(c, s, 0, 'candy-cane', quality);
   if ('error' in r) throw new Error(r.error);
   return r;
 };
 
 describe('craft session', () => {
   it('needs the recipe ingredients and the quality steps in order', () => {
-    expect(start('plain').need).toEqual({ honey: 2 });
+    expect(start('plain').need).toEqual({ honey: 1 });
     expect(start('plain').steps).toEqual(['stir', 'form']);
     expect(start('fine').steps).toEqual(['stir', 'oven', 'form']);
-    expect(start('fine').need).toEqual({ honey: 3 }); // fine costs more than plain
-    expect(start('perfect').need).toEqual({ honey: 2, 'dark-seed': 1 });
+    expect(start('fine').need).toEqual({ honey: 2 }); // fine costs more than plain
+    expect(start('excellent').steps).toEqual(['stir', 'oven', 'pull', 'form']);
+    expect(start('excellent').need).toEqual({ honey: 3 });
+    // Perfect: the plain quantities, every ingredient replaced by its alternate
+    expect(start('perfect').need).toEqual({ 'royal-jelly': 1 });
+    expect(start('perfect').steps).toEqual(['stir', 'magic', 'form']);
   });
   it('refuses to start what the engine would refuse', () => {
-    expect(startSession(c, newGame(c, { seed: 1 }), 0, 'honey-drop', 'fine')).toMatchObject({
+    expect(startSession(c, newGame(c, { seed: 1 }), 0, 'candy-cane', 'fine')).toMatchObject({
       code: 'quality-locked',
       params: { quality: 'fine' },
     });
   });
   it('reports which ingredient is missing', () => {
     let s = newGame(c, { seed: 1 });
-    s.supply.honey = 1;
-    expect(startSession(c, s, 0, 'honey-drop', 'plain')).toMatchObject({
+    s.supply.honey = 0;
+    expect(startSession(c, s, 0, 'candy-cane', 'plain')).toMatchObject({
       code: 'not-enough-ingredient',
-      params: { ingredient: 'honey', need: '2', have: '1' },
+      params: { ingredient: 'honey', need: '1', have: '0' },
     });
   });
   it('places one unit per tap and keeps holding until the ingredient is complete', () => {
@@ -38,23 +45,26 @@ describe('craft session', () => {
     expect(cs.held).toBe('honey');
     cs = place(cs);
     expect(cs.placed.honey).toBe(1);
-    expect(cs.held).toBe('honey');
-    cs = place(cs);
-    expect(cs.placed.honey).toBe(2);
     expect(cs.held).toBeNull();
     expect(placementDone(cs)).toBe(true);
+    cs = hold(start('fine'), 'honey');
+    cs = place(cs);
+    expect(cs.placed.honey).toBe(1);
+    expect(cs.held).toBe('honey'); // fine needs two: keeps holding
+    cs = place(cs);
+    expect(cs.held).toBeNull();
   });
   it('ignores placing with nothing held, and holding what is not needed', () => {
     const cs = start('plain');
     expect(place(cs)).toBe(cs);
-    expect(hold(cs, 'dark-seed')).toBe(cs);
+    expect(hold(cs, 'royal-jelly')).toBe(cs);
   });
   it('only allows steps in order and only after placement', () => {
     let cs: CraftSession = start('fine');
     expect(nextStep(cs)).toBeNull();
     expect(doStep(cs, 'stir')).toBe(cs);
     cs = hold(cs, 'honey');
-    for (let i = 0; i < 3; i++) cs = place(cs); // fine needs 3 honey: 2 + 1 extra
+    for (let i = 0; i < 2; i++) cs = place(cs); // fine needs 2 honey: 1 + 1 extra
     expect(nextStep(cs)).toBe('stir');
     expect(doStep(cs, 'oven')).toBe(cs);
     cs = doStep(cs, 'stir');

@@ -1,54 +1,85 @@
 [
   {
-    "id": "honey-drop",
-    "nameKey": "candy.honey-drop",
+    "id": "candy-cane",
+    "nameKey": "candy.candy-cane",
     "basePrice": 5,
     "ingredients": [
       {
         "ingredient": "honey",
-        "qty": 2
+        "qty": 1
       }
-    ]
+    ],
+    "extra": {
+      "fine": [
+        {
+          "ingredient": "honey",
+          "qty": 1
+        }
+      ],
+      "excellent": [
+        {
+          "ingredient": "honey",
+          "qty": 2
+        }
+      ]
+    }
   },
   {
     "id": "sunflower-brittle",
     "nameKey": "candy.sunflower-brittle",
-    "basePrice": 8,
-    "unlock": "recipe-2",
+    "basePrice": 6,
     "ingredients": [
       {
-        "ingredient": "honey",
-        "qty": 3
-      }
-    ]
-  },
-  {
-    "id": "honey-toffee",
-    "nameKey": "candy.honey-toffee",
-    "basePrice": 12,
-    "unlock": "recipe-3",
-    "ingredients": [
-      {
-        "ingredient": "honey",
-        "qty": 4
-      }
-    ]
-  },
-  {
-    "id": "royal-tonic",
-    "nameKey": "candy.royal-tonic",
-    "basePrice": 10,
-    "unlock": "tonic-recipe",
-    "ingredients": [
-      {
-        "ingredient": "honey",
-        "qty": 2
-      },
-      {
-        "ingredient": "dark-seed",
+        "ingredient": "sunflower-seed",
         "qty": 1
       }
     ],
-    "exclusive": true
+    "extra": {
+      "fine": [
+        {
+          "ingredient": "sunflower-seed",
+          "qty": 1
+        }
+      ],
+      "excellent": [
+        {
+          "ingredient": "sunflower-seed",
+          "qty": 2
+        }
+      ]
+    }
+  },
+  {
+    "id": "sunflower-nougat",
+    "nameKey": "candy.sunflower-nougat",
+    "basePrice": 14,
+    "ingredients": [
+      {
+        "ingredient": "honey",
+        "qty": 1
+      },
+      {
+        "ingredient": "sunflower-seed",
+        "qty": 1
+      }
+    ],
+    "extra": {
+      "fine": [
+        {
+          "ingredient": "honey",
+          "qty": 1
+        }
+      ],
+      "excellent": [
+        {
+          "ingredient": "honey",
+          "qty": 1
+        },
+        {
+          "ingredient": "sunflower-seed",
+          "qty": 1
+        }
+      ]
+    }
   }
 ]

@@ -38,7 +38,7 @@ function run(s: State, ...actions: Action[]): State {
   }
   return s;
 }
-const craft = (quality = 'plain'): Action => ({ type: 'craft', station: 0, candy: 'honey-drop', quality });
+const craft = (quality = 'plain'): Action => ({ type: 'craft', station: 0, candy: 'candy-cane', quality });
 /** An afternoon with honey drops (and Fine) in stock, so there are customers to serve. */
 const afternoon = (seed = 1, unlocks: string[] = ['oven']) => run(newGame(c, { seed, unlocks }), craft(), craft(), end);
 
@@ -71,13 +71,13 @@ describe('header, screens', () => {
 describe('board', () => {
   it('lists stock and contracts with ready-made actions', () => {
     const s = run(newGame(c, { seed: 1, unlocks: ['contractBoard'] }), craft());
-    s.contracts.push({ id: 900, candy: 'honey-drop', quality: 'plain', qty: 3, deadlineDay: 4, reward: 20 });
+    s.contracts.push({ id: 900, candy: 'candy-cane', quality: 'plain', qty: 3, deadlineDay: 4, reward: 20 });
     const b = buildBoardView(c, s, en);
     expect(b.stock).toEqual([
-      { key: 'honey-drop:plain', count: 4, candy: 'Honey drop', quality: 'Plain', text: '4 × Honey drop (Plain)' },
+      { key: 'candy-cane:plain', count: 4, candy: 'Candy cane', quality: 'Plain', text: '4 × Candy cane (Plain)' },
     ]);
     const mine = b.contracts.find((x) => x.id === 900)!; // the engine may have posted one of its own too
-    expect(mine.text).toContain('3 × Honey drop (Plain) by day 4, 20 coins');
+    expect(mine.text).toContain('3 × Candy cane (Plain) by day 4, 20 coins');
     expect(mine.deliver.action).toEqual({ type: 'fulfill', contract: 900 });
     expect(b.errands).toBeNull(); // board not bought
   });
@@ -111,15 +111,15 @@ describe('serve view', () => {
     expect(w.name).toBe('Clerk');
     expect(w.art).toBe('worker-clerk');
     expect(w.toggles[0]).toMatchObject({ customerType: 'faithful', on: false, setOn: { type: 'delegate', customerType: 'faithful', on: true } });
-    expect(w.training.find((x) => x.candy === 'honey-drop')!.text).toBe('Knows how to sell Honey drop.');
+    expect(w.training.find((x) => x.candy === 'candy-cane')!.text).toBe('Knows how to sell Candy cane.');
     expect(buildServeView(c, run(newGame(c, { seed: 1, unlocks: ['clerk'] }), end), en).workers[0]!.training[0]!.text).toBe(
-      'Trained on Honey drop: 0 / 2 batches made by hand',
+      'Trained on Candy cane: 0 / 2 batches made by hand',
     );
     expect(buildServeView(c, newGame(c, { seed: 1 }), en).workers).toEqual([]);
   });
   it('builds feed lines from events', () => {
-    expect(feedLine(en, { type: 'sold', customer: 1, customerType: 'faithful', candy: 'honey-drop', quality: 'plain', price: 5, auto: true })).toBe(
-      'The clerk sold Honey drop (Plain) to Faithful for 5.',
+    expect(feedLine(en, { type: 'sold', customer: 1, customerType: 'faithful', candy: 'candy-cane', quality: 'plain', price: 5, auto: true })).toBe(
+      'The clerk sold Candy cane (Plain) to Faithful for 5.',
     );
     expect(feedLine(fr, { type: 'refused', customer: 1, customerType: 'merchant' })).toBe('Vous avez refusé Marchand.');
     const v = buildServeView(c, afternoon(), en, [{ type: 'left', customer: 2, customerType: 'traveler' }]);
@@ -139,7 +139,7 @@ describe('evening view', () => {
     const oven = v.tree.branches[0]!.nodes.find((n) => n.id === 'oven')!;
     expect(oven.buy).toMatchObject({ enabled: false, why: 'Not enough coins.', cost: 60 });
     const garden = v.tree.branches[0]!.nodes.find((n) => n.id === 'dark-garden')!;
-    expect(garden.buy!.why).toBe('Requires oven first.');
+    expect(garden.buy!.why).toBe('Requires sunflower patch first.');
   });
   it('enabled purchases carry their action; owned and maxed nodes say so', () => {
     let s = evening(1000);
@@ -215,17 +215,17 @@ describe('errands view', () => {
   it('is null without the board, then lists each errand by status with ready actions', () => {
     const s = newGame(c, { seed: 1 });
     expect(buildErrandsView(c, s, en)).toBeNull();
-    s.unlocks.push('errandsBoard');
+    s.unlocks.push('errandsBoard', 'oven');
     let v = buildErrandsView(c, s, en)!;
     const queen = v.items.find((i) => i.id === 'queen-fever')!;
     expect(queen).toMatchObject({ status: 'available', button: { label: 'Accept', enabled: true, action: { type: 'acceptErrand', errand: 'queen-fever' } } });
-    expect(queen.requirements).toEqual(['4 × Royal tonic (Plain)']);
+    expect(queen.requirements).toEqual(['4 × Candy cane (Fine)']);
     expect(v.items.find((i) => i.id === 'rival-hive')).toMatchObject({ status: 'locked', tag: 'Against the rival hive', button: null });
     expect(v.items.find((i) => i.id === 'rival-hive')!.statusText).toBe('Requires Hire a clerk first.');
     const taken = run(s, { type: 'acceptErrand', errand: 'queen-fever' });
     v = buildErrandsView(c, taken, en)!;
     expect(v.items.find((i) => i.id === 'queen-fever')).toMatchObject({ status: 'deliver', button: { label: 'Deliver', enabled: false } });
-    const made = run(taken, { type: 'craft', station: 0, candy: 'royal-tonic', quality: 'plain' });
+    const made = run(taken, { type: 'craft', station: 0, candy: 'candy-cane', quality: 'fine' });
     expect(buildErrandsView(c, made, en)!.items.find((i) => i.id === 'queen-fever')!.button!.enabled).toBe(true);
   });
 });
@@ -246,10 +246,10 @@ describe('craft view and reducer', () => {
     const game = { s: newGame(c, { seed: 1 }) };
     let ui = initialCraftUi(c);
     const idle = buildCraftView(c, game.s, ui, en).idle!;
-    expect(idle.candies.map((x) => x.value)).toEqual(['honey-drop']);
+    expect(idle.candies.map((x) => x.value)).toEqual(['candy-cane']);
     expect(idle.qualities.map((x) => x.value)).toEqual(['plain']);
     expect(idle.start.enabled).toBe(true);
-    expect(idle.supplies).toEqual(['Honey: 4', 'Dark sunflower seed: 2']);
+    expect(idle.supplies).toEqual(['Honey: 3']);
     expect(idle.batchesLeft).toBe('Batches left today: 3');
     ui = play(game, ui, { type: 'select', field: 'quality', value: 'fine' });
     const blocked = buildCraftView(c, game.s, ui, en).idle!;
@@ -261,9 +261,9 @@ describe('craft view and reducer', () => {
   it('recipe costs follow the chosen quality, and the shelf pips keep the morning total after a bonus is bought', () => {
     const game = { s: newGame(c, { seed: 1, unlocks: ['oven'] }) };
     let ui = initialCraftUi(c);
-    expect(buildCraftView(c, game.s, ui, en).idle!.recipes[0]!.costText).toBe('2 Honey');
+    expect(buildCraftView(c, game.s, ui, en).idle!.recipes[0]!.costText).toBe('1 Honey');
     ui = play(game, ui, { type: 'select', field: 'quality', value: 'fine' });
-    expect(buildCraftView(c, game.s, ui, en).idle!.recipes[0]!.costText).toBe('3 Honey');
+    expect(buildCraftView(c, game.s, ui, en).idle!.recipes[0]!.costText).toBe('2 Honey');
     const total = () => buildCraftView(c, game.s, ui, en).scene.shelf.find((x) => x.ingredient === 'honey')!.total;
     const before = total();
     game.s = { ...game.s, nodes: { ...game.s.nodes, 'honey-yield': 1 } };
@@ -281,19 +281,19 @@ describe('craft view and reducer', () => {
     v = buildCraftView(c, game.s, ui, en);
     expect(v.bench!.stationArmed).toBe(true);
     expect(v.bench!.hint).toBe('Now tap the Cauldron to put it in.');
-    ui = play(game, ui, { type: 'tapStation' }, { type: 'tapStation' });
+    ui = play(game, ui, { type: 'tapStation' });
     v = buildCraftView(c, game.s, ui, en);
-    expect(v.bench!.contents).toEqual([{ ingredient: 'honey', placed: 2, need: 2, text: 'Honey: 2 / 2' }]);
+    expect(v.bench!.contents).toEqual([{ ingredient: 'honey', placed: 1, need: 1, text: 'Honey: 1 / 1' }]);
     expect(v.bench!.hint).toBe('Next: Stir');
     expect(v.bench!.steps.map((s) => s.enabled)).toEqual([true, false]);
     // out-of-order step is ignored
     expect(play(game, ui, { type: 'step', id: 'form' }).session!.done).toBe(0);
     ui = play(game, ui, { type: 'step', id: 'stir' }, { type: 'step', id: 'form' });
     expect(ui.session).toBeNull();
-    expect(game.s.stock['honey-drop:plain']).toBe(4);
+    expect(game.s.stock['candy-cane:plain']).toBe(4);
     expect(game.s.supply.honey).toBe(2);
-    expect(buildCraftView(c, game.s, ui, en).made).toBe('Made 4 × Honey drop (Plain).');
-    expect(buildCraftView(c, game.s, ui, fr).made).toBe('4 × Goutte de miel (Simple) préparés.'); // follows the language
+    expect(buildCraftView(c, game.s, ui, en).made).toBe('Made 4 × Candy cane (Plain).');
+    expect(buildCraftView(c, game.s, ui, fr).made).toBe("4 × Sucre d'orge (Simple) préparés."); // follows the language
   });
 
   it('cancel drops the batch; the idle view says when no batches remain', () => {

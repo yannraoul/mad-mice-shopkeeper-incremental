@@ -47,8 +47,10 @@ describe('balance: pacing of the campaign', () => {
   it('every upgrade gets bought by the competent player within the campaign', () => {
     for (const n of c.skillNodes) expect(smart.bought[n.id]!.never, n.id).toBeLessThanOrEqual(1);
   });
-  it('production is kept in step with demand: little wasted honey, no mountain of stock', () => {
-    expect(smart.honeyUnusedPct).toBeLessThan(15);
+  it('production is kept in step with demand: no mountain of stock, and ingredients are not all wasted', () => {
+    // Batches and customers, not ingredients, limit a late game shop (about half the ingredients go unused),
+    // so this only catches a collapse. The tension the redesign wants (qualities, alternates) comes with MMSIM-12.
+    expect(smart.ingredientsUnusedPct).toBeLessThan(60);
     expect(smart.avgStockOnOpen).toBeLessThan(250);
   });
   it('customers are rarely lost for a competent player', () => {

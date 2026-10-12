@@ -32,7 +32,7 @@ function run(s: State, ...actions: Action[]): State {
   }
   return s;
 }
-const craft = (quality = 'plain'): Action => ({ type: 'craft', station: 0, candy: 'honey-drop', quality });
+const craft = (quality = 'plain'): Action => ({ type: 'craft', station: 0, candy: 'candy-cane', quality });
 
 describe('header and stage strip', () => {
   it('lists the three phases with the current one flagged and the day of the week', () => {
@@ -95,8 +95,8 @@ describe('board stock chips', () => {
     const s = run(s0, craft(), craft('fine'));
     const chips = buildBoardView(c, s, en).stockChips;
     expect(chips.map((x) => [x.art, x.rings])).toEqual([
-      ['candy-honey-drop', 0],
-      ['candy-honey-drop', 1],
+      ['candy-candy-cane', 0],
+      ['candy-candy-cane', 1],
     ]);
     expect(buildBoardView(c, newGame(c, { seed: 1 }), en).stockChips).toEqual([]);
   });
@@ -105,9 +105,9 @@ describe('board stock chips', () => {
 describe('errand presentation states', () => {
   const withBoard = (unlocks: string[] = []) => newGame(c, { seed: 1, unlocks: ['errandsBoard', ...unlocks] });
   it('goes available -> under way -> ready -> done with a chip and progress', () => {
-    const e = c.errands.find((x) => x.kind === 'deliver' && x.requires.every((u) => u === 'errandsBoard'));
+    const e = c.errands.find((x) => x.kind === 'deliver' && x.minStage === 0 && x.requires.every((u) => u === 'errandsBoard' || u === 'oven'));
     expect(e).toBeDefined();
-    let s = withBoard();
+    let s = withBoard(['oven']);
     const item = (st: State) => buildErrandsView(c, st, en)!.items.find((i) => i.id === e!.id)!;
     expect(item(s)).toMatchObject({ tone: 'available', chip: null, progress: null });
     s = run(s, { type: 'acceptErrand', errand: e!.id });
@@ -177,8 +177,8 @@ describe('craft scene, recipes and step track', () => {
     expect(v.scene.shelf[0]).toMatchObject({ ingredient: 'honey', held: false, dimmed: false, enabled: false });
     expect(v.scene.batches.left).toBe(v.scene.batches.total);
     expect(v.scene.inCauldron).toBeNull();
-    expect(v.idle!.recipes[0]).toMatchObject({ selected: true, costText: '2 Honey' });
-    expect(v.idle!.qualityOptions.map((q) => [q.label, q.enabled])).toEqual([['Plain', true], ['Fine', true], ['Perfect', false]]);
+    expect(v.idle!.recipes[0]).toMatchObject({ selected: true, costText: '1 Honey' });
+    expect(v.idle!.qualityOptions.map((q) => [q.label, q.enabled])).toEqual([['Plain', true], ['Fine', true], ['Excellent', false], ['Perfect', false]]);
     expect(v.idle!.qualityOptions[1]!.note).toBe('×1.6 · oven');
   });
   it('arms the cauldron while an ingredient is held', () => {
@@ -187,14 +187,14 @@ describe('craft scene, recipes and step track', () => {
     const v = buildCraftView(c, s0, ui, en);
     expect(v.scene.shelf[0]).toMatchObject({ held: true, dimmed: false });
     expect(v.scene.stationArmed).toBe(true);
-    expect(v.scene.inCauldron!.lines).toEqual(['Honey 0 / 2']);
+    expect(v.scene.inCauldron!.lines).toEqual(['Honey 0 / 1']);
   });
-  it('lays out Fill, Stir, Bake, Shape and dims Bake unless the quality needs the oven', () => {
+  it('lays out the whole path and dims the steps the quality does not use', () => {
     const plain = buildCraftView(c, s0, startUi('plain'), en).bench!.track;
-    expect(plain.map((x) => x.label)).toEqual(['Fill', 'Stir', 'Bake', 'Shape']);
-    expect(plain.map((x) => x.dimmed)).toEqual([false, false, true, false]);
-    expect(plain[0]).toMatchObject({ state: 'current', note: '0 / 2 Honey' });
+    expect(plain.map((x) => x.label)).toEqual(['Fill', 'Stir', 'Bake', 'Pull', 'Whisper', 'Shape']);
+    expect(plain.map((x) => x.dimmed)).toEqual([false, false, true, true, true, false]);
+    expect(plain[0]).toMatchObject({ state: 'current', note: '0 / 1 Honey' });
     const fine = buildCraftView(c, s0, startUi('fine'), en).bench!.track;
-    expect(fine.map((x) => x.dimmed)).toEqual([false, false, false, false]);
+    expect(fine.map((x) => x.dimmed)).toEqual([false, false, false, true, true, false]);
   });
 });

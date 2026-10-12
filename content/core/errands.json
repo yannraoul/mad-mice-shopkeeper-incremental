@@ -5,22 +5,18 @@
     "descKey": "errand.queen-fever.desc",
     "minStage": 0,
     "requires": [
-      "errandsBoard"
+      "errandsBoard",
+      "oven"
     ],
     "kind": "deliver",
     "deliver": [
       {
-        "candy": "royal-tonic",
-        "quality": "plain",
+        "candy": "candy-cane",
+        "quality": "fine",
         "qty": 4
       }
     ],
-    "onAccept": [
-      {
-        "type": "unlock",
-        "id": "tonic-recipe"
-      }
-    ],
+    "onAccept": [],
     "reward": [
       {
         "type": "modifier",
@@ -30,6 +26,10 @@
       {
         "type": "unlock",
         "id": "bee-customers"
+      },
+      {
+        "type": "unlock",
+        "id": "royal-jelly"
       }
     ]
   },
@@ -45,7 +45,7 @@
     "kind": "deliver",
     "deliver": [
       {
-        "candy": "honey-drop",
+        "candy": "candy-cane",
         "quality": "fine",
         "qty": 8
       }
@@ -82,6 +82,30 @@
         "type": "modifier",
         "stat": "rivalRelief",
         "add": 9
+      }
+    ]
+  },
+  {
+    "id": "magic-cauldron",
+    "nameKey": "errand.magic-cauldron",
+    "descKey": "errand.magic-cauldron.desc",
+    "minStage": 1,
+    "requires": [
+      "errandsBoard",
+      "pulling-machine"
+    ],
+    "kind": "deliver",
+    "deliver": [
+      {
+        "candy": "candy-cane",
+        "quality": "excellent",
+        "qty": 4
+      }
+    ],
+    "reward": [
+      {
+        "type": "unlock",
+        "id": "magic-cauldron"
       }
     ]
   }

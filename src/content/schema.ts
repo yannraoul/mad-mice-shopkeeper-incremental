@@ -9,7 +9,7 @@ const range = z.tuple([z.number().int().positive(), z.number().int().positive()]
 
 const IngredientQty = z.object({ ingredient: id, qty: z.number().int().positive() });
 
-/** Ordered integer scale (rank); v1 ships 3 rows (plain, fine, perfect). */
+/** Ordered integer scale (rank): plain, fine, excellent, perfect. */
 export const Quality = z.object({
   id,
   rank: z.number().int().min(0),
@@ -17,24 +17,32 @@ export const Quality = z.object({
   priceMult: z.number().positive(),
   /** Tree unlock needed before this quality can be crafted (absent = always available). */
   unlock: z.string().optional(),
-  /** Extra ingredients per batch on top of the recipe. */
-  extraIngredients: z.array(IngredientQty).default([]),
+  /** Perfect-style quality: the plain recipe with every ingredient replaced by its alternate (same quantities). */
+  alternates: z.boolean().default(false),
   /** Extra hand-crafting steps (after stirring, before forming), e.g. the oven. */
   extraSteps: z.array(z.object({ id, nameKey: key })).default([]),
 });
 export const Ingredient = z.object({
   id,
   nameKey: key,
-  /** Units delivered each morning (unused units do not carry over). */
+  /** Units delivered each morning (unused units do not carry over). Alternates have 0: they replace base units by chance. */
   dailySupply: z.number().int().min(0),
+  /** Tree/errand unlock id that brings this ingredient into the game (absent = from the start). */
+  unlock: z.string().optional(),
+  /** This is the rare alternate of that base ingredient: each delivered base unit may become one of these instead. */
+  alternateOf: id.optional(),
+  /** Chance per delivered base unit of turning into this alternate (modifier stat `altChance:<id>` adds to it). */
+  chance: z.number().min(0).max(1).default(0),
 });
 export const Candy = z.object({
   id,
   nameKey: key,
   basePrice: z.number().positive(),
-  /** Ingredients consumed per batch. */
+  /** Ingredients consumed per batch at Plain quality; the recipe opens by itself once all of them are unlocked. */
   ingredients: z.array(IngredientQty).min(1),
-  /** Tree unlock needed before this recipe can be crafted or wanted (absent = from the start). */
+  /** Extra units per batch at a given quality (keyed by quality id), on top of the plain recipe. */
+  extra: z.record(id, z.array(IngredientQty)).default({}),
+  /** Optional additional gate (absent = none beyond the ingredients). */
   unlock: z.string().optional(),
   /** Only customer types that list it in `onlyWants` buy it: regular customers and contracts never ask for it. */
   exclusive: z.boolean().default(false),

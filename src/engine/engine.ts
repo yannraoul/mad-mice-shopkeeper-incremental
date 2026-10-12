@@ -5,6 +5,7 @@ import {
   batchCost,
   batchSize,
   isCandyUnlocked,
+  isIngredientUnlocked,
   presentCustomerTypes,
   currentStage,
   isQualityUnlocked,
@@ -263,6 +264,27 @@ function morningSupply(c: Content, s: State, ingredient: string, base: number): 
   return penalty > 0 ? Math.max(Math.min(raw, c.settings.rivalMinSupply), raw - penalty) : raw;
 }
 
+/**
+ * The morning delivery. Only unlocked ingredients arrive. Once an alternate is unlocked, each delivered unit of
+ * its base ingredient has a chance to arrive as the alternate instead, so alternates trickle in without ever being guaranteed.
+ */
+function deliverSupply(c: Content, s: State): Record<string, number> {
+  const supply: Record<string, number> = {};
+  for (const i of c.ingredients) {
+    if (i.alternateOf || !isIngredientUnlocked(c, s, i.id)) continue;
+    supply[i.id] = morningSupply(c, s, i.id, i.dailySupply);
+  }
+  for (const alt of c.ingredients) {
+    if (!alt.alternateOf || !isIngredientUnlocked(c, s, alt.id)) continue;
+    const chance = Math.min(1, alt.chance + modifier(c, s, `altChance:${alt.id}`));
+    let n = 0;
+    for (let k = 0; k < (supply[alt.alternateOf] ?? 0); k++) if (rand(s) < chance) n++;
+    supply[alt.id] = n;
+    supply[alt.alternateOf] = (supply[alt.alternateOf] ?? 0) - n;
+  }
+  return supply;
+}
+
 /** End of a played day: count it toward the week; on the last day of the week, judge the target. */
 function closeDay(c: Content, s: State, ev: GameEvent[]) {
   const stage = currentStage(c, s);
@@ -435,7 +457,7 @@ function startDay(c: Content, s: State, ev: GameEvent[]) {
   s.forecast = pick(s, c.forecasts).id;
   s.report = emptyReport(s.day, s.stage.index, s.forecast);
   progressMissions(c, s, ev);
-  s.supply = Object.fromEntries(c.ingredients.map((i) => [i.id, morningSupply(c, s, i.id, i.dailySupply)]));
+  s.supply = deliverSupply(c, s);
   s.supplyToday = { ...s.supply };
   for (const st of s.stations) st.batchesLeft = c.stations.find((x) => x.id === st.type)!.batchesPerDay;
   runAutoStations(c, s, ev);
@@ -454,7 +476,7 @@ function postContract(c: Content, s: State, ev: GameEvent[]) {
   const [qMin, qMax] = c.settings.contractQty;
   const [dMin, dMax] = c.settings.contractDeadlineDays;
   const candy = pick(s, sellableCandies(c, s));
-  const quality = pick(s, unlockedQualities(c, s));
+  const quality = pick(s, unlockedQualities(c, s).filter((q) => !q.alternates));
   const qty = randInt(s, qMin, qMax);
   const contract = {
     id: s.nextId++,

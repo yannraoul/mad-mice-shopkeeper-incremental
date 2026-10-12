@@ -63,7 +63,8 @@ export function loadContent(files: RawFile[]): Content {
 function validStat(c: Content, stat: string): boolean {
   if (['capacity', 'counterSpace', 'patience', 'rivalRelief', 'arrivals'].includes(stat)) return true;
   const [kind, id] = stat.split(':');
-  if (kind === 'supply') return c.ingredients.some((i) => i.id === id);
+  if (kind === 'supply') return c.ingredients.some((i) => i.id === id && !i.alternateOf);
+  if (kind === 'altChance') return c.ingredients.some((i) => i.id === id && i.alternateOf);
   if (kind === 'weight') return c.customerTypes.some((t) => t.id === id);
   return false;
 }
@@ -93,9 +94,35 @@ export function validateRefs(c: Content): string[] {
   for (const ca of c.candies)
     for (const i of ca.ingredients)
       if (!ingredients.has(i.ingredient)) errors.push(`candies/${ca.id}: unknown ingredient "${i.ingredient}"`);
+  for (const ca of c.candies)
+    for (const [q, list] of Object.entries(ca.extra)) {
+      if (!qualities.has(q)) errors.push(`candies/${ca.id}: unknown quality "${q}" in extra`);
+      for (const i of list)
+        if (!ingredients.has(i.ingredient)) errors.push(`candies/${ca.id}: unknown ingredient "${i.ingredient}"`);
+    }
+  // Alternates: each points at a base ingredient, every base ingredient used by a candy has exactly one.
+  for (const i of c.ingredients) {
+    if (!i.alternateOf) continue;
+    const base = c.ingredients.find((x) => x.id === i.alternateOf);
+    if (!base) errors.push(`ingredients/${i.id}: unknown base "${i.alternateOf}"`);
+    else if (base.alternateOf) errors.push(`ingredients/${i.id}: "${base.id}" is itself an alternate`);
+    if (i.dailySupply !== 0) errors.push(`ingredients/${i.id}: an alternate has no daily supply of its own`);
+  }
+  for (const ca of c.candies)
+    for (const i of ca.ingredients) {
+      const base = c.ingredients.find((x) => x.id === i.ingredient);
+      if (base?.alternateOf) errors.push(`candies/${ca.id}: "${i.ingredient}" is an alternate, a recipe lists its base`);
+      else if (c.ingredients.filter((x) => x.alternateOf === i.ingredient).length !== 1)
+        errors.push(`candies/${ca.id}: ingredient "${i.ingredient}" needs exactly one alternate (for Perfect)`);
+    }
+  // Every unlock id an ingredient or quality waits for must be granted by a node or an errand.
+  const granted = new Set<string>();
+  for (const n of c.skillNodes) for (const e of n.effects) if (e.type === 'unlock') granted.add(e.id);
+  for (const e of c.errands) for (const ef of [...e.onAccept, ...e.reward]) if (ef.type === 'unlock') granted.add(ef.id);
+  for (const i of c.ingredients)
+    if (i.unlock && !granted.has(i.unlock)) errors.push(`ingredients/${i.id}: nothing grants the unlock "${i.unlock}"`);
   for (const q of c.qualities)
-    for (const i of q.extraIngredients)
-      if (!ingredients.has(i.ingredient)) errors.push(`qualities/${q.id}: unknown ingredient "${i.ingredient}"`);
+    if (q.unlock && !granted.has(q.unlock)) errors.push(`qualities/${q.id}: nothing grants the unlock "${q.unlock}"`);
   for (const t of c.customerTypes)
     for (const cd of t.onlyWants ?? [])
       if (!c.candies.some((x) => x.id === cd)) errors.push(`customerTypes/${t.id}: unknown candy "${cd}"`);

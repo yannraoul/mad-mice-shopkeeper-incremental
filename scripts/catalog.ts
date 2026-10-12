@@ -18,11 +18,13 @@ const effectText = (e: (typeof c.skillNodes)[number]['effects'][number]) =>
   : e.type === 'addStation' ? `adds station ${t(`station.${e.station}`)}`
   : `${e.add > 0 ? '+' : ''}${e.add} ${e.stat}`;
 
-section('Ingredients', table(['Name', 'Delivered each morning (base)'], c.ingredients.map((i) => [t(i.nameKey), i.dailySupply])));
-section('Candies (recipes)', table(['Name', 'Base price', 'Ingredients per batch', 'Unlocked by', 'Notes'],
-  c.candies.map((x) => [t(x.nameKey), x.basePrice, x.ingredients.map((i) => `${i.qty} ${t(`ingredient.${i.ingredient}`)}`).join(' + '), x.unlock ?? 'from the start', x.exclusive ? 'sold only to bees' : ''])));
-section('Qualities (ordered)', table(['Rank', 'Name', 'Price multiplier', 'Extra cost per batch', 'Extra craft step', 'Unlocked by'],
-  [...c.qualities].sort((a, b) => a.rank - b.rank).map((q) => [q.rank, t(q.nameKey), `x${q.priceMult}`, q.extraIngredients.map((i) => `${i.qty} ${t(`ingredient.${i.ingredient}`)}`).join(' + ') || '-', q.extraSteps.map((s) => t(s.nameKey)).join(', ') || '-', q.unlock ?? 'from the start'])));
+section('Ingredients', table(['Name', 'Delivered each morning (base)', 'Unlocked by', 'Notes'],
+  c.ingredients.map((i) => [t(i.nameKey), i.dailySupply, i.unlock ? `\`${i.unlock}\`` : 'from the start', i.alternateOf ? `rare alternate of ${t(`ingredient.${i.alternateOf}`)}: each delivered unit has a ${Math.round(i.chance * 100)}% chance to arrive as this instead` : ''])));
+const costText = (list: { ingredient: string; qty: number }[]) => list.map((i) => `${i.qty} ${t(`ingredient.${i.ingredient}`)}`).join(' + ');
+section('Candies (recipes)', table(['Name', 'Base price', 'Plain batch', 'Extra per quality', 'Opens when'],
+  c.candies.map((x) => [t(x.nameKey), x.basePrice, costText(x.ingredients), Object.entries(x.extra).map(([q, l]) => `${t(`quality.${q}`)}: +${costText(l)}`).join('; ') || '-', x.unlock ? `\`${x.unlock}\` and its ingredients are unlocked` : 'all its ingredients are unlocked'])));
+section('Qualities (ordered)', table(['Rank', 'Name', 'Price multiplier', 'Cost rule', 'Extra craft step', 'Unlocked by'],
+  [...c.qualities].sort((a, b) => a.rank - b.rank).map((q) => [q.rank, t(q.nameKey), `x${q.priceMult}`, q.alternates ? 'plain recipe, every ingredient replaced by its alternate' : q.rank === 0 ? 'the plain recipe' : 'plain recipe plus the candy extra units', q.extraSteps.map((s) => t(s.nameKey)).join(', ') || '-', q.unlock ?? 'from the start'])));
 section('Stations', table(['Name', 'Candies per batch', 'Batches per day', 'Behaviour'], c.stations.map((s) => [t(s.nameKey), s.capacity, s.batchesPerDay, s.auto ? 'automatic every morning' : 'crafted by hand'])));
 section('Customer types', table(['Name', 'Asks for', 'Minimum quality', 'Budget', 'Patience (actions)', 'How common', 'Appears'],
   c.customerTypes.map((x) => [t(x.nameKey), x.onlyWants ? x.onlyWants.map((id) => t(`candy.${id}`)).join(', ') : 'any regular recipe they can afford', t(`quality.${x.minQuality}`), x.budget, x.patience, x.weight, x.unlock ? `after errand reward \`${x.unlock}\`` : 'from the start'])));

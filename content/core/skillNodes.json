@@ -70,15 +70,33 @@
     ]
   },
   {
+    "id": "pulling-machine",
+    "branch": "kitchen",
+    "nameKey": "node.pulling-machine",
+    "descKey": "node.pulling-machine.desc",
+    "costs": [
+      250
+    ],
+    "requires": [
+      "oven"
+    ],
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "pulling-machine"
+      }
+    ]
+  },
+  {
     "id": "dark-garden",
     "branch": "kitchen",
     "nameKey": "node.dark-garden",
     "descKey": "node.dark-garden.desc",
     "costs": [
-      400
+      300
     ],
     "requires": [
-      "oven"
+      "sunflower-patch"
     ],
     "effects": [
       {
@@ -124,35 +142,38 @@
     ]
   },
   {
-    "id": "recipe-2",
-    "branch": "shop",
-    "nameKey": "node.recipe-2",
-    "descKey": "node.recipe-2.desc",
+    "id": "sunflower-patch",
+    "branch": "kitchen",
+    "nameKey": "node.sunflower-patch",
+    "descKey": "node.sunflower-patch.desc",
     "costs": [
       80
     ],
     "effects": [
       {
         "type": "unlock",
-        "id": "recipe-2"
+        "id": "sunflower"
       }
     ]
   },
   {
-    "id": "recipe-3",
-    "branch": "shop",
-    "nameKey": "node.recipe-3",
-    "descKey": "node.recipe-3.desc",
+    "id": "sunflower-yield",
+    "branch": "kitchen",
+    "nameKey": "node.sunflower-yield",
+    "descKey": "node.sunflower-yield.desc",
     "costs": [
-      350
+      60,
+      150,
+      400
     ],
     "requires": [
-      "recipe-2"
+      "sunflower-patch"
     ],
     "effects": [
       {
-        "type": "unlock",
-        "id": "recipe-3"
+        "type": "modifier",
+        "stat": "supply:sunflower-seed",
+        "add": 1
       }
     ]
   },

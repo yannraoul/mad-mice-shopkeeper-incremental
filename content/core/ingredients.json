@@ -1,4 +1,29 @@
 [
-  { "id": "honey", "nameKey": "ingredient.honey", "dailySupply": 4 },
-  { "id": "dark-seed", "nameKey": "ingredient.dark-seed", "dailySupply": 2 }
+  {
+    "id": "honey",
+    "nameKey": "ingredient.honey",
+    "dailySupply": 3
+  },
+  {
+    "id": "royal-jelly",
+    "nameKey": "ingredient.royal-jelly",
+    "dailySupply": 0,
+    "unlock": "royal-jelly",
+    "alternateOf": "honey",
+    "chance": 0.15
+  },
+  {
+    "id": "sunflower-seed",
+    "nameKey": "ingredient.sunflower-seed",
+    "dailySupply": 3,
+    "unlock": "sunflower"
+  },
+  {
+    "id": "dark-seed",
+    "nameKey": "ingredient.dark-seed",
+    "dailySupply": 0,
+    "unlock": "dark-garden",
+    "alternateOf": "sunflower-seed",
+    "chance": 0.15
+  }
 ]

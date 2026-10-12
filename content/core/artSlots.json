@@ -21,11 +21,11 @@
     "altKey": "ingredient.dark-seed"
   },
   {
-    "id": "candy-honey-drop",
+    "id": "candy-candy-cane",
     "width": 96,
     "height": 96,
-    "file": "art/candy-honey-drop.svg",
-    "altKey": "candy.honey-drop"
+    "file": "art/candy-candy-cane.svg",
+    "altKey": "candy.candy-cane"
   },
   {
     "id": "candy-sunflower-brittle",
@@ -33,13 +33,6 @@
     "height": 96,
     "file": "art/candy-sunflower-brittle.svg",
     "altKey": "candy.sunflower-brittle"
-  },
-  {
-    "id": "candy-honey-toffee",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-honey-toffee.svg",
-    "altKey": "candy.honey-toffee"
   },
   {
     "id": "station-auto-cauldron",
@@ -61,13 +54,6 @@
     "height": 180,
     "file": "art/station-cauldron.svg",
     "altKey": "station.cauldron"
-  },
-  {
-    "id": "candy-royal-tonic",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-royal-tonic.svg",
-    "altKey": "candy.royal-tonic"
   },
   {
     "id": "map-strip",
@@ -103,5 +89,26 @@
     "height": 120,
     "file": "art/customer-bee.svg",
     "altKey": "art.customer-bee"
+  },
+  {
+    "id": "ingredient-royal-jelly",
+    "width": 96,
+    "height": 96,
+    "file": "art/ingredient-royal-jelly.svg",
+    "altKey": "ingredient.royal-jelly"
+  },
+  {
+    "id": "ingredient-sunflower-seed",
+    "width": 96,
+    "height": 96,
+    "file": "art/ingredient-sunflower-seed.svg",
+    "altKey": "ingredient.sunflower-seed"
+  },
+  {
+    "id": "candy-sunflower-nougat",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-sunflower-nougat.svg",
+    "altKey": "candy.sunflower-nougat"
   }
 ]

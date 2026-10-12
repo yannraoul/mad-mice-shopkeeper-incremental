@@ -1,6 +1,6 @@
 import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
-import { unlockedCandies, unlockedQualities, batchSize, batchCost, priceOf, isQualityUnlocked } from '../engine/economy.ts';
+import { unlockedCandies, unlockedIngredients, unlockedQualities, batchSize, batchCost, priceOf, isQualityUnlocked } from '../engine/economy.ts';
 import {
   doStep,
   hold,
@@ -206,7 +206,7 @@ function buildScene(c: Content, s: State, ui: CraftUi, t: Translate): CraftScene
   return {
     shelfTitle: t('craft.shelf'),
     shelfSub: t('craft.shelfSub'),
-    shelf: c.ingredients.map((ing) => {
+    shelf: unlockedIngredients(c, s).map((ing) => {
       const left = (s.supply[ing.id] ?? 0) - (session?.placed[ing.id] ?? 0);
       return {
         ingredient: ing.id,
@@ -269,7 +269,7 @@ function buildCraftBase(c: Content, s: State, ui: CraftUi, t: Translate): Omit<C
       bench: {
         track: buildTrack(c, t, session, upcoming, batchSize(c, s, stationType)),
         shelfTitle: t('craft.shelf'),
-        shelf: c.ingredients.map((ing) => ({
+        shelf: unlockedIngredients(c, s).map((ing) => ({
           ingredient: ing.id,
           art: `ingredient-${ing.id}`,
           name: t(ing.nameKey),
@@ -351,7 +351,7 @@ function buildCraftBase(c: Content, s: State, ui: CraftUi, t: Translate): Omit<C
       blocked: blocked ? t('craft.cannot', { error: describeFail(t, blocked.code, blocked.params) }) : null,
       batchesLeft: t('craft.batchesLeft', { n: s.stations[ui.station]?.batchesLeft ?? 0 }),
       suppliesTitle: t('craft.suppliesToday'),
-      supplies: c.ingredients.map((ing) => `${t(ing.nameKey)}: ${s.supply[ing.id] ?? 0}`),
+      supplies: unlockedIngredients(c, s).map((ing) => `${t(ing.nameKey)}: ${s.supply[ing.id] ?? 0}`),
     },
   };
 }

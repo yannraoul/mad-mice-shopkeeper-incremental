@@ -22,3 +22,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-8](features/MMSIM-8.md) — View layer, boundary test and settings page
 - [MMSIM-9](features/MMSIM-9.md) — Design brief package and screenshot tooling
 - [MMSIM-10](features/MMSIM-10.md) — UI restyle v2 (Claude Design handoff)
+- [MMSIM-11](features/MMSIM-11.md) — Recipes, ingredients and qualities v2

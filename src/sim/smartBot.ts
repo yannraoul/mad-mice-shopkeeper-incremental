@@ -10,11 +10,11 @@ import { botAfternoon, botErrands, must, type Bot } from './bot.ts';
 
 /** Upgrades in the order a thoughtful player would want them (a node id repeats once per level). */
 export const SMART_ORDER = [
-  'honey-yield', 'counter-space', 'clerk', 'honey-yield', 'oven', 'cauldron-size', 'faithful',
-  'errands-board', 'recipe-2', 'honey-yield', 'patience', 'contract-board', 'cauldron-size',
-  'auto-cauldron', 'hive-bond', 'recipe-3', 'counter-space', 'honey-yield', 'dark-garden',
-  'cauldron-size', 'faithful', 'patience', 'hive-bond', 'map', 'counter-space', 'patience',
-  'faithful', 'hive-bond',
+  'counter-space', 'clerk', 'cauldron-size', 'oven', 'honey-yield', 'faithful',
+  'errands-board', 'sunflower-patch', 'honey-yield', 'patience', 'contract-board', 'cauldron-size',
+  'sunflower-yield', 'auto-cauldron', 'hive-bond', 'counter-space', 'honey-yield', 'pulling-machine',
+  'cauldron-size', 'faithful', 'patience', 'sunflower-yield', 'hive-bond', 'map', 'dark-garden',
+  'counter-space', 'patience', 'faithful', 'hive-bond', 'honey-yield', 'sunflower-yield',
 ];
 
 const total = (s: State, candy: string) =>

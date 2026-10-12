@@ -20,7 +20,7 @@ const failCode = (s: State, a: Action) => {
   return r.ok ? null : { code: r.code, params: r.params };
 };
 const buy = (node: string): Action => ({ type: 'buy', node });
-const craft: Action = { type: 'craft', station: 0, candy: 'honey-drop', quality: 'plain' };
+const craft: Action = { type: 'craft', station: 0, candy: 'candy-cane', quality: 'plain' };
 const end: Action = { type: 'endPhase' };
 
 /** Day 1 evening with `money` coins. */
@@ -46,8 +46,8 @@ describe('skill tree', () => {
   it('refuses when poor, unknown, or missing a required node', () => {
     expect(failCode(evening(0), buy('oven'))?.code).toBe('not-enough-money');
     expect(failCode(evening(999), buy('nope'))?.code).toBe('unknown-node');
-    expect(failCode(evening(999), buy('dark-garden'))).toEqual({ code: 'node-locked', params: { node: 'oven' } });
-    expect(run(evening(999), buy('oven'), buy('dark-garden')).unlocks).toContain('dark-garden');
+    expect(failCode(evening(999), buy('dark-garden'))).toEqual({ code: 'node-locked', params: { node: 'sunflower-patch' } });
+    expect(run(evening(999), buy('sunflower-patch'), buy('dark-garden')).unlocks).toContain('dark-garden');
   });
   it('repeatable nodes cost more each level and stop at their cap', () => {
     const node = c.skillNodes.find((n) => n.id === 'honey-yield')!;
@@ -59,8 +59,8 @@ describe('skill tree', () => {
   it('modifiers apply from the next morning: honey, batch size, counter, patience', () => {
     let s = evening(10_000);
     s = run(s, buy('honey-yield'), buy('cauldron-size'), buy('counter-space'), buy('patience'), end);
-    expect(s.supply.honey).toBe(5);
-    expect(run(s, craft).stock['honey-drop:plain']).toBe(5);
+    expect(s.supply.honey).toBe(4);
+    expect(run(s, craft).stock['candy-cane:plain']).toBe(5);
     s = run(s, end); // afternoon
     expect(s.queue.length).toBeLessThanOrEqual(5);
     for (const cu of [...s.queue, ...s.pending])
@@ -71,24 +71,24 @@ describe('skill tree', () => {
     s = run(s, buy('honey-yield'), buy('auto-cauldron'));
     expect(s.stations.map((x) => x.type)).toEqual(['cauldron', 'auto-cauldron']);
     s = run(s, end);
-    expect(s.stock['honey-drop:plain']).toBe(8); // 2 batches of 4 from 5 honey (2 each)
-    expect(s.supply.honey).toBe(1);
-    expect(failCode(s, { type: 'craft', station: 1, candy: 'honey-drop', quality: 'plain' })?.code).toBe('station-automated');
+    expect(s.stock['candy-cane:plain']).toBe(8); // 2 batches of 4 from 4 honey (1 each)
+    expect(s.supply.honey).toBe(2);
+    expect(failCode(s, { type: 'craft', station: 1, candy: 'candy-cane', quality: 'plain' })?.code).toBe('station-automated');
   });
   it('unlocked recipes can be crafted; locked ones cannot', () => {
     const brittle: Action = { type: 'craft', station: 0, candy: 'sunflower-brittle', quality: 'plain' };
     expect(failCode(newGame(c, { seed: 1 }), brittle)?.code).toBe('candy-locked');
-    expect(run(newGame(c, { seed: 1, unlocks: ['recipe-2'] }), brittle).stock['sunflower-brittle:plain']).toBe(4);
+    expect(run(newGame(c, { seed: 1, unlocks: ['sunflower'] }), brittle).stock['sunflower-brittle:plain']).toBe(4);
   });
   it('customers only ask for unlocked, affordable recipes', () => {
     for (let seed = 1; seed <= 15; seed++) {
-      const open = run(newGame(c, { seed, unlocks: ['recipe-2', 'recipe-3'] }), end);
+      const open = run(newGame(c, { seed, unlocks: ['sunflower'] }), end);
       for (const cu of [...open.queue, ...open.pending]) {
         const t = c.customerTypes.find((x) => x.id === cu.type)!;
         expect(priceOf(c, cu.wants, t.minQuality)).toBeLessThanOrEqual(t.budget);
       }
       const base = run(newGame(c, { seed }), end);
-      for (const cu of [...base.queue, ...base.pending]) expect(cu.wants).toBe('honey-drop');
+      for (const cu of [...base.queue, ...base.pending]) expect(cu.wants).toBe('candy-cane');
     }
   });
 });

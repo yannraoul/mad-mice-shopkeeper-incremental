@@ -110,7 +110,7 @@ const endDay = async () => { await click(/Open the shop/, 200); await click(/Clo
 const settings = async () => { document.querySelector('button[aria-label=Settings]').click(); await wait(200); };
 `;
 
-const RICH = '?seed=11&stage=2&money=420&unlocks=oven,clerk,errandsBoard,map,contractBoard,recipe-2,dark-garden,tonic-recipe';
+const RICH = '?seed=11&stage=2&money=420&unlocks=oven,clerk,errandsBoard,map,contractBoard,sunflower,dark-garden,royal-jelly';
 const AFTERNOON = `await craftBatch(); await craftBatch(); await openShop(); await clerkOn(); await serveOne();`;
 const EVENING = `${AFTERNOON} await closeShop(); await buy('Honey yield'); await buy('Honey yield'); await buy('Counter space'); await buy('Faithful'); await buy('Patience');`;
 

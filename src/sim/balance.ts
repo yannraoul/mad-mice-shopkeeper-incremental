@@ -19,9 +19,9 @@ export interface RunStats {
   arrivals: number;
   lost: number;
   refused: number;
-  /** Honey delivered but unused at the end of the morning, summed over days. */
-  honeyUnused: number;
-  honeyDelivered: number;
+  /** Base ingredient units (all unlocked ones) delivered but unused at the end of the morning, summed over days. */
+  ingredientsUnused: number;
+  ingredientsDelivered: number;
   /** Candies sitting in stock when the shop opens, summed over days. */
   stockOnOpen: number;
 }
@@ -30,13 +30,15 @@ export function runOne(c: Content, bot: Bot, seed: number, days: number): RunSta
   let s = newGame(c, { seed });
   const st: RunStats = {
     seed, days, clearedDay: c.stages.map(() => null), weeksPlayed: 0, weeksMissed: 0, revenue: 0,
-    revenueByDay: [], boughtDay: {}, arrivals: 0, lost: 0, refused: 0, honeyUnused: 0, honeyDelivered: 0, stockOnOpen: 0,
+    revenueByDay: [], boughtDay: {}, arrivals: 0, lost: 0, refused: 0, ingredientsUnused: 0, ingredientsDelivered: 0, stockOnOpen: 0,
   };
   for (let d = 1; d <= days; d++) {
-    const honeyAtDawn = s.supply.honey ?? 0;
+    const base = c.ingredients.filter((i) => !i.alternateOf).map((i) => i.id); // alternates are rare extras, not stock to plan around
+    const sumBase = (supply: Record<string, number>) => base.reduce((n, id) => n + (supply[id] ?? 0), 0);
+    const atDawn = sumBase(s.supply);
     s = bot.morning(c, s);
-    st.honeyDelivered += honeyAtDawn;
-    st.honeyUnused += s.supply.honey ?? 0;
+    st.ingredientsDelivered += atDawn;
+    st.ingredientsUnused += sumBase(s.supply);
     s = must(c, s, { type: 'endPhase' });
     st.stockOnOpen += Object.values(s.stock).reduce((n, v) => n + v, 0);
     s = bot.afternoon(c, s);
@@ -89,7 +91,7 @@ export interface Summary {
   bought: Record<string, Dist>;
   lostPct: number;
   refusedPct: number;
-  honeyUnusedPct: number;
+  ingredientsUnusedPct: number;
   avgStockOnOpen: number;
 }
 
@@ -112,7 +114,7 @@ export function summarize(c: Content, bot: string, runs: RunStats[]): Summary {
     bought: Object.fromEntries(c.skillNodes.map((n) => [n.id, dist(runs.map((r) => r.boughtDay[n.id] ?? null))])),
     lostPct: (100 * sum((r) => r.lost)) / Math.max(1, sum((r) => r.arrivals)),
     refusedPct: (100 * sum((r) => r.refused)) / Math.max(1, sum((r) => r.arrivals)),
-    honeyUnusedPct: (100 * sum((r) => r.honeyUnused)) / Math.max(1, sum((r) => r.honeyDelivered)),
+    ingredientsUnusedPct: (100 * sum((r) => r.ingredientsUnused)) / Math.max(1, sum((r) => r.ingredientsDelivered)),
     avgStockOnOpen: sum((r) => r.stockOnOpen) / Math.max(1, runs.length * days),
   };
 }
@@ -151,7 +153,7 @@ const f = (n: number, d = 0) => (Number.isNaN(n) ? '-' : n.toFixed(d));
 export function formatSummary(c: Content, r: Summary): string {
   const lines: string[] = [];
   lines.push(`== ${r.bot} bot: ${r.runs} runs x ${r.days} days ==`);
-  lines.push(`avg revenue/day ${f(r.avgRevenuePerDay, 1)} | missed weeks/run ${f(r.weeksMissedPerRun, 1)} | customers lost ${f(r.lostPct, 1)}% refused ${f(r.refusedPct, 1)}% | honey unused ${f(r.honeyUnusedPct, 1)}% | stock on open ${f(r.avgStockOnOpen, 1)}`);
+  lines.push(`avg revenue/day ${f(r.avgRevenuePerDay, 1)} | missed weeks/run ${f(r.weeksMissedPerRun, 1)} | customers lost ${f(r.lostPct, 1)}% refused ${f(r.refusedPct, 1)}% | ingredients unused ${f(r.ingredientsUnusedPct, 1)}% | stock on open ${f(r.avgStockOnOpen, 1)}`);
   lines.push('stage cleared on day (p10 / median / p90, runs that never cleared it):');
   c.stages.forEach((st, i) => {
     const d = r.stageCleared[i]!;
