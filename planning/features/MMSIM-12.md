@@ -1,0 +1,18 @@
+# MMSIM-12 — Customer cravings, happiness and tips
+
+Motivation: with several candies and qualities, "one customer wants one exact candy" made most recipes irrelevant. Design in `docs/customer-cravings-v2.md`.
+
+- IN:
+  - **What a customer wants** is data on the customer type (`want`): `candy` (a specific recipe, picked per visit: Faithful), `ingredient` (a craving: any candy containing it, optionally narrowed with `from`: Traveler any, Bee honey only) or `rich` (any candy with at least `minIngredients` ingredients: Merchant, set to 1 until there are more multi-ingredient candies). A customer only asks for what some unlocked candy could satisfy within their budget at their minimum quality. `onlyWants` and the candy `exclusive` flag are gone.
+  - **Matching and happiness** (`economy.ts`: `satisfies`, `hearts`, `tipFor`, `serveChoices`): 1 to 3 hearts. A specific candy: 1 heart at the minimum quality, +1 per quality above. A craving: units of the craved ingredient in the recipe at that quality (the rare alternate counts for `alternateUnits` = 3, so Perfect is always 3 hearts). A rich customer: number of ingredients. **Tip** = price x `tipMax` (0.5) x (hearts - 1) / 2. The budget caps the price, not the tip. Contracts and errands stay specific.
+  - **Serving** is now `serve {customer, candy, quality}`; the engine refuses a candy that is not what they asked for (`wrong-candy`). Day reports record `tips` (also part of revenue); the `sold` event carries the tip and the hearts. The clerk sells the cheapest candy he was taught that satisfies the customer (taught = made by hand twice, as before).
+  - **Counter UI**: the "Wants" block says "Candy cane", "Something with honey" or "A candy with 2 or more ingredients"; up to four buttons per customer, best payout first ("Candy cane · Fine · 8", hearts, "(+2 tip)"); the latest feed and the evening report show tips (EN/FR).
+  - **Save version 5** with a migration (customers' `wants` becomes a candy `want`, reports gain `tips`).
+  - **Balance**: with upselling and tips the competent bot earns about 50% more (261 a day without tips, 331 with, against 217 before), so the week 2 and 3 targets went from 800 / 1900 to 1200 / 2400 (competent player now clears weeks 1 / 2 / 3 around day 7 / 21 / 28, casual 7 / 21 / 42). The casual bot now takes the first (best paying) button like a casual player would; the cheap bot still takes the cheapest.
+- OUT: the forecast leaning toward an ingredient; craving two ingredients at once; a regulars stat; clerk training per ingredient; the Sweet Tooth and the other candies (MMSIM-14); the week chain (MMSIM-13) which will redo the pacing.
+- Decisions taken where the design left room:
+  - The alternate counts 3 units (the doc said 2) so Perfect always gives full happiness.
+  - The merchant needs only 1 ingredient for now (he would otherwise not appear before the second recipe).
+  - `unlockedCandies` replaces `demandedCandies`/`sellableCandies`: any unlocked candy can now be wanted or posted as a contract.
+- Verified: `npm run check`, `npm test` (178), `npm run check:content`, `npm run balance`; browser: counter shows a merchant, a traveler craving sunflower seed (nothing fits) and a Faithful with two options and a tip.
+- Open decisions: "serve the first button" is now the dominant strategy because stock is plentiful (about 170 candies on opening): the trade-off between a pricier and a happier candy only bites when stock is scarce, which needs the balance of production against demand revisited; the competent/casual gap is large (331 against 279 a day); the dev server served an empty module after many reloads again (restart fixes it, see CLAUDE.md).

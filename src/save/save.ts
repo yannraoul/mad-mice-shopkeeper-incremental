@@ -5,16 +5,21 @@ import type { State } from '../engine/types.ts';
 
 // Saves are a versioned envelope around the plain engine State. Bump SAVE_VERSION whenever the
 // State shape changes and add a step to `migrate`, so old saves keep loading.
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 6;
 const EXPORT_PREFIX = 'CST1:';
 
 const num = z.number();
 const rec = <T extends z.ZodType>(t: T) => z.record(z.string(), t);
 const Customer = z.object({
-  id: num, type: z.string(), wants: z.string(), minQuality: z.string(), patience: num, budget: num,
+  id: num, type: z.string(), minQuality: z.string(), patience: num, budget: num,
+  want: z.discriminatedUnion('kind', [
+    z.object({ kind: z.literal('candy'), candy: z.string() }),
+    z.object({ kind: z.literal('ingredient'), ingredient: z.string() }),
+    z.object({ kind: z.literal('rich'), minIngredients: num }),
+  ]),
 });
 const Report = z.object({
-  day: num, stage: num.default(0), forecast: z.string(), crafted: num, arrivals: num, served: num, autoServed: num,
+  day: num, stage: num.default(0), forecast: z.string(), crafted: num, arrivals: num, served: num, tips: num.default(0), surplus: num.default(0), autoServed: num,
   refused: num, lost: num, contractsDone: num, contractsExpired: num, revenue: num,
 });
 const StateSchema = z.object({
@@ -114,6 +119,32 @@ const MIGRATIONS: Record<number, (state: unknown) => unknown> = {
       pending: customers(s.pending),
     };
   },
+  // v4 -> v5 (MMSIM-12): customers ask for a candy, an ingredient or a rich candy (`want`), and days record tips.
+  4: (state) => {
+    if (typeof state !== 'object' || state === null) return state;
+    const s = state as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const customers = (list: Record<string, unknown>[] | undefined) =>
+      (list ?? []).map(({ wants, ...rest }) => ({ ...rest, want: { kind: 'candy', candy: wants } }));
+    const withTips = (r: Record<string, unknown>) => ({ tips: 0, ...r });
+    return {
+      ...s,
+      queue: customers(s.queue),
+      pending: customers(s.pending),
+      report: withTips(s.report ?? {}),
+      history: ((s.history ?? []) as Record<string, unknown>[]).map(withTips),
+    };
+  },
+  // v5 -> v6: days record the coins from unused ingredients sold at closing.
+  5: (state) => {
+    if (typeof state !== 'object' || state === null) return state;
+    const s = state as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const withSurplus = (r: Record<string, unknown>) => ({ surplus: 0, ...r });
+    return {
+      ...s,
+      report: withSurplus(s.report ?? {}),
+      history: ((s.history ?? []) as Record<string, unknown>[]).map(withSurplus),
+    };
+  },
 };
 
 /** Upgrade an older envelope to the current shape (none exist yet). */
@@ -157,7 +188,12 @@ export function checkAgainstContent(c: Content, s: State): string | null {
     if (!has(c.candies, candy ?? '') || !has(c.qualities, quality ?? '')) return `unknown stock "${k}"`;
   }
   for (const cu of [...s.queue, ...s.pending])
-    if (!has(c.customerTypes, cu.type) || !has(c.candies, cu.wants)) return `unknown customer #${cu.id}`;
+    if (
+      !has(c.customerTypes, cu.type) ||
+      (cu.want.kind === 'candy' && !has(c.candies, cu.want.candy)) ||
+      (cu.want.kind === 'ingredient' && !has(c.ingredients, cu.want.ingredient))
+    )
+      return `unknown customer #${cu.id}`;
   return null;
 }
 

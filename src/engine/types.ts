@@ -1,9 +1,15 @@
 import type { Phase } from './phases.ts';
 
+/** What one customer asked for today (see `WantKind` in the content schema). */
+export type Want =
+  | { kind: 'candy'; candy: string }
+  | { kind: 'ingredient'; ingredient: string }
+  | { kind: 'rich'; minIngredients: number };
+
 export interface Customer {
   id: number;
   type: string;
-  wants: string; // candy id
+  want: Want;
   minQuality: string; // quality id
   /** Remaining number of other customers' actions they will wait through. */
   patience: number;
@@ -34,6 +40,10 @@ export interface DayReport {
   crafted: number;
   arrivals: number;
   served: number;
+  /** Tips earned (already part of `revenue`). */
+  tips: number;
+  /** Coins from unused ingredients sold at closing (already part of `revenue`). */
+  surplus: number;
   /** Part of `served` that was sold by a worker. */
   autoServed: number;
   refused: number;
@@ -101,7 +111,7 @@ export interface State {
 export type Action =
   | { type: 'craft'; station: number; candy: string; quality: string }
   | { type: 'fulfill'; contract: number }
-  | { type: 'serve'; customer: number; quality: string }
+  | { type: 'serve'; customer: number; candy: string; quality: string }
   | { type: 'refuse'; customer: number }
   | { type: 'delegate'; customerType: string; on: boolean }
   | { type: 'buy'; node: string }
@@ -111,7 +121,8 @@ export type Action =
 
 export type GameEvent =
   | { type: 'crafted'; candy: string; quality: string; qty: number }
-  | { type: 'sold'; customer: number; customerType: string; candy: string; quality: string; price: number; auto: boolean }
+  | { type: 'sold'; customer: number; customerType: string; candy: string; quality: string; price: number; tip: number; hearts: number; auto: boolean }
+  | { type: 'surplusSold'; coins: number }
   | { type: 'refused'; customer: number; customerType: string }
   | { type: 'left'; customer: number; customerType: string }
   | { type: 'delegated'; customerType: string; on: boolean }
@@ -139,10 +150,12 @@ export type FailCode =
   | 'quality-too-low'
   | 'not-in-stock'
   | 'over-budget'
+  | 'wrong-candy'
   | 'cannot-delegate'
   | 'unknown-node'
   | 'node-maxed'
   | 'node-locked'
+  | 'unlock-needed'
   | 'not-enough-money'
   | 'candy-locked'
   | 'station-automated'

@@ -1,8 +1,8 @@
 import type { Content } from '../content/schema.ts';
-import { demandedCandies, stockedAtLeast, unlockedQualities, canAfford, stockKey } from '../engine/economy.ts';
+import { unlockedCandies, unlockedQualities, serveChoices, stockKey } from '../engine/economy.ts';
 import { step } from '../engine/engine.ts';
 import type { State } from '../engine/types.ts';
-import { botAfternoon, botErrands, must, type Bot } from './bot.ts';
+import { botErrands, must, type Bot } from './bot.ts';
 
 // A competent player: buys upgrades in a sensible order, keeps every recipe stocked, serves the
 // impatient first, and delegates what it can. It stands for "someone who has understood the game";
@@ -37,7 +37,7 @@ function smartMorning(c: Content, s: State): State {
   for (let i = 0; i < s.stations.length; i++) {
     if (c.stations.find((x) => x.id === s.stations[i]!.type)?.auto) continue;
     while (s.stations[i]!.batchesLeft > 0) {
-      const candies = demandedCandies(c, s).sort((a, b) => total(s, a.id) - total(s, b.id));
+      const candies = unlockedCandies(c, s).sort((a, b) => total(s, a.id) - total(s, b.id));
       const qualities = unlockedQualities(c, s).sort((a, b) => b.rank - a.rank); // best first
       let crafted = false;
       for (const candy of candies) {
@@ -61,15 +61,15 @@ function smartMorning(c: Content, s: State): State {
   return s;
 }
 
-/** Serve the impatient first (their wait is the scarcest thing), highest budget breaking ties. */
+/** Serve the impatient first (their wait is the scarcest thing), taking the best payout (tip included) for each. */
 function smartAfternoon(c: Content, s: State): State {
   while (s.queue.length > 0) {
     const order = [...s.queue].sort((a, b) => a.patience - b.patience || b.budget - a.budget);
     let served = false;
     for (const cu of order) {
-      const fit = canAfford(c, cu) ? stockedAtLeast(c, s, cu.wants, cu.minQuality)[0] : undefined;
-      if (fit) {
-        s = must(c, s, { type: 'serve', customer: cu.id, quality: fit.id });
+      const best = serveChoices(c, s, cu)[0];
+      if (best) {
+        s = must(c, s, { type: 'serve', customer: cu.id, candy: best.candy, quality: best.quality });
         served = true;
         break;
       }
@@ -96,7 +96,19 @@ function smartEvening(c: Content, s: State): State {
   return s;
 }
 
+/** Serve strictly in queue order, taking the first (best paying) option the counter offers: what a casual player does. */
+function casualAfternoon(c: Content, s: State): State {
+  while (s.queue.length > 0) {
+    const cu = s.queue[0]!;
+    const best = serveChoices(c, s, cu)[0];
+    s = best
+      ? must(c, s, { type: 'serve', customer: cu.id, candy: best.candy, quality: best.quality })
+      : must(c, s, { type: 'refuse', customer: cu.id });
+  }
+  return s;
+}
+
 /** An average player: plans production and purchases sensibly, but serves strictly in queue order. */
-export const casualBot: Bot = { name: 'casual', morning: smartMorning, afternoon: botAfternoon, evening: smartEvening };
+export const casualBot: Bot = { name: 'casual', morning: smartMorning, afternoon: casualAfternoon, evening: smartEvening };
 
 export const smartBot: Bot = { name: 'smart', morning: smartMorning, afternoon: smartAfternoon, evening: smartEvening };

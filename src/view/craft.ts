@@ -102,6 +102,8 @@ export interface CraftIdleView {
 
 /** The scene shared by both modes: shelf, cauldron and the batch counters. */
 export interface CraftScene {
+  /** "Unused ingredients sell for 1 coin each when the shop closes." (null when nothing is sold off) */
+  surplusNote: string | null;
   shelfTitle: string;
   shelfSub: string;
   shelf: {
@@ -203,7 +205,9 @@ function buildScene(c: Content, s: State, ui: CraftUi, t: Translate): CraftScene
   const session = ui.session;
   const inst = s.stations[session ? session.station : ui.station] ?? s.stations[0]!;
   const type = c.stations.find((x) => x.id === inst.type)!;
+  const values = [...new Set(unlockedIngredients(c, s).filter((i) => !i.alternateOf && i.surplusValue > 0).map((i) => i.surplusValue))];
   return {
+    surplusNote: values.length === 0 ? null : values.length === 1 ? t('craft.surplus', { n: values[0]! }) : t('craft.surplusMixed'),
     shelfTitle: t('craft.shelf'),
     shelfSub: t('craft.shelfSub'),
     shelf: unlockedIngredients(c, s).map((ing) => {

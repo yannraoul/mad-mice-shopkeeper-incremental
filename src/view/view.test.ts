@@ -77,20 +77,26 @@ describe('board', () => {
       { key: 'candy-cane:plain', count: 4, candy: 'Candy cane', quality: 'Plain', text: '4 × Candy cane (Plain)' },
     ]);
     const mine = b.contracts.find((x) => x.id === 900)!; // the engine may have posted one of its own too
-    expect(mine.text).toContain('3 × Candy cane (Plain) by day 4, 20 coins');
+    expect(mine.text).toContain('3 × Candy cane (Plain or better) by week 1, day 4, 20 coins');
     expect(mine.deliver.action).toEqual({ type: 'fulfill', contract: 900 });
+    expect(mine.deliver.enabled).toBe(true); // 4 in stock, 3 asked
+    s.contracts.push({ id: 901, candy: 'candy-cane', quality: 'plain', qty: 9, deadlineDay: 10, reward: 40 });
+    const big = buildBoardView(c, s, en).contracts.find((x) => x.id === 901)!;
+    expect(big.deliver.enabled).toBe(false);
+    expect(big.text).toContain('by week 2, day 3'); // day 10 is the third day of the second week
     expect(b.errands).toBeNull(); // board not bought
   });
 });
 
 describe('serve view', () => {
-  it('offers one button per stocked quality that satisfies the customer, with the price they will pay', () => {
+  it('offers the stocked candies that satisfy the customer, with what they will hand over, hearts and tip', () => {
     let s = run(newGame(c, { seed: 1, unlocks: ['oven'] }), craft('fine'), end);
     const v = buildServeView(c, s, en);
     const faithful = v.customers.find((x) => x.type === 'faithful')!;
-    expect(faithful.options.map((o) => o.label)).toEqual(['Serve Fine · 6']); // Fine sold to a budget-6 customer
+    expect(faithful.options.map((o) => o.label)).toEqual(['Candy cane · Fine · 8']); // price capped at the budget 6, plus a 2 coin tip
+    expect(faithful.options[0]).toMatchObject({ price: 6, tip: 2, hearts: 2, heartsText: '♥♥♡', tipText: '(+2 tip)' });
     expect(faithful.options[0]!.enabled).toBe(true);
-    expect(faithful.options[0]!.action).toEqual({ type: 'serve', customer: faithful.id, quality: 'fine' });
+    expect(faithful.options[0]!.action).toEqual({ type: 'serve', customer: faithful.id, candy: 'candy-cane', quality: 'fine' });
     expect(faithful.refuse.action).toEqual({ type: 'refuse', customer: faithful.id });
     expect(faithful.details).toBe('At least Plain · Budget: 6 · Patience: 6');
     // every offered action is accepted by the engine
@@ -117,9 +123,21 @@ describe('serve view', () => {
     );
     expect(buildServeView(c, newGame(c, { seed: 1 }), en).workers).toEqual([]);
   });
+  it('counts time in weeks and days, and says which stage it is', () => {
+    const v = buildStageView(c, newGame(c, { seed: 1 }), en);
+    expect(v.dayText).toBe('stage 1 · week 1 · day 1 / 7');
+    const s = newGame(c, { seed: 1 });
+    s.day = 12;
+    s.stage.index = 1;
+    s.stage.day = 4;
+    expect(buildStageView(c, s, fr).dayText).toBe('étape 2 · semaine 2 · jour 5 / 7');
+  });
   it('builds feed lines from events', () => {
-    expect(feedLine(en, { type: 'sold', customer: 1, customerType: 'faithful', candy: 'candy-cane', quality: 'plain', price: 5, auto: true })).toBe(
+    expect(feedLine(en, { type: 'sold', customer: 1, customerType: 'faithful', candy: 'candy-cane', quality: 'plain', price: 5, tip: 0, hearts: 1, auto: true })).toBe(
       'The clerk sold Candy cane (Plain) to Faithful for 5.',
+    );
+    expect(feedLine(en, { type: 'sold', customer: 1, customerType: 'traveler', candy: 'candy-cane', quality: 'fine', price: 8, tip: 2, hearts: 3, auto: false })).toBe(
+      'Traveler bought Candy cane (Fine) for 8. (+2 tip)',
     );
     expect(feedLine(fr, { type: 'refused', customer: 1, customerType: 'merchant' })).toBe('Vous avez refusé Marchand.');
     const v = buildServeView(c, afternoon(), en, [{ type: 'left', customer: 2, customerType: 'traveler' }]);
@@ -175,7 +193,7 @@ describe('stage view', () => {
   };
   it('shows progress and a heads-up before the rival starts', () => {
     const v = buildStageView(c, stage2(), en);
-    expect(v.progress).toBe('Gathering pilgrims: day 1 / 7 · 0 / 800 coins earned');
+    expect(v.progress).toBe('Gathering pilgrims: day 1 / 7 · 0 / 1200 coins earned');
     expect(v.pct).toBe(0);
     expect(v.warning).toBe('A rival hive will start stealing 1 honey each morning from day 3 of the week.');
     expect(v.hints).toEqual(['Errands can stop this: buy the Errands board (Temple branch).']);
@@ -219,7 +237,7 @@ describe('errands view', () => {
     let v = buildErrandsView(c, s, en)!;
     const queen = v.items.find((i) => i.id === 'queen-fever')!;
     expect(queen).toMatchObject({ status: 'available', button: { label: 'Accept', enabled: true, action: { type: 'acceptErrand', errand: 'queen-fever' } } });
-    expect(queen.requirements).toEqual(['4 × Candy cane (Fine)']);
+    expect(queen.requirements).toEqual(['4 × Candy cane (Fine or better)']);
     expect(v.items.find((i) => i.id === 'rival-hive')).toMatchObject({ status: 'locked', tag: 'Against the rival hive', button: null });
     expect(v.items.find((i) => i.id === 'rival-hive')!.statusText).toBe('Requires Hire a clerk first.');
     const taken = run(s, { type: 'acceptErrand', errand: 'queen-fever' });

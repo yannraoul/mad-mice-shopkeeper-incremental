@@ -27,7 +27,9 @@ describe('balance: pacing of the campaign', () => {
     expect(s2!.median).toBeGreaterThanOrEqual(14);
     expect(s2!.median).toBeLessThanOrEqual(42);
     expect(s3!.never).toBe(0);
-    expect(s3!.median).toBeGreaterThanOrEqual(35);
+    // Tips and upselling made the competent player richer (MMSIM-12); targets were raised to match and the
+    // stage chain (MMSIM-13) will redo the pacing, so the lower band is loose for now.
+    expect(s3!.median).toBeGreaterThanOrEqual(21);
     expect(s3!.median).toBeLessThanOrEqual(63);
   });
   it('an average player also finishes, only somewhat later', () => {

@@ -33,6 +33,8 @@ export const Ingredient = z.object({
   alternateOf: id.optional(),
   /** Chance per delivered base unit of turning into this alternate (modifier stat `altChance:<id>` adds to it). */
   chance: z.number().min(0).max(1).default(0),
+  /** Coins each unused unit is worth when the shop closes (base ingredients only: alternates carry over to the next day). */
+  surplusValue: z.number().min(0).default(0),
 });
 export const Candy = z.object({
   id,
@@ -44,8 +46,6 @@ export const Candy = z.object({
   extra: z.record(id, z.array(IngredientQty)).default({}),
   /** Optional additional gate (absent = none beyond the ingredients). */
   unlock: z.string().optional(),
-  /** Only customer types that list it in `onlyWants` buy it: regular customers and contracts never ask for it. */
-  exclusive: z.boolean().default(false),
 });
 /** Stations are instances of a type (n cauldrons), never singletons. */
 export const Station = z.object({
@@ -57,6 +57,16 @@ export const Station = z.object({
   /** Automated station: runs its batches by itself every morning (not craftable by hand). */
   auto: z.object({ candy: id, quality: id }).optional(),
 });
+/**
+ * What a customer asks for. `candy`: one specific recipe (picked per visit). `ingredient`: a craving,
+ * any candy containing it will do (`from` narrows which ingredients they may crave). `rich`: any candy
+ * with at least `minIngredients` ingredients.
+ */
+export const WantKind = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('candy') }),
+  z.object({ kind: z.literal('ingredient'), from: z.array(id).optional() }),
+  z.object({ kind: z.literal('rich'), minIngredients: z.number().int().positive() }),
+]);
 /** Customer axes: wants (picked per visit), min quality, patience, budget. */
 export const CustomerType = z.object({
   id,
@@ -69,8 +79,8 @@ export const CustomerType = z.object({
   weight: z.number().positive(),
   /** Appears only once this unlock id is owned (e.g. granted by an errand reward). */
   unlock: z.string().optional(),
-  /** Always asks for one of these candies instead of the regular ones. */
-  onlyWants: z.array(id).optional(),
+  /** What they ask for (default: a specific candy). */
+  want: WantKind.default({ kind: 'candy' }),
 });
 /** Rough walk-in forecast shown in the morning; the real day differs. */
 export const Forecast = z.object({
@@ -107,6 +117,8 @@ export const SkillNode = z.object({
   costs: z.array(z.number().int().positive()).min(1),
   /** Nodes that must be owned (level >= 1) first: how branches link to each other. */
   requires: z.array(id).default([]),
+  /** Unlock ids (granted by other upgrades or by errands) that must be owned first. */
+  needs: z.array(z.string()).default([]),
   effects: z.array(Effect).min(1),
 });
 /** A weekly stage: reach `target` coins of revenue within `days` days to open the next one. */
@@ -197,6 +209,10 @@ export const Settings = z.object({
   contractMult: z.number().positive(),
   contractQty: range,
   contractDeadlineDays: range,
+  /** Tip at full happiness (3 hearts) as a share of the price; 0 hearts-above-one gives no tip. */
+  tipMax: z.number().min(0),
+  /** How many units of a craved ingredient one unit of its rare alternate counts for when judging happiness. */
+  alternateUnits: z.number().int().positive(),
 });
 
 export const Strings = z.record(z.string(), z.string());

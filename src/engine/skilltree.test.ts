@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadContent } from '../content/load.ts';
 import { readContentFiles } from '../../scripts/lib/readContent.ts';
 import { newGame, step } from './engine.ts';
-import { priceOf } from './economy.ts';
+import { priceOf, satisfies, unlockedCandies } from './economy.ts';
 import type { Action, State } from './types.ts';
 
 const c = loadContent(readContentFiles(false));
@@ -47,7 +47,8 @@ describe('skill tree', () => {
     expect(failCode(evening(0), buy('oven'))?.code).toBe('not-enough-money');
     expect(failCode(evening(999), buy('nope'))?.code).toBe('unknown-node');
     expect(failCode(evening(999), buy('dark-garden'))).toEqual({ code: 'node-locked', params: { node: 'sunflower-patch' } });
-    expect(run(evening(999), buy('sunflower-patch'), buy('dark-garden')).unlocks).toContain('dark-garden');
+    expect(failCode(run(evening(999), buy('sunflower-patch')), buy('dark-garden'))).toEqual({ code: 'unlock-needed', params: { unlock: 'magic-cauldron' } });
+    expect(run(evening(999, ['magic-cauldron']), buy('sunflower-patch'), buy('dark-garden')).unlocks).toContain('dark-garden');
   });
   it('repeatable nodes cost more each level and stop at their cap', () => {
     const node = c.skillNodes.find((n) => n.id === 'honey-yield')!;
@@ -85,10 +86,15 @@ describe('skill tree', () => {
       const open = run(newGame(c, { seed, unlocks: ['sunflower'] }), end);
       for (const cu of [...open.queue, ...open.pending]) {
         const t = c.customerTypes.find((x) => x.id === cu.type)!;
-        expect(priceOf(c, cu.wants, t.minQuality)).toBeLessThanOrEqual(t.budget);
+        // something they could afford at their minimum quality satisfies what they asked for
+        const ok = unlockedCandies(c, open).filter((cd) => priceOf(c, cd.id, t.minQuality) <= t.budget && satisfies(c, cu, cd.id, t.minQuality));
+        expect(ok.length).toBeGreaterThan(0);
       }
       const base = run(newGame(c, { seed }), end);
-      for (const cu of [...base.queue, ...base.pending]) expect(cu.wants).toBe('candy-cane');
+      for (const cu of [...base.queue, ...base.pending]) {
+        // with honey only, they want candy cane or something with honey
+        expect(cu.want.kind === 'candy' ? cu.want.candy : cu.want.kind === 'ingredient' ? cu.want.ingredient : 'rich').toMatch(/^(candy-cane|honey|rich)$/);
+      }
     }
   });
 });

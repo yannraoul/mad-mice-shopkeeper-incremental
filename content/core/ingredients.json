@@ -2,7 +2,8 @@
   {
     "id": "honey",
     "nameKey": "ingredient.honey",
-    "dailySupply": 3
+    "dailySupply": 3,
+    "surplusValue": 1
   },
   {
     "id": "royal-jelly",
@@ -16,7 +17,8 @@
     "id": "sunflower-seed",
     "nameKey": "ingredient.sunflower-seed",
     "dailySupply": 3,
-    "unlock": "sunflower"
+    "unlock": "sunflower",
+    "surplusValue": 1
   },
   {
     "id": "dark-seed",

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadContent } from '../content/load.ts';
 import { readContentFiles } from '../../scripts/lib/readContent.ts';
 import { newGame, step } from './engine.ts';
-import { priceOf, unlockedCandies } from './economy.ts';
+import { priceOf, serveChoices, unlockedCandies } from './economy.ts';
 import type { Action, State } from './types.ts';
 
 const c = loadContent(readContentFiles(false));
@@ -120,8 +120,10 @@ describe('serving', () => {
   it('pays the price and consumes stock', () => {
     const s0 = afternoon();
     const cu = s0.queue[0]!;
-    const s1 = run(s0, { type: 'serve', customer: cu.id, quality: 'plain' });
-    expect(s1.money).toBe(priceOf(c, cu.wants, 'plain'));
+    const choice = serveChoices(c, s0, cu).find((x) => x.quality === 'plain')!;
+    const s1 = run(s0, { type: 'serve', customer: cu.id, candy: choice.candy, quality: 'plain' });
+    expect(s1.money).toBe(choice.total);
+    expect(s1.report.tips).toBe(choice.tip);
     expect(s1.stock['candy-cane:plain']).toBe(7);
     expect(s1.report.served).toBe(1);
     expect(s1.queue.find((x) => x.id === cu.id)).toBeUndefined();
@@ -129,18 +131,18 @@ describe('serving', () => {
   it('rejects quality below the customer minimum, over-budget and out-of-stock', () => {
     const s = afternoon();
     s.queue[0] = { ...s.queue[0]!, minQuality: 'fine', budget: 100 };
-    expect(fails(s, { type: 'serve', customer: s.queue[0]!.id, quality: 'plain' })).toMatch(/too low/);
+    expect(fails(s, { type: 'serve', customer: s.queue[0]!.id, candy: 'candy-cane', quality: 'plain' })).toMatch(/too low/);
     s.queue[0] = { ...s.queue[0]!, minQuality: 'plain', budget: 1 };
-    expect(fails(s, { type: 'serve', customer: s.queue[0]!.id, quality: 'plain' })).toMatch(/budget/);
+    expect(fails(s, { type: 'serve', customer: s.queue[0]!.id, candy: 'candy-cane', quality: 'plain' })).toMatch(/budget/);
     s.stock['candy-cane:plain'] = 0;
     s.queue[0] = { ...s.queue[0]!, budget: 100 };
-    expect(fails(s, { type: 'serve', customer: s.queue[0]!.id, quality: 'plain' })).toMatch(/not in stock/);
+    expect(fails(s, { type: 'serve', customer: s.queue[0]!.id, candy: 'candy-cane', quality: 'plain' })).toMatch(/not in stock/);
   });
   it('lets a better quality satisfy a lower requirement', () => {
     const s = afternoon(1, ['oven'], [craft('fine')]);
-    s.queue[0] = { ...s.queue[0]!, wants: 'candy-cane', minQuality: 'plain', budget: 100 };
-    const r = run(s, { type: 'serve', customer: s.queue[0]!.id, quality: 'fine' });
-    expect(r.money).toBe(priceOf(c, 'candy-cane', 'fine'));
+    s.queue[0] = { ...s.queue[0]!, want: { kind: 'candy', candy: 'candy-cane' }, minQuality: 'plain', budget: 100 };
+    const r = run(s, { type: 'serve', customer: s.queue[0]!.id, candy: 'candy-cane', quality: 'fine' });
+    expect(r.money).toBe(priceOf(c, 'candy-cane', 'fine') + 2); // 8 and a 2 coin tip: Fine is one step above what they asked
   });
   it('drains patience of waiting customers when another is handled, and they leave at 0', () => {
     const s = afternoon();
@@ -160,7 +162,27 @@ describe('serving', () => {
     if (s.pending.length > 0) expect(s.queue.length).toBe(c.settings.counterSpace);
   });
   it('is only possible in the afternoon', () => {
-    expect(fails(newGame(c, { seed: 1 }), { type: 'serve', customer: 1, quality: 'plain' })).toMatch(/afternoon/);
+    expect(fails(newGame(c, { seed: 1 }), { type: 'serve', customer: 1, candy: 'candy-cane', quality: 'plain' })).toMatch(/afternoon/);
+  });
+});
+
+describe('leftovers', () => {
+  it('unused base ingredients are sold when the shop closes, at their surplus value', () => {
+    const s0 = run(newGame(c, { seed: 1 }), craft()); // 2 honey left
+    const honeyLeft = s0.supply.honey!;
+    const value = c.ingredients.find((i) => i.id === 'honey')!.surplusValue;
+    const s1 = run(s0, { type: 'endPhase' }, { type: 'endPhase' }); // afternoon, then evening
+    expect(s1.supply.honey).toBe(0);
+    expect(s1.report.surplus).toBe(honeyLeft * value);
+    expect(s1.money - s0.money).toBe(s1.report.revenue); // customers' coins and leftovers are all in the revenue
+    expect(s1.report.revenue).toBeGreaterThanOrEqual(honeyLeft * value);
+  });
+  it('rare alternates are not sold: whatever is unused is still there tomorrow', () => {
+    const s0 = newGame(c, { seed: 1, unlocks: ['royal-jelly'] });
+    s0.supply['royal-jelly'] = 2;
+    const s1 = run(s0, { type: 'endPhase' }, { type: 'endPhase' }, { type: 'endPhase' });
+    expect(s1.supply['royal-jelly']).toBeGreaterThanOrEqual(2);
+    expect(s1.report.surplus).toBe(0);
   });
 });
 
@@ -294,27 +316,27 @@ describe('selling a better quality than asked for', () => {
   };
   it('is always possible and the customer pays at most their budget', () => {
     const s = withStock({ 'candy-cane:fine': 2 });
-    s.queue[0] = { ...s.queue[0]!, wants: 'candy-cane', minQuality: 'plain', budget: 6 };
+    s.queue[0] = { ...s.queue[0]!, want: { kind: 'candy', candy: 'candy-cane' }, minQuality: 'plain', budget: 6 };
     expect(priceOf(c, 'candy-cane', 'fine')).toBe(8);
-    const r = run(s, { type: 'serve', customer: s.queue[0]!.id, quality: 'fine' });
-    expect(r.money).toBe(6); // min(8, budget 6): a Fine drop sold to a plain-budget customer
+    const r = run(s, { type: 'serve', customer: s.queue[0]!.id, candy: 'candy-cane', quality: 'fine' });
+    expect(r.money).toBe(8); // min(8, budget 6) = 6, plus a 2 coin tip: the budget caps the price, not the tip
   });
   it('pays the full price when the budget allows', () => {
     const s = withStock({ 'candy-cane:fine': 1 });
-    s.queue[0] = { ...s.queue[0]!, wants: 'candy-cane', minQuality: 'plain', budget: 12 };
-    expect(run(s, { type: 'serve', customer: s.queue[0]!.id, quality: 'fine' }).money).toBe(8);
+    s.queue[0] = { ...s.queue[0]!, want: { kind: 'candy', candy: 'candy-cane' }, minQuality: 'plain', budget: 12 };
+    expect(run(s, { type: 'serve', customer: s.queue[0]!.id, candy: 'candy-cane', quality: 'fine' }).money).toBe(10); // 8 plus a 2 coin tip
   });
   it('is refused only when even the asked-for quality is beyond their budget', () => {
     const s = withStock({ 'candy-cane:fine': 1 });
-    s.queue[0] = { ...s.queue[0]!, wants: 'candy-cane', minQuality: 'plain', budget: 4 };
-    expect(fails(s, { type: 'serve', customer: s.queue[0]!.id, quality: 'fine' })).toMatch(/budget/);
+    s.queue[0] = { ...s.queue[0]!, want: { kind: 'candy', candy: 'candy-cane' }, minQuality: 'plain', budget: 4 };
+    expect(fails(s, { type: 'serve', customer: s.queue[0]!.id, candy: 'candy-cane', quality: 'fine' })).toMatch(/budget/);
   });
   it('the clerk sells the better quality when that is all there is', () => {
     let s = newGame(c, { seed: 1, unlocks: ['clerk', 'oven'] });
     s.batchesMade['candy-cane'] = 2;
     s = run(s, { type: 'delegate', customerType: 'faithful', on: true }, craft('fine'), { type: 'endPhase' });
     expect(s.report.autoServed).toBeGreaterThan(0);
-    expect(s.money).toBe(s.report.autoServed * 6); // faithful budget is 6, Fine costs 8
+    expect(s.money).toBe(s.report.autoServed * 8); // faithful budget 6 caps the price of a Fine cane (8), plus a 2 coin tip
   });
   it('a better quality costs more honey than plain, so plain stays worth making', () => {
     const at = (quality: string) =>

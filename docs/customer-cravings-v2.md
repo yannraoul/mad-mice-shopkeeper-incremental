@@ -1,7 +1,6 @@
-# Customer cravings, happiness and tips (design, not built yet)
+# Customer cravings, happiness and tips
 
-Status: agreed direction (mixed customer model, tip up to +50% as a first value). Becomes **MMSIM-12**, after
-`docs/recipes-and-ingredients-v2.md`.
+Status: **built in MMSIM-12** (see `planning/features/MMSIM-12.md`; the alternate counts 3 units, the merchant needs 1 ingredient for now). The forecast lean and the clerk question below are still open.
 
 ## Why
 

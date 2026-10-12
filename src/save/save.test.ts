@@ -37,6 +37,19 @@ describe('save', () => {
     const r = deserialize(c, JSON.stringify(old));
     expect(r).toEqual({ ok: true, state: { ...s, supplyToday: s.supply } });
   });
+  it('upgrades a v4 save: customers get a candy want, days get tips', () => {
+    const s = played();
+    s.report.tips = 0; // an old save has no tips: they come back as 0
+    for (const h of s.history) h.tips = 0;
+    s.queue = [{ id: 7, type: 'faithful', want: { kind: 'candy', candy: 'candy-cane' }, minQuality: 'plain', patience: 3, budget: 6 }];
+    const old = JSON.parse(serialize(s));
+    old.v = 4;
+    old.state.queue = [{ id: 7, type: 'faithful', wants: 'candy-cane', minQuality: 'plain', patience: 3, budget: 6 }];
+    delete old.state.report.tips;
+    for (const h of old.state.history) delete h.tips;
+    const r = deserialize(c, JSON.stringify(old));
+    expect(r).toEqual({ ok: true, state: s });
+  });
   it('rejects garbage, wrong shapes, future versions and unknown content ids', () => {
     expect(deserialize(c, 'nope').ok).toBe(false);
     expect(deserialize(c, '{"v":1,"state":{}}').ok).toBe(false);

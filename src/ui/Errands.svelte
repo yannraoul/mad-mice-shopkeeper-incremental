@@ -4,14 +4,14 @@
   import Pips from './Pips.svelte';
 
   let { view }: { view: ErrandsView | null } = $props();
-  const tone = (x: string) => (x === 'ready' ? 'var(--ok)' : 'var(--accent)');
+  const tone = (x: string) => (x === 'ready' || x === 'done' ? 'var(--ok)' : 'var(--accent)');
 </script>
 
 {#if view}
   <section class="frame small">
     <h3>{view.title}</h3>
     {#each view.items as e (e.id)}
-      {#if e.tone === 'available' || e.tone === 'underway' || e.tone === 'ready'}
+      {#if e.tone === 'available' || e.tone === 'underway' || e.tone === 'ready' || e.tone === 'done'}
         <!-- A collapsed row: name, requirement, optional rival chip and the action; the description opens on tap. -->
         <details class="errand {e.tone}" class:rival={!!e.tag && e.tone === 'available'}>
           <summary>
@@ -42,11 +42,7 @@
             {#if e.tag}<span class="chip warn tag">{e.tag}</span>{/if}
           </span>
           {#if e.chip}<span class="chip ok">{e.chip}</span>{/if}
-          {#if e.tone === 'done'}
-            <span class="ok line">✓ {e.statusText}</span>
-          {:else}
-            <span class="muted line"><span aria-hidden="true">🔒</span> {e.statusText}</span>
-          {/if}
+          <span class="muted line"><span aria-hidden="true">🔒</span> {e.statusText}</span>
         </article>
       {/if}
     {:else}

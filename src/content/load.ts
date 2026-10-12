@@ -124,8 +124,9 @@ export function validateRefs(c: Content): string[] {
   for (const q of c.qualities)
     if (q.unlock && !granted.has(q.unlock)) errors.push(`qualities/${q.id}: nothing grants the unlock "${q.unlock}"`);
   for (const t of c.customerTypes)
-    for (const cd of t.onlyWants ?? [])
-      if (!c.candies.some((x) => x.id === cd)) errors.push(`customerTypes/${t.id}: unknown candy "${cd}"`);
+    if (t.want.kind === 'ingredient')
+      for (const i of t.want.from ?? [])
+        if (!c.ingredients.some((x) => x.id === i && !x.alternateOf)) errors.push(`customerTypes/${t.id}: "${i}" is not a base ingredient`);
   for (const w of c.workers)
     for (const t of w.serves)
       if (!customers.has(t)) errors.push(`workers/${w.id}: unknown customer type "${t}"`);

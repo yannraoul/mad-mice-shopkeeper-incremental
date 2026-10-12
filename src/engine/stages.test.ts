@@ -146,16 +146,24 @@ describe('errands', () => {
         const g = start();
         g.rng = seed;
         const open = run(g, end);
-        out.push(...[...open.queue, ...open.pending].map((cu) => ({ type: cu.type, wants: cu.wants })));
+        out.push(...[...open.queue, ...open.pending].map((cu) => ({ type: cu.type, wants: cu.want.kind === 'ingredient' ? cu.want.ingredient : cu.want.kind === 'candy' ? cu.want.candy : 'rich' })));
       }
       return out;
     };
-    it('the queen reward opens royal jelly: it arrives by chance, never before', () => {
-      expect(queenDone().unlocks).toEqual(expect.arrayContaining(['royal-jelly', 'bee-customers']));
-      expect(run(board(), accept('queen-fever'), end, end, end).supply['royal-jelly']).toBeUndefined();
+    it('the queen reward brings the bees, not royal jelly: that comes later, with the hive gratitude', () => {
+      expect(queenDone().unlocks).toContain('bee-customers');
+      expect(queenDone().unlocks).not.toContain('royal-jelly');
+      const gift = (): State => {
+        const g = board(['magic-cauldron', 'sunflower']);
+        g.stage.index = 1;
+        g.stock['sunflower-nougat:fine'] = 8;
+        return run(g, accept('royal-gift'), deliver('royal-gift'));
+      };
+      expect(failCode(board(['sunflower']), accept('royal-gift'))).toBe('errand-unavailable'); // needs the magic cauldron
+      expect(gift().unlocks).toContain('royal-jelly');
       let jelly = 0;
       for (let seed = 1; seed <= 40; seed++) {
-        const g = queenDone();
+        const g = gift();
         g.rng = seed;
         jelly += run(g, end, end, end).supply['royal-jelly'] ?? 0;
       }
@@ -165,18 +173,18 @@ describe('errands', () => {
       const asked = customersOver(() => run(board(), accept('queen-fever')), 30);
       expect(asked.some((x) => x.type === 'bee')).toBe(false);
     });
-    it('after the errand bees come sometimes, and they only ask for what honey makes', () => {
+    it('after the errand bees come sometimes, and they only crave honey', () => {
       const asked = customersOver(queenDone, 40);
       const bees = asked.filter((x) => x.type === 'bee');
       expect(bees.length).toBeGreaterThan(0);
-      expect(bees.every((b) => b.wants === 'candy-cane')).toBe(true); // nougat needs the sunflower patch
+      expect(bees.every((b) => b.wants === 'honey')).toBe(true); // they crave honey, and nothing else
       expect(bees.length).toBeLessThan(asked.length / 2); // sometimes, not most of the time
     });
     it('a bee pays for candy', () => {
       let s = run(queenDone(), craft(), end);
-      const bee = { id: 9999, type: 'bee', wants: 'candy-cane', minQuality: 'plain', patience: 5, budget: 10 };
+      const bee = { id: 9999, type: 'bee', want: { kind: 'ingredient', ingredient: 'honey' }, minQuality: 'plain', patience: 5, budget: 10 } as const;
       s.queue = [bee];
-      s = run(s, { type: 'serve', customer: 9999, quality: 'plain' });
+      s = run(s, { type: 'serve', customer: 9999, candy: 'candy-cane', quality: 'plain' });
       expect(s.money).toBe(5);
     });
   });

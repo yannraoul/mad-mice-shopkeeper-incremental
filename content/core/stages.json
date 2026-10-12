@@ -10,7 +10,7 @@
     "id": "week-2",
     "nameKey": "stage.week-2",
     "days": 7,
-    "target": 800,
+    "target": 1200,
     "arrivalsMult": 1.5,
     "rival": {
       "ingredient": "honey",
@@ -22,7 +22,7 @@
     "id": "week-3",
     "nameKey": "stage.week-3",
     "days": 7,
-    "target": 1900,
+    "target": 2400,
     "arrivalsMult": 2.8,
     "rival": {
       "ingredient": "honey",

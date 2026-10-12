@@ -1,5 +1,5 @@
 import type { Content } from '../content/schema.ts';
-import type { State } from './types.ts';
+import type { Customer, State } from './types.ts';
 
 // Read-only helpers over Content/State. No mutation here.
 
@@ -44,16 +44,6 @@ export const unlockedCandies = (c: Content, s: Pick<State, 'unlocks'>) =>
 export const presentCustomerTypes = (c: Content, s: Pick<State, 'unlocks'>) =>
   c.customerTypes.filter((t) => t.unlock === undefined || s.unlocks.includes(t.unlock));
 
-/** Unlocked candies somebody present would actually buy: what is worth making right now. */
-export const demandedCandies = (c: Content, s: Pick<State, 'unlocks'>) =>
-  unlockedCandies(c, s).filter(
-    (x) => !x.exclusive || presentCustomerTypes(c, s).some((t) => t.onlyWants?.includes(x.id)),
-  );
-
-/** Recipes customers and contracts may ask for (errand-only recipes are excluded). */
-export const sellableCandies = (c: Content, s: Pick<State, 'unlocks'>) =>
-  unlockedCandies(c, s).filter((x) => !x.exclusive);
-
 export const currentStage = (c: Content, s: Pick<State, 'stage'>) => c.stages[s.stage.index]!;
 
 /** Units of `ingredient` the rival hive steals this morning (after relief from errands). */
@@ -94,16 +84,85 @@ export function priceOf(c: Content, candy: string, quality: string): number {
   return Math.round(cd.basePrice * q.priceMult);
 }
 
-/**
- * What a customer pays for `quality`: its price, but never more than their budget. A better quality
- * than they asked for is therefore always acceptable (they just pay at most their budget).
- */
-export const salePrice = (c: Content, cu: { wants: string; budget: number }, quality: string): number =>
-  Math.min(priceOf(c, cu.wants, quality), cu.budget);
+/** Base ingredients a candy is made of (its plain recipe). */
+export const candyIngredients = (c: Content, candy: string): string[] =>
+  c.candies.find((x) => x.id === candy)?.ingredients.map((i) => i.ingredient) ?? [];
 
-/** Can this customer buy at all? They must afford the quality they asked for as a minimum. */
-export const canAfford = (c: Content, cu: { wants: string; minQuality: string; budget: number }): boolean =>
-  priceOf(c, cu.wants, cu.minQuality) <= cu.budget;
+/** Does this candy at this quality satisfy what the customer asked for (and meet their minimum quality)? */
+export function satisfies(c: Content, cu: Pick<Customer, 'want' | 'minQuality'>, candy: string, quality: string): boolean {
+  if (qualityRank(c, quality) < qualityRank(c, cu.minQuality)) return false;
+  const ings = candyIngredients(c, candy);
+  switch (cu.want.kind) {
+    case 'candy':
+      return cu.want.candy === candy;
+    case 'ingredient':
+      return ings.includes(cu.want.ingredient);
+    case 'rich':
+      return ings.length >= cu.want.minIngredients;
+  }
+}
+
+/** Can this customer buy this candy at all? Its price at their minimum quality must fit their budget. */
+export const canAfford = (c: Content, cu: Pick<Customer, 'minQuality' | 'budget'>, candy: string): boolean =>
+  priceOf(c, candy, cu.minQuality) <= cu.budget;
+
+/** What a customer pays for `candy` at `quality`: its price, but never more than their budget (a tip comes on top). */
+export const salePrice = (c: Content, cu: Pick<Customer, 'budget'>, candy: string, quality: string): number =>
+  Math.min(priceOf(c, candy, quality), cu.budget);
+
+/**
+ * How happy this candy makes the customer, 1 to 3 hearts. A specific candy: one heart at the minimum quality,
+ * one more per quality above it. A craving: the units of the craved ingredient in the recipe (its rare alternate
+ * counts for `alternateUnits`). A rich customer: how many ingredients the candy has.
+ */
+export function hearts(c: Content, cu: Pick<Customer, 'want' | 'minQuality'>, candy: string, quality: string): number {
+  let n: number;
+  switch (cu.want.kind) {
+    case 'candy':
+      n = 1 + qualityRank(c, quality) - qualityRank(c, cu.minQuality);
+      break;
+    case 'ingredient': {
+      const craved = cu.want.ingredient;
+      const cost = batchCost(c, candy, quality);
+      const alt = c.ingredients.find((x) => x.alternateOf === craved);
+      n = (cost[craved] ?? 0) + (alt ? (cost[alt.id] ?? 0) * c.settings.alternateUnits : 0);
+      break;
+    }
+    case 'rich':
+      n = candyIngredients(c, candy).length;
+      break;
+  }
+  return Math.max(1, Math.min(3, n));
+}
+
+/** The tip for a sale: 0 at one heart, up to `tipMax` of the price at three. */
+export const tipFor = (c: Content, price: number, hearts: number): number =>
+  Math.round((price * c.settings.tipMax * (hearts - 1)) / 2);
+
+export interface ServeChoice {
+  candy: string;
+  quality: string;
+  price: number;
+  hearts: number;
+  tip: number;
+  /** price + tip: what the customer hands over. */
+  total: number;
+}
+
+/** Every stocked candy and quality that would serve this customer, most rewarding first (cheaper first on ties). */
+export function serveChoices(c: Content, s: Pick<State, 'stock'>, cu: Customer): ServeChoice[] {
+  const out: ServeChoice[] = [];
+  for (const [key, qty] of Object.entries(s.stock)) {
+    if (qty < 1) continue;
+    const [candy, quality] = key.split(':') as [string, string];
+    if (!satisfies(c, cu, candy, quality) || !canAfford(c, cu, candy)) continue;
+    const price = salePrice(c, cu, candy, quality);
+    const h = hearts(c, cu, candy, quality);
+    const tip = tipFor(c, price, h);
+    out.push({ candy, quality, price, hearts: h, tip, total: price + tip });
+  }
+  return out.sort((a, b) => b.total - a.total || a.price - b.price);
+}
 
 /**
  * Total ingredients one batch of candy at this quality consumes. Fine and the like add units listed in

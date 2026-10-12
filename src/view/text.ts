@@ -16,6 +16,7 @@ export function describeFail(t: Translate, code: FailCode, params: Record<string
       : k === 'phase' ? t(`phase.${v}`)
       : k === 'customerType' ? t(`customer.${v}`)
       : k === 'node' ? t(`node.${v}`)
+      : k === 'unlock' ? t(`unlock.${v}`)
       : v;
     names[k] = name.toLocaleLowerCase(t.locale);
   }
@@ -25,7 +26,9 @@ export function describeFail(t: Translate, code: FailCode, params: Record<string
 /** Name of the upgrade that grants an unlock id, for "Needs: ..." lines (falls back to the id). */
 export function unlockName(c: Content, t: Translate, id: string): string {
   const node = c.skillNodes.find((n) => n.effects.some((ef) => ef.type === 'unlock' && ef.id === id));
-  return node ? t(node.nameKey) : id;
+  if (node) return t(node.nameKey);
+  const errand = c.errands.find((e) => [...e.onAccept, ...e.reward].some((ef) => ef.type === 'unlock' && ef.id === id));
+  return errand ? t(errand.nameKey) : id;
 }
 
 /** Errands whose reward relieves the rival hive: the way out of its honey theft. */

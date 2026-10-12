@@ -23,3 +23,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-9](features/MMSIM-9.md) — Design brief package and screenshot tooling
 - [MMSIM-10](features/MMSIM-10.md) — UI restyle v2 (Claude Design handoff)
 - [MMSIM-11](features/MMSIM-11.md) — Recipes, ingredients and qualities v2
+- [MMSIM-12](features/MMSIM-12.md) — Customer cravings, happiness and tips

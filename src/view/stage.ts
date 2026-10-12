@@ -102,7 +102,7 @@ export function buildStageView(c: Content, s: State, t: Translate): StageView {
     days: stage.days,
     earned,
     target: stage.target,
-    dayText: t('stage.dayOf', { week: s.stage.index + 1, day: shownDay, days: stage.days }),
+    dayText: t('stage.dayOf', { stage: s.stage.index + 1, week: Math.floor((s.day - 1) / 7) + 1, day: shownDay, days: stage.days }),
     earnedText: t('stage.earned', { n: earned, target: stage.target }),
     pips: Array.from({ length: stage.days }, (_, i) => ({
       state: i + 1 < shownDay ? 'done' : i + 1 === shownDay ? 'current' : 'todo',

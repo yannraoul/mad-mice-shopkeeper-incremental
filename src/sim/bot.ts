@@ -1,5 +1,5 @@
 import type { Content } from '../content/schema.ts';
-import { batchSize, demandedCandies, stockedAtLeast, unlockedQualities, canAfford, stockKey } from '../engine/economy.ts';
+import { stockedAtLeast, unlockedCandies, unlockedQualities, serveChoices, stockKey } from '../engine/economy.ts';
 import { step } from '../engine/engine.ts';
 import type { Action, State } from '../engine/types.ts';
 
@@ -62,7 +62,7 @@ export function botMorning(c: Content, s: State): State {
       const qualities = unlockedQualities(c, s);
       // Try qualities starting from a rotating index; take the first one that is affordable.
       const order = qualities.map((_, k) => qualities[(n + k) % qualities.length]!);
-      const candies = demandedCandies(c, s);
+      const candies = unlockedCandies(c, s);
       const candy = candies[n % candies.length]!;
       let crafted = false;
       for (const q of order) {
@@ -84,15 +84,13 @@ export function botMorning(c: Content, s: State): State {
   return s;
 }
 
-/** Afternoon: serve each customer with the cheapest stocked quality that fits, else refuse. */
+/** Afternoon: serve each customer with the cheapest stocked candy that fits, else refuse. */
 export function botAfternoon(c: Content, s: State): State {
   while (s.queue.length > 0) {
     const cu = s.queue[0]!;
-    const fit = stockedAtLeast(c, s, cu.wants, cu.minQuality).find(
-      (q) => canAfford(c, cu) && (s.stock[stockKey(cu.wants, q.id)] ?? 0) > 0,
-    );
+    const fit = serveChoices(c, s, cu).sort((a, b) => a.price - b.price)[0];
     s = fit
-      ? must(c, s, { type: 'serve', customer: cu.id, quality: fit.id })
+      ? must(c, s, { type: 'serve', customer: cu.id, candy: fit.candy, quality: fit.quality })
       : must(c, s, { type: 'refuse', customer: cu.id });
   }
   return s;

@@ -76,7 +76,7 @@ export function buildEveningView(c: Content, s: State, t: Translate): EveningVie
     const probe = maxed ? null : step(c, s, action);
     const cost = n.costs[level] ?? 0;
     const buyable = probe?.ok ?? false;
-    const locked = !maxed && !probe!.ok && probe!.code === 'node-locked';
+    const locked = !maxed && !probe!.ok && (probe!.code === 'node-locked' || probe!.code === 'unlock-needed');
     const state: TreeNode['state'] = maxed ? (max > 1 ? 'maxed' : 'owned') : locked ? 'locked' : buyable ? 'afford' : 'short';
     return {
       id: n.id,
@@ -115,6 +115,8 @@ export function buildEveningView(c: Content, s: State, t: Translate): EveningVie
       stats: [
         { value: r.revenue, label: t('evening.k.revenue'), highlight: true },
         { value: r.served, label: t('evening.k.served', { auto: r.autoServed }), highlight: false },
+        { value: r.tips, label: t('evening.k.tips'), highlight: false },
+        { value: r.surplus, label: t('evening.k.surplus'), highlight: false },
         { value: r.lost, label: t('evening.k.lost'), highlight: false },
         { value: r.refused, label: t('evening.k.refused'), highlight: false },
         { value: r.contractsDone, label: t('evening.k.contractsDone'), highlight: false },

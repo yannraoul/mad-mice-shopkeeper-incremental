@@ -26,10 +26,6 @@
       {
         "type": "unlock",
         "id": "bee-customers"
-      },
-      {
-        "type": "unlock",
-        "id": "royal-jelly"
       }
     ]
   },
@@ -40,12 +36,13 @@
     "minStage": 1,
     "requires": [
       "errandsBoard",
-      "oven"
+      "oven",
+      "sunflower"
     ],
     "kind": "deliver",
     "deliver": [
       {
-        "candy": "candy-cane",
+        "candy": "sunflower-brittle",
         "quality": "fine",
         "qty": 8
       }
@@ -106,6 +103,31 @@
       {
         "type": "unlock",
         "id": "magic-cauldron"
+      }
+    ]
+  },
+  {
+    "id": "royal-gift",
+    "nameKey": "errand.royal-gift",
+    "descKey": "errand.royal-gift.desc",
+    "minStage": 1,
+    "requires": [
+      "errandsBoard",
+      "magic-cauldron",
+      "sunflower"
+    ],
+    "kind": "deliver",
+    "deliver": [
+      {
+        "candy": "sunflower-nougat",
+        "quality": "fine",
+        "qty": 8
+      }
+    ],
+    "reward": [
+      {
+        "type": "unlock",
+        "id": "royal-jelly"
       }
     ]
   }

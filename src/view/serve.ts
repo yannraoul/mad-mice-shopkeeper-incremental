@@ -1,12 +1,21 @@
 import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
-import { canAfford, modifier, qualityRank, salePrice, stockKey } from '../engine/economy.ts';
+import { modifier, serveChoices } from '../engine/economy.ts';
 import type { Action, GameEvent, State } from '../engine/types.ts';
 
 export interface ServeOption {
+  candy: string;
   quality: string;
+  /** "Candy cane · Fine · 9": what they hand over, tip included. */
   label: string;
   price: number;
+  tip: number;
+  /** 1 to 3. */
+  hearts: number;
+  /** "♥♥♡" */
+  heartsText: string;
+  /** "+2 tip", empty without one. */
+  tipText: string;
   enabled: boolean;
   action: Action;
 }
@@ -15,11 +24,11 @@ export interface CustomerCard {
   id: number;
   type: string;
   name: string;
-  /** Art slot id of the candy they want. */
-  art: string;
+  /** Art slot id of what they want (a candy or an ingredient); null for "a rich candy". */
+  art: string | null;
   /** Art slot id of the customer's own portrait. */
   portrait: string;
-  /** Short labels for the "Wants" row: "Wants" / "Honey drop" / "At least" / "Plain". */
+  /** Short labels for the "Wants" row: "Wants" / "Candy cane" or "Something with honey" / "At least" / "Plain". */
   wantsLabel: string;
   candyName: string;
   atLeastLabel: string;
@@ -28,13 +37,14 @@ export interface CustomerCard {
   budgetText: string;
   /** Patience as a segmented meter: `left` of `max` segments, `tier` picks the colour. */
   patienceMeter: { left: number; max: number; tier: 'ok' | 'low' | 'urgent'; label: string };
+  /** "Wants Candy cane" / "Wants something with honey". */
   wants: string;
   minQuality: string;
   budget: number;
   patience: number;
   /** "At least Plain · Budget: 6 · Patience: 8" */
   details: string;
-  /** One button per stocked quality that satisfies them, cheapest first. */
+  /** The best few stocked candies that satisfy them, most rewarding first. */
   options: ServeOption[];
   refuse: { label: string; action: Action };
   nothingFits: string | null;
@@ -71,7 +81,7 @@ export function feedLine(t: Translate, e: GameEvent): string {
         candy: t(`candy.${e.candy}`),
         quality: t(`quality.${e.quality}`),
         price: e.price,
-      });
+      }) + (e.tip > 0 ? ` ${t('feed.tip', { n: e.tip })}` : '');
     case 'refused':
       return t('feed.refused', { type: t(`customer.${e.customerType}`) });
     case 'left':
@@ -98,37 +108,43 @@ function patienceMeter(c: Content, s: State, t: Translate, cu: { type: string; p
   } as const;
 }
 
+const MAX_OPTIONS = 4;
+
 export function buildServeView(c: Content, s: State, t: Translate, feed: GameEvent[] = []): ServeView {
   const need = c.settings.delegateAfterBatches;
   const customers = s.queue.map((cu): CustomerCard => {
-    const min = qualityRank(c, cu.minQuality);
-    const affordable = canAfford(c, cu);
-    const options = c.qualities
-      .filter((q) => q.rank >= min && (s.stock[stockKey(cu.wants, q.id)] ?? 0) > 0)
-      .sort((a, b) => a.rank - b.rank)
-      .map((q): ServeOption => {
-        const price = salePrice(c, cu, q.id);
-        return {
-          quality: q.id,
-          label: t('serve.serve', { quality: t(q.nameKey), price }),
-          price,
-          enabled: affordable,
-          action: { type: 'serve', customer: cu.id, quality: q.id },
-        };
-      });
+    const options = serveChoices(c, s, cu)
+      .slice(0, MAX_OPTIONS)
+      .map((o): ServeOption => ({
+        candy: o.candy,
+        quality: o.quality,
+        label: t('serve.option', { candy: t(`candy.${o.candy}`), quality: t(`quality.${o.quality}`), total: o.total }),
+        price: o.price,
+        tip: o.tip,
+        hearts: o.hearts,
+        heartsText: '♥'.repeat(o.hearts) + '♡'.repeat(3 - o.hearts),
+        tipText: o.tip > 0 ? t('feed.tip', { n: o.tip }) : '',
+        enabled: true,
+        action: { type: 'serve', customer: cu.id, candy: o.candy, quality: o.quality },
+      }));
+    const w = cu.want;
+    const title =
+      w.kind === 'candy' ? t(`candy.${w.candy}`)
+      : w.kind === 'ingredient' ? t('serve.want.ingredient', { ingredient: t(`ingredient.${w.ingredient}`).toLocaleLowerCase(t.locale) })
+      : t('serve.want.rich', { n: w.minIngredients });
     return {
       id: cu.id,
       type: cu.type,
       name: t(`customer.${cu.type}`),
-      art: `candy-${cu.wants}`,
+      art: w.kind === 'candy' ? `candy-${w.candy}` : w.kind === 'ingredient' ? `ingredient-${w.ingredient}` : null,
       portrait: `customer-${cu.type}`,
       wantsLabel: t('serve.wantsLabel'),
-      candyName: t(`candy.${cu.wants}`),
+      candyName: title,
       atLeastLabel: t('serve.atLeast'),
       qualityName: t(`quality.${cu.minQuality}`),
       budgetText: t('serve.budgetMax', { n: cu.budget }),
       patienceMeter: patienceMeter(c, s, t, cu),
-      wants: t('serve.wants', { candy: t(`candy.${cu.wants}`) }),
+      wants: t('serve.wants', { candy: title }),
       minQuality: t('serve.minQuality', { quality: t(`quality.${cu.minQuality}`) }),
       budget: cu.budget,
       patience: cu.patience,

@@ -103,6 +103,9 @@
         "type": "unlock",
         "id": "dark-garden"
       }
+    ],
+    "needs": [
+      "magic-cauldron"
     ]
   },
   {

@@ -1,3 +1,4 @@
+import { stockedAtLeast, stockKey } from '../engine/economy.ts';
 import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
 import type { Action, State } from '../engine/types.ts';
@@ -8,7 +9,7 @@ export interface BoardView {
   forecast: string;
   contractsTitle: string;
   noContracts: string;
-  contracts: { id: number; text: string; deliver: { label: string; action: Action } }[];
+  contracts: { id: number; text: string; deliver: { label: string; action: Action; enabled: boolean } }[];
   stockTitle: string;
   stockEmpty: string;
   stock: { key: string; count: number; candy: string; quality: string; text: string }[];
@@ -33,11 +34,17 @@ export function buildBoardView(c: Content, s: State, t: Translate): BoardView {
       text: t('board.contract', {
         qty: ct.qty,
         candy: nameOf(c.candies, ct.candy),
-        quality: nameOf(c.qualities, ct.quality),
-        day: ct.deadlineDay,
+        quality: t('quality.orBetter', { quality: nameOf(c.qualities, ct.quality) }),
+        week: Math.floor((ct.deadlineDay - 1) / 7) + 1,
+        day: ((ct.deadlineDay - 1) % 7) + 1,
         reward: ct.reward,
       }),
-      deliver: { label: t('board.deliver'), action: { type: 'fulfill', contract: ct.id } },
+      deliver: {
+        label: t('board.deliver'),
+        action: { type: 'fulfill', contract: ct.id },
+        // enough candy of that quality or better in stock
+        enabled: stockedAtLeast(c, s, ct.candy, ct.quality).reduce((n, q) => n + (s.stock[stockKey(ct.candy, q.id)] ?? 0), 0) >= ct.qty,
+      },
     })),
     stockTitle: t('ui.stock'),
     stockEmpty: t('ui.stockEmpty'),

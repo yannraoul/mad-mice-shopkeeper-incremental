@@ -41,10 +41,10 @@ tables for what grants them. Part of the design brief: see `README.md`.
 
 | Name | Asks for | Minimum quality | Budget | Patience (actions) | How common | Appears |
 | --- | --- | --- | --- | --- | --- | --- |
-| Faithful | any regular recipe they can afford | Plain | 6 | 6 | 5 | from the start |
-| Traveler | any regular recipe they can afford | Plain | 12 | 4 | 3 | from the start |
-| Merchant | any regular recipe they can afford | Fine | 30 | 2 | 2 | from the start |
-| Bee | Candy cane, Sunflower nougat | Plain | 10 | 5 | 1.5 | after errand reward `bee-customers` |
+| Faithful | one specific recipe they can afford | Plain | 6 | 6 | 5 | from the start |
+| Traveler | a craving: any candy with an unlocked ingredient | Plain | 12 | 4 | 3 | from the start |
+| Merchant | any candy with 1+ ingredients | Fine | 30 | 2 | 2 | from the start |
+| Bee | a craving: any candy with Honey | Plain | 10 | 5 | 1.5 | after errand reward `bee-customers` |
 
 ### Workers
 
@@ -99,18 +99,19 @@ tables for what grants them. Part of the design brief: see `README.md`.
 
 | Stage | Days | Revenue target | Customer volume | Rival hive |
 | --- | --- | --- | --- | --- |
-| The first week | 7 | 240 | x1 | - |
-| Gathering pilgrims | 7 | 800 | x1.5 | steals 1 Honey per morning from day 3 |
-| The feast of Sweet Tooth | 7 | 1900 | x2.8 | steals 2 Honey per morning from day 2 |
+| The first steps | 7 | 240 | x1 | - |
+| Gathering pilgrims | 7 | 1200 | x1.5 | steals 1 Honey per morning from day 3 |
+| The feast of Sweet Tooth | 7 | 2400 | x2.8 | steals 2 Honey per morning from day 2 |
 
 ### Errands
 
 | Name | Kind | Needs | Appears from stage | Reward / effect | Description |
 | --- | --- | --- | --- | --- | --- |
-| The queen is sick | deliver goods | `errandsBoard`, `oven`, 4 Candy cane (Fine) | 1 | +2 supply:honey; unlocks `bee-customers`; unlocks `royal-jelly` | The hive queen has a fever. Bring four Fine candy canes. The hive will repay you with more honey, for good; once she is well, royal jelly will sometimes come with your honey and the bees will visit your shop. |
-| The pilgrims' feast | deliver goods | `errandsBoard`, `oven`, 8 Candy cane (Fine) | 2 | +1 counterSpace; +2 arrivals | The faithful plan a feast. Bring eight Fine candy canes and the counter will be widened for good. |
+| The queen is sick | deliver goods | `errandsBoard`, `oven`, 4 Candy cane (Fine) | 1 | +2 supply:honey; unlocks `bee-customers` | The hive queen has a fever. Bring four Fine candy canes. The hive will repay you with more honey, for good, and once she is well the bees will visit your shop. |
+| The pilgrims' feast | deliver goods | `errandsBoard`, `oven`, `sunflower`, 8 Sunflower brittle (Fine) | 2 | +1 counterSpace; +2 arrivals | The faithful plan a feast. Bring eight Fine sunflower brittles and the counter will be widened for good. |
 | A splinter hive | mission: Clerk away 2 days | `errandsBoard`, `clerk` | 1 | +9 rivalRelief | Send the clerk to parley with the rival hive for two days. If it works, the honey they steal comes back for good. |
 | The magic cauldron | deliver goods | `errandsBoard`, `pulling-machine`, 4 Candy cane (Excellent) | 2 | unlocks `magic-cauldron` | The old cauldron stirs by itself when it is fed well. Bring four Excellent candy canes and it will learn to make Perfect candies from rare ingredients: royal jelly, dark seeds and the like. |
+| The hive's gratitude | deliver goods | `errandsBoard`, `magic-cauldron`, `sunflower`, 8 Sunflower nougat (Fine) | 2 | unlocks `royal-jelly` | The queen is well again and the hive wants to thank you with its rarest gift. Bring eight Fine sunflower nougats for the feast and royal jelly will sometimes come with your honey. |
 
 ### Map places
 

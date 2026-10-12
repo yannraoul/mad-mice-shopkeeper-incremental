@@ -63,7 +63,7 @@ describe('game session', () => {
     const stop = s.subscribe(() => (calls += 1));
     expect(s.dispatch({ type: 'craft', station: 0, candy: 'candy-cane', quality: 'plain' })).toBe(true);
     expect(s.state.stock['candy-cane:plain']).toBe(4);
-    expect(s.dispatch({ type: 'serve', customer: 1, quality: 'plain' })).toBe(false);
+    expect(s.dispatch({ type: 'serve', customer: 1, candy: 'candy-cane', quality: 'plain' })).toBe(false);
     expect(s.error).toEqual({ code: 'wrong-phase', params: { phase: 'afternoon' } });
     expect(calls).toBe(2);
     stop();
@@ -76,7 +76,7 @@ describe('game session', () => {
     s.dispatch({ type: 'craft', station: 0, candy: 'candy-cane', quality: 'plain' });
     s.dispatch({ type: 'endPhase' });
     const cu = s.state.queue[0]!;
-    s.dispatch({ type: 'serve', customer: cu.id, quality: 'plain' });
+    s.dispatch({ type: 'serve', customer: cu.id, candy: 'candy-cane', quality: 'plain' });
     expect(s.feed[0]).toMatchObject({ type: 'sold' });
     s.dispatch({ type: 'endPhase' });
     // a new phase starts a new feed: only what that transition itself produced (walk-outs) is in it

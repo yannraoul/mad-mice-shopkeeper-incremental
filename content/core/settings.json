@@ -10,5 +10,7 @@
   "contractChance": 0.5,
   "contractMult": 1.25,
   "contractQty": [3, 6],
-  "contractDeadlineDays": [2, 4]
+  "contractDeadlineDays": [2, 4],
+  "tipMax": 0.5,
+  "alternateUnits": 3
 }

@@ -90,7 +90,7 @@
                 <span class="mono muted small">{cu.budgetText}</span>
               </div>
               <div class="wants">
-                <ImageSlot id={cu.art} width={48} />
+                {#if cu.art}<ImageSlot id={cu.art} width={48} />{/if}
                 <div class="wtext">
                   <span class="muted small">{cu.wantsLabel}</span>
                   <b>{cu.candyName}</b>
@@ -104,8 +104,12 @@
             </div>
           </div>
           <div class="acts">
-            {#each cu.options as o (o.quality)}
-              <button class="btn" disabled={!o.enabled} onclick={() => dispatch(o.action)}>{o.label}</button>
+            {#each cu.options as o (o.candy + o.quality)}
+              <button class="btn opt" disabled={!o.enabled} onclick={() => dispatch(o.action)}>
+                <span>{o.label}</span>
+                <span class="hearts" aria-hidden="true">{o.heartsText}</span>
+                {#if o.tipText}<span class="tip">{o.tipText}</span>{/if}
+              </button>
             {/each}
             {#if cu.nothingFits}<span class="reason"><span aria-hidden="true">⊘</span>{cu.nothingFits}</span>{/if}
             <button class="btn3 refuse" onclick={() => dispatch(cu.refuse.action)}>{cu.refuse.label}</button>
@@ -148,6 +152,9 @@
   .acts { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .reason { flex: 1; font-size: 13px; color: var(--muted); line-height: 1.3; display: flex; gap: 6px; min-width: 120px; }
   .refuse { margin-left: auto; }
+  .opt { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .hearts { letter-spacing: 1px; }
+  .tip { font-size: 12px; opacity: 0.85; }
   .warn { color: var(--warn); font-size: 14px; display: flex; gap: 8px; }
 
   .card { display: flex; flex-direction: column; gap: 12px; }

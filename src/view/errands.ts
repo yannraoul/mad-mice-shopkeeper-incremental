@@ -52,7 +52,7 @@ export function buildErrandsView(c: Content, s: State, t: Translate): ErrandsVie
         tag: relieving.has(e.id) ? t('errands.tagRival') : null,
         requirements: [
           ...e.deliver.map((d) =>
-            t('errands.deliverLine', { qty: d.qty, candy: t(`candy.${d.candy}`), quality: t(`quality.${d.quality}`) }),
+            t('errands.deliverLine', { qty: d.qty, candy: t(`candy.${d.candy}`), quality: t('quality.orBetter', { quality: t(`quality.${d.quality}`) }) }),
           ),
           ...(e.mission
             ? [t('errands.missionReq', { worker: t(`worker.${e.mission.worker}`).toLocaleLowerCase(t.locale), n: e.mission.days })]

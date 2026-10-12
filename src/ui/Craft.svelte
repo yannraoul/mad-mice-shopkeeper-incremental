@@ -42,6 +42,7 @@
           {/if}
         {/each}
       </div>
+      {#if sc.surplusNote}<p class="muted small note">{sc.surplusNote}</p>{/if}
     </div>
 
     <div class="col stagecol">

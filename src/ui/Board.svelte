@@ -25,7 +25,7 @@
     {#each v.contracts as ct (ct.id)}
       <div class="contract">
         <span>{ct.text}</span>
-        <button class="btn sm" onclick={() => dispatch(ct.deliver.action)}>{ct.deliver.label}</button>
+        <button class="btn sm" disabled={!ct.deliver.enabled} onclick={() => dispatch(ct.deliver.action)}>{ct.deliver.label}</button>
       </div>
     {:else}
       <span class="small">{v.noContracts}</span>

@@ -11,9 +11,13 @@ import {
   isQualityUnlocked,
   modifier,
   rivalPenalty,
-  sellableCandies,
   unlockedCandies,
   canAfford,
+  hearts,
+  satisfies,
+  serveChoices,
+  tipFor,
+  type ServeChoice,
   priceOf,
   salePrice,
   qualityRank,
@@ -21,7 +25,7 @@ import {
   stockedAtLeast,
   unlockedQualities,
 } from './economy.ts';
-import type { Action, Customer, DayReport, Fail, FailCode, GameEvent, State, StepResult } from './types.ts';
+import type { Action, Customer, DayReport, Want, Fail, FailCode, GameEvent, State, StepResult } from './types.ts';
 import type { Effect } from '../content/schema.ts';
 
 // Pure TypeScript, no UI imports. `step` never mutates its input: it clones the
@@ -81,7 +85,7 @@ function apply(c: Content, s: State, a: Action, ev: GameEvent[]): Fail | null {
     case 'fulfill':
       return fulfill(c, s, a.contract, ev);
     case 'serve':
-      return serve(c, s, a.customer, a.quality, ev);
+      return serve(c, s, a.customer, a.candy, a.quality, ev);
     case 'refuse':
       return refuse(c, s, a.customer, ev);
     case 'delegate':
@@ -147,25 +151,35 @@ function fulfill(c: Content, s: State, contractId: number, ev: GameEvent[]): Fai
   return null;
 }
 
-function serve(c: Content, s: State, customerId: number, quality: string, ev: GameEvent[]): Fail | null {
+function serve(c: Content, s: State, customerId: number, candy: string, quality: string, ev: GameEvent[]): Fail | null {
   if (s.phase !== 'afternoon') return fail('wrong-phase', { phase: 'afternoon' }, 'serving is only possible in the afternoon');
   const idx = s.queue.findIndex((x) => x.id === customerId);
   if (idx < 0) return fail('no-customer', {}, `customer #${customerId} is not at the counter`);
   const cu = s.queue[idx]!;
+  if (!c.candies.some((x) => x.id === candy)) return fail('unknown-candy', { candy }, `unknown candy "${candy}"`);
   if (!c.qualities.some((x) => x.id === quality)) return fail('unknown-quality', { quality }, `unknown quality "${quality}"`);
   if (qualityRank(c, quality) < qualityRank(c, cu.minQuality)) return fail('quality-too-low', {}, 'quality too low for this customer');
-  const key = stockKey(cu.wants, quality);
+  if (!satisfies(c, cu, candy, quality)) return fail('wrong-candy', { candy }, 'this candy is not what they asked for');
+  const key = stockKey(candy, quality);
   if ((s.stock[key] ?? 0) < 1) return fail('not-in-stock', {}, 'not in stock');
-  if (!canAfford(c, cu)) return fail('over-budget', {}, 'over this customer budget');
-  const price = salePrice(c, cu, quality);
-
-  s.stock[key]! -= 1;
-  s.money += price;
-  s.report.revenue += price;
-  s.report.served += 1;
-  ev.push({ type: 'sold', customer: cu.id, customerType: cu.type, candy: cu.wants, quality, price, auto: false });
+  if (!canAfford(c, cu, candy)) return fail('over-budget', {}, 'over this customer budget');
+  sell(c, s, cu, candy, quality, false, ev);
   removeFromQueue(c, s, idx, ev);
   return null;
+}
+
+/** Take one candy from stock, collect the price and the tip, and report it. The caller removes the customer. */
+function sell(c: Content, s: State, cu: Customer, candy: string, quality: string, auto: boolean, ev: GameEvent[]) {
+  const price = salePrice(c, cu, candy, quality);
+  const h = hearts(c, cu, candy, quality);
+  const tip = tipFor(c, price, h);
+  s.stock[stockKey(candy, quality)]! -= 1;
+  s.money += price + tip;
+  s.report.revenue += price + tip;
+  s.report.tips += tip;
+  s.report.served += 1;
+  if (auto) s.report.autoServed += 1;
+  ev.push({ type: 'sold', customer: cu.id, customerType: cu.type, candy, quality, price, tip, hearts: h, auto });
 }
 
 function refuse(c: Content, s: State, customerId: number, ev: GameEvent[]): Fail | null {
@@ -204,9 +218,9 @@ function settle(c: Content, s: State, ev: GameEvent[]) {
     refill(c, s);
     let sold = false;
     for (let i = 0; i < s.queue.length && !sold; i++) {
-      const quality = workerChoice(c, s, s.queue[i]!);
-      if (quality) {
-        sellByWorker(c, s, i, quality, ev);
+      const choice = workerChoice(c, s, s.queue[i]!);
+      if (choice) {
+        sellByWorker(c, s, i, choice, ev);
         sold = true;
       }
     }
@@ -214,26 +228,18 @@ function settle(c: Content, s: State, ev: GameEvent[]) {
   }
 }
 
-/** Worker sale: cheapest stocked quality that satisfies the customer, only for trained recipes. */
-function workerChoice(c: Content, s: State, cu: Customer): string | null {
+/** Worker sale: the cheapest stocked candy that satisfies the customer, only among recipes the worker was taught. */
+function workerChoice(c: Content, s: State, cu: Customer): ServeChoice | null {
   if (!s.delegated.includes(cu.type)) return null;
   if (workerAway(c, s, cu.type)) return null;
-  if ((s.batchesMade[cu.wants] ?? 0) < c.settings.delegateAfterBatches) return null;
-  if (!canAfford(c, cu)) return null;
-  const fit = stockedAtLeast(c, s, cu.wants, cu.minQuality)[0]; // cheapest quality that satisfies them
-  return fit ? fit.id : null;
+  const trained = serveChoices(c, s, cu).filter((x) => (s.batchesMade[x.candy] ?? 0) >= c.settings.delegateAfterBatches);
+  return trained.sort((a, b) => a.price - b.price || b.hearts - a.hearts)[0] ?? null;
 }
 
 /** Unlike a player action, a worker serving does not make the other customers wait longer. */
-function sellByWorker(c: Content, s: State, idx: number, quality: string, ev: GameEvent[]) {
+function sellByWorker(c: Content, s: State, idx: number, choice: ServeChoice, ev: GameEvent[]) {
   const cu = s.queue.splice(idx, 1)[0]!;
-  const price = salePrice(c, cu, quality);
-  s.stock[stockKey(cu.wants, quality)]! -= 1;
-  s.money += price;
-  s.report.revenue += price;
-  s.report.served += 1;
-  s.report.autoServed += 1;
-  ev.push({ type: 'sold', customer: cu.id, customerType: cu.type, candy: cu.wants, quality, price, auto: true });
+  sell(c, s, cu, choice.candy, choice.quality, true, ev);
 }
 
 /** Spend money on a skill tree node (evening only). Unlock and station effects apply at level 1. */
@@ -245,6 +251,8 @@ function buy(c: Content, s: State, nodeId: string, ev: GameEvent[]): Fail | null
   if (level >= node.costs.length) return fail('node-maxed', {}, `"${nodeId}" is at its maximum level`);
   const missing = node.requires.find((r) => (s.nodes[r] ?? 0) < 1);
   if (missing) return fail('node-locked', { node: missing }, `"${nodeId}" requires "${missing}"`);
+  const needed = node.needs.find((u) => !s.unlocks.includes(u));
+  if (needed) return fail('unlock-needed', { unlock: needed }, `"${nodeId}" needs "${needed}" first`);
   const cost = node.costs[level]!;
   if (s.money < cost) return fail('not-enough-money', {}, `needs ${cost} coins`);
 
@@ -422,6 +430,7 @@ function endPhase(c: Content, s: State, ev: GameEvent[]): Fail | null {
     for (const cu of [...s.queue, ...s.pending]) ev.push({ type: 'left', customer: cu.id, customerType: cu.type });
     s.queue = [];
     s.pending = [];
+    sellSurplus(c, s, ev);
   }
   if (newDay) {
     s.history.push(s.report);
@@ -434,6 +443,23 @@ function endPhase(c: Content, s: State, ev: GameEvent[]): Fail | null {
   return null;
 }
 
+/** When the shop closes, unused base ingredients are sold off at a reduced value (alternates are kept). */
+function sellSurplus(c: Content, s: State, ev: GameEvent[]) {
+  let coins = 0;
+  for (const i of c.ingredients) {
+    if (i.alternateOf) continue;
+    const left = s.supply[i.id] ?? 0;
+    if (left <= 0 || i.surplusValue <= 0) continue;
+    coins += Math.round(left * i.surplusValue);
+    s.supply[i.id] = 0;
+  }
+  if (coins <= 0) return;
+  s.money += coins;
+  s.report.revenue += coins;
+  s.report.surplus += coins;
+  ev.push({ type: 'surplusSold', coins });
+}
+
 function emptyReport(day: number, stage: number, forecast: string): DayReport {
   return {
     day,
@@ -442,6 +468,8 @@ function emptyReport(day: number, stage: number, forecast: string): DayReport {
     crafted: 0,
     arrivals: 0,
     served: 0,
+    tips: 0,
+    surplus: 0,
     autoServed: 0,
     refused: 0,
     lost: 0,
@@ -457,7 +485,10 @@ function startDay(c: Content, s: State, ev: GameEvent[]) {
   s.forecast = pick(s, c.forecasts).id;
   s.report = emptyReport(s.day, s.stage.index, s.forecast);
   progressMissions(c, s, ev);
+  const carried = Object.fromEntries(c.ingredients.filter((i) => i.alternateOf).map((i) => [i.id, s.supply[i.id] ?? 0]));
   s.supply = deliverSupply(c, s);
+  // Rare alternates are not wasted: whatever was not used yesterday is still on the shelf.
+  for (const [id, n] of Object.entries(carried)) if (n > 0) s.supply[id] = (s.supply[id] ?? 0) + n;
   s.supplyToday = { ...s.supply };
   for (const st of s.stations) st.batchesLeft = c.stations.find((x) => x.id === st.type)!.batchesPerDay;
   runAutoStations(c, s, ev);
@@ -475,7 +506,7 @@ function startDay(c: Content, s: State, ev: GameEvent[]) {
 function postContract(c: Content, s: State, ev: GameEvent[]) {
   const [qMin, qMax] = c.settings.contractQty;
   const [dMin, dMax] = c.settings.contractDeadlineDays;
-  const candy = pick(s, sellableCandies(c, s));
+  const candy = pick(s, unlockedCandies(c, s));
   const quality = pick(s, unlockedQualities(c, s).filter((q) => !q.alternates));
   const qty = randInt(s, qMin, qMax);
   const contract = {
@@ -490,6 +521,27 @@ function postContract(c: Content, s: State, ev: GameEvent[]) {
   ev.push({ type: 'contractPosted', contract: contract.id });
 }
 
+/**
+ * What a customer of this type asks for today. Only candies they could afford at their minimum quality
+ * count: a specific recipe, a craving for an ingredient those candies contain, or a rich candy.
+ */
+function pickWant(c: Content, s: State, t: Content['customerTypes'][number], candies: Content['candies']): Want | null {
+  const affordable = candies.filter((cd) => priceOf(c, cd.id, t.minQuality) <= t.budget);
+  switch (t.want.kind) {
+    case 'candy':
+      return affordable.length > 0 ? { kind: 'candy', candy: pick(s, affordable).id } : null;
+    case 'ingredient': {
+      const from = t.want.from;
+      const options = [...new Set(affordable.flatMap((cd) => cd.ingredients.map((i) => i.ingredient)))].filter((i) => !from || from.includes(i));
+      return options.length > 0 ? { kind: 'ingredient', ingredient: pick(s, options) } : null;
+    }
+    case 'rich': {
+      const min = t.want.minIngredients;
+      return affordable.some((cd) => cd.ingredients.length >= min) ? { kind: 'rich', minIngredients: min } : null;
+    }
+  }
+}
+
 /** The real afternoon: the forecast shifts the odds, it does not fix the outcome. */
 function spawnCustomers(c: Content, s: State, ev: GameEvent[]) {
   const fc = c.forecasts.find((f) => f.id === s.forecast)!;
@@ -499,20 +551,17 @@ function spawnCustomers(c: Content, s: State, ev: GameEvent[]) {
   const count = Math.min(wanted, (c.settings.counterSpace + modifier(c, s, 'counterSpace')) * c.settings.customersPerSpace);
   // Customer types that need a quality the shop cannot make yet do not show up.
   const types = presentCustomerTypes(c, s).filter((t) => isQualityUnlocked(c, s, t.minQuality));
-  const regular = sellableCandies(c, s);
-  const special = unlockedCandies(c, s);
+  const candies = unlockedCandies(c, s);
   const patienceBonus = modifier(c, s, 'patience');
   let arrived = 0;
   for (let i = 0; i < count; i++) {
     const t = pickWeighted(s, types, (x) => Math.max(0.1, x.weight + modifier(c, s, `weight:${x.id}`)) * (fc.weights[x.id] ?? 1));
-    // Customers only ask for recipes they could afford at their minimum quality.
-    const pool = t.onlyWants ? special.filter((cd) => t.onlyWants!.includes(cd.id)) : regular;
-    const wanted = pool.filter((cd) => priceOf(c, cd.id, t.minQuality) <= t.budget);
-    if (wanted.length === 0) continue;
+    const want = pickWant(c, s, t, candies);
+    if (!want) continue;
     s.pending.push({
       id: s.nextId++,
       type: t.id,
-      wants: pick(s, wanted).id,
+      want,
       minQuality: t.minQuality,
       patience: t.patience + patienceBonus,
       budget: t.budget,

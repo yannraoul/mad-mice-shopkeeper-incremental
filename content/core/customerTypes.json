@@ -13,7 +13,10 @@
     "minQuality": "plain",
     "patience": 4,
     "budget": 12,
-    "weight": 3
+    "weight": 3,
+    "want": {
+      "kind": "ingredient"
+    }
   },
   {
     "id": "merchant",
@@ -21,7 +24,11 @@
     "minQuality": "fine",
     "patience": 2,
     "budget": 30,
-    "weight": 2
+    "weight": 2,
+    "want": {
+      "kind": "rich",
+      "minIngredients": 1
+    }
   },
   {
     "id": "bee",
@@ -31,9 +38,11 @@
     "budget": 10,
     "weight": 1.5,
     "unlock": "bee-customers",
-    "onlyWants": [
-      "candy-cane",
-      "sunflower-nougat"
-    ]
+    "want": {
+      "kind": "ingredient",
+      "from": [
+        "honey"
+      ]
+    }
   }
 ]

@@ -160,7 +160,7 @@ describe('evening: upgrade states', () => {
   });
   it('gives the report as figures with captions', () => {
     const r = buildEveningView(c, evening(0), en).report;
-    expect(r.stats).toHaveLength(6);
+    expect(r.stats).toHaveLength(8);
     expect(r.stats[0]).toMatchObject({ label: 'Earned', highlight: true });
   });
 });
