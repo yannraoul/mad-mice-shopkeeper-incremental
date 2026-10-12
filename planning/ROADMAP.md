@@ -21,3 +21,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-7](features/MMSIM-7.md) — Balance pass and preview-build pipeline (v1 scope M6)
 - [MMSIM-8](features/MMSIM-8.md) — View layer, boundary test and settings page
 - [MMSIM-9](features/MMSIM-9.md) — Design brief package and screenshot tooling
+- [MMSIM-10](features/MMSIM-10.md) — UI restyle v2 (Claude Design handoff)

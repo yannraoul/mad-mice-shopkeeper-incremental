@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><meta name="design_doc_mode" content="canvas"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;700&family=Young+Serif&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"><style>body{margin:0}a{color:#f5b83d}a:hover{color:#ffd878}button{font-family:inherit}details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-marker{display:none}</style></helmet>
+<div style="{{ themeVars }}">
+<div style="background:#0f0c09;padding:48px;display:flex;gap:56px;align-items:flex-start;width:max-content">
+<sc-for list="{{ screens }}" as="s" hint-placeholder-count="5">
+<div style="display:flex;flex-direction:column;gap:12px;flex:none">
+<div style="display:flex;gap:10px;align-items:baseline;font-family:'JetBrains Mono',monospace;color:#d1bfa4;font-size:12px"><b style="background:#f5b83d;color:#2a1704;padding:2px 7px;border-radius:5px">{{ s.id }}</b><span>{{ s.label }}</span></div>
+<div style="width:390px;box-sizing:border-box;background:var(--bg);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,sans-serif;border-radius:34px;padding:14px 12px 12px;display:flex;flex-direction:column;gap:12px;box-shadow:0 0 0 8px #000,0 24px 60px rgba(0,0,0,.55)">
+
+<header style="{{ s.wood }}">
+<div style="display:flex;align-items:center;gap:10px"><img src="logo/app-icon.svg" alt="" width="40" height="40" style="display:block;border-radius:10px;flex:none">
+<div style="font:400 17px/1.05 'Young Serif',serif;flex:1;min-width:0">Cult of Sweet Tooth</div>
+<div style="display:flex;align-items:center;gap:6px;background:var(--panel2);border-radius:999px;padding:5px 12px 5px 6px;flex:none"><span style="width:22px;height:22px;border-radius:50%;background:var(--btn);box-shadow:inset 0 0 0 3px var(--accentInk)"></span><span style="font:400 18px/1 'Young Serif',serif">{{ s.coins }}</span></div>
+<button aria-label="Settings" style="width:44px;height:44px;flex:none;border:1px solid var(--btn2Border);border-radius:12px;background:var(--btn2);box-shadow:var(--btn2Shadow);color:var(--ink);font-size:20px;cursor:pointer" style-active="transform:translateY(2px)">⚙</button></div>
+<div style="display:flex;align-items:center;gap:10px"><div style="display:flex;flex-direction:column;flex:none"><span style="font:700 10px 'Bricolage Grotesque';letter-spacing:.08em;color:var(--muted)">DAY</span><span style="font:400 20px/1 'Young Serif',serif">1<span style="color:var(--muted);font-size:13px"> / 7</span></span></div>
+<div style="display:flex;flex:1;background:var(--panel2);border-radius:999px;padding:3px;gap:2px"><sc-for list="{{ s.phases }}" as="p" hint-placeholder-count="3"><span style="{{ p.style }}">{{ p.label }}</span></sc-for></div></div>
+</header>
+
+<div style="display:flex;flex-direction:column;gap:8px;padding:0 4px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px"><span><b>Gathering pilgrims</b> <span style="color:var(--muted)">· day 1 / 7</span></span><span style="font:500 12px 'JetBrains Mono',monospace">{{ s.earned }} / 800</span></div>
+<div style="display:flex;gap:4px"><sc-for list="{{ s.days }}" as="d" hint-placeholder-count="7"><div style="{{ d.style }}"></div></sc-for></div>
+<details open="{{ s.warnOpen }}" style="background:var(--panel);border:1px solid var(--warn);border-radius:14px;padding:0 12px">
+<summary style="display:flex;align-items:center;gap:8px;min-height:44px;color:var(--warn);font:700 13px 'Bricolage Grotesque'"><span aria-hidden="true">▲</span><span style="flex:1">Rival hive from day 3</span><span style="color:var(--muted);font-weight:500">hint ▾</span></summary>
+<div style="padding:0 0 12px;font-size:13px;line-height:1.45"><div style="color:var(--warn);font-weight:700">A rival hive will start stealing 1 honey each morning from day 3 of the week.</div><div style="margin-top:6px">The errand "A splinter hive" can reduce it: take it on the Errands board.</div></div>
+</details>
+</div>
+
+<sc-if value="{{ s.hasToday }}" hint-placeholder-val="{{ false }}">
+<details style="{{ s.note }};padding:0 16px;gap:0">
+<summary style="display:flex;flex-direction:column;gap:8px;padding:12px 0">
+<div style="display:flex;align-items:center;gap:8px"><span aria-hidden="true" style="font-size:18px">☀</span><b style="font:400 16px 'Young Serif',serif;flex:1">A busy day is expected</b><span style="width:10px;height:10px;border-radius:50%;background:var(--warn)"></span><span aria-hidden="true" style="opacity:.7">▾</span></div>
+<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:28px"><span style="{{ s.overP }}">STOCK</span>
+<sc-if value="{{ s.stockEmpty }}"><span style="font-size:13px;opacity:.75">Nothing in stock.</span></sc-if>
+<sc-for list="{{ s.stock }}" as="k" hint-placeholder-count="0"><span style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.08);border-radius:999px;padding:3px 10px 3px 4px"><span style="{{ k.dot }}"></span><b style="font:500 14px 'JetBrains Mono',monospace">{{ k.n }}</b></span></sc-for></div>
+</summary>
+<div style="display:flex;flex-direction:column;gap:10px;padding:2px 0 14px;border-top:1px dashed rgba(0,0,0,.25)">
+<div style="display:flex;flex-direction:column;gap:2px;padding-top:10px"><span style="{{ s.overP }}">CONTRACTS</span><span style="font-size:14px;opacity:.8">No contract on the board.</span></div>
+<div style="display:flex;flex-direction:column;gap:2px"><span style="{{ s.overP }}">CANDY IN STOCK</span><span style="font-size:14px;opacity:.8">{{ s.stockText }}</span><span style="font-size:12px;opacity:.7">Ring on the icon: none = Plain, one = Fine, two = Perfect.</span></div>
+<sc-if value="{{ s.hasLatest }}"><div style="display:flex;flex-direction:column;gap:2px"><span style="{{ s.overP }}">LATEST</span><span style="font-size:14px">Traveler bought Honey drop (Plain) for 5.</span><span style="font-size:14px;opacity:.75">The clerk sold Honey drop (Plain) to Faithful for 5.</span></div></sc-if>
+</div>
+</details>
+</sc-if>
+
+<!-- CRAFT IDLE + BENCH -->
+<sc-if value="{{ s.isCraft }}" hint-placeholder-val="{{ false }}">
+<section style="{{ s.frame }}">
+<div style="display:flex;flex-direction:column;gap:16px;background:var(--panel);border-radius:14px;padding:14px">
+<h2 style="margin:0;font:400 24px 'Young Serif',serif">Workshop</h2>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="{{ s.over }}">SHELF · DELIVERED THIS MORNING</span>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;background:var(--shelf);border-bottom:6px solid var(--shelfEdge);border-radius:12px;padding:8px">
+<sc-for list="{{ s.shelf }}" as="g" hint-placeholder-count="2"><div style="{{ g.style }}">
+<div style="{{ g.slot }}">{{ g.slotLabel }}</div><b style="font-size:15px;text-align:center">{{ g.name }}</b>
+<div style="display:flex;gap:4px"><sc-for list="{{ g.pips }}" as="pp"><span style="{{ pp.style }}"></span></sc-for></div><span style="font-size:13px;color:var(--muted)">{{ g.left }} left</span></div></sc-for>
+</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="{{ s.over }}">CAULDRON</span>
+<div style="background:var(--scene);border-bottom:6px solid var(--shelfEdge);border-radius:12px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:10px">
+<div style="{{ s.cauldron }}"><div style="{{ s.stage }}">station-cauldron<br>240×180</div></div>
+<div style="display:flex;align-items:center;gap:12px"><div style="display:flex;gap:6px"><sc-for list="{{ s.batches }}" as="b"><span style="{{ b.style }}"></span></sc-for></div><span style="font-size:13px;color:var(--muted)">3 batches · 4 candies each</span></div>
+<sc-if value="{{ s.isBench }}"><b style="font:400 20px 'Young Serif',serif">Honey 1 / 2</b></sc-if>
+</div></div>
+
+<sc-if value="{{ s.isIdle }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font:400 20px 'Young Serif',serif">Start a batch</h3>
+<sc-for list="{{ s.recipes }}" as="r" hint-placeholder-count="3"><button style="{{ r.style }}"><div style="{{ r.slot }}">{{ r.slotLabel }}</div>
+<div style="display:flex;flex-direction:column;gap:4px;text-align:left;flex:1"><b style="font-size:16px">{{ r.name }}</b><span style="font-size:13px;color:var(--muted)">{{ r.cost }}</span><span style="font:500 13px 'JetBrains Mono',monospace;color:var(--accent)">{{ r.price }} coins</span></div><span style="{{ r.radio }}"></span></button></sc-for>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--panel2);border-radius:12px;padding:4px"><sc-for list="{{ s.qualities }}" as="q" hint-placeholder-count="3"><button disabled="{{ q.disabled }}" style="{{ q.style }}"><b>{{ q.label }}</b><span style="font-size:11px;opacity:.85">{{ q.note }}</span></button></sc-for></div>
+<button style="{{ s.prim }}" style-active="transform:translateY(3px);box-shadow:inset 0 2px 4px rgba(0,0,0,.25),0 0 0 #8f5c0e;filter:brightness(.94)">Start batch</button>
+</div></sc-if>
+
+<sc-if value="{{ s.isBench }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px"><sc-for list="{{ s.steps }}" as="t" hint-placeholder-count="4"><div style="{{ t.style }}"><span style="{{ t.dot }}">{{ t.n }}</span><b style="font-size:13px">{{ t.label }}</b><span style="font-size:11px;color:var(--muted);text-align:center;line-height:1.2">{{ t.note }}</span></div></sc-for></div>
+<div style="font:700 15px 'Bricolage Grotesque';background:var(--btn);box-shadow:var(--btnShadow);color:var(--accentInk);padding:12px 14px;border-radius:12px;text-align:center">Now tap the Cauldron to put it in.</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button disabled="{{ true }}" style="{{ s.ghost }}">Stir</button><button disabled="{{ true }}" style="{{ s.ghost }}">Shape the candies</button></div>
+<button style="min-height:48px;border-radius:12px;border:1px solid var(--ink);background:transparent;color:var(--ink);font:500 15px 'Bricolage Grotesque';cursor:pointer">Cancel</button>
+</div></sc-if>
+</div></section>
+</sc-if>
+
+<!-- SERVE -->
+<sc-if value="{{ s.isServe }}" hint-placeholder-val="{{ false }}">
+<section style="{{ s.frame }}"><div style="display:flex;flex-direction:column;gap:12px;background:var(--panel);border-radius:14px;padding:14px">
+<div><h2 style="margin:0;font:400 24px 'Young Serif',serif">Counter</h2><span style="font-size:13px;color:var(--muted)">At the counter: 4 / 4 · Today: 2 served, 0 lost, 10 coins</span></div>
+<sc-for list="{{ s.customers }}" as="c" hint-placeholder-count="4">
+<article style="{{ c.card }}"><div style="display:flex;gap:12px">
+<div style="{{ c.portrait }}">customer-{{ c.id }}<br>96×120</div>
+<div style="display:flex;flex-direction:column;gap:8px;flex:1;min-width:0">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font:400 19px 'Young Serif',serif">{{ c.type }}</b><span style="font:500 12px 'JetBrains Mono',monospace;color:var(--muted)">{{ c.budget }} max</span></div>
+<div style="display:flex;align-items:center;gap:8px;background:var(--panel2);border-radius:10px;padding:6px"><div style="{{ c.wantSlot }}">{{ c.wantId }}</div><div style="display:flex;flex-direction:column;font-size:13px;line-height:1.25"><span style="color:var(--muted);font-size:11px">Wants</span><b>{{ c.wants }}</b><span>At least <b>{{ c.min }}</b></span></div></div>
+</div></div>
+<div style="display:flex;align-items:center;gap:8px"><span style="{{ c.pLabel }}">{{ c.pText }}</span><div style="display:flex;gap:3px;flex:1"><sc-for list="{{ c.pips }}" as="pp"><span style="{{ pp.style }}"></span></sc-for></div></div>
+<div style="display:flex;gap:8px;align-items:center">
+<sc-if value="{{ c.canServe }}"><button style="{{ s.serve }}" style-active="transform:translateY(3px);box-shadow:inset 0 2px 4px rgba(0,0,0,.25),0 0 0 #8f5c0e;filter:brightness(.94)">Serve Plain · {{ c.pay }}</button></sc-if>
+<sc-if value="{{ c.cannot }}"><span style="flex:1;font-size:13px;color:var(--muted);line-height:1.3;display:flex;gap:6px"><span aria-hidden="true">⊘</span>{{ c.reason }}</span></sc-if>
+<button style="min-height:48px;padding:0 16px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--ink);font:500 15px 'Bricolage Grotesque';cursor:pointer">Refuse</button></div>
+</article></sc-for>
+<div style="color:var(--warn);font-size:13px;display:flex;gap:8px"><span aria-hidden="true">▲</span>4 waiting customer(s) will leave if you close now.</div>
+</div></section>
+<details style="background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:0 14px">
+<summary style="display:flex;align-items:center;gap:12px;min-height:60px"><h3 style="margin:0;font:400 20px 'Young Serif',serif;flex:1">Clerk</h3><span style="font-size:12px;color:var(--muted);max-width:110px;text-align:right;line-height:1.2">Faithful customers</span><span style="width:46px;height:26px;border-radius:999px;background:var(--accent);position:relative;flex:none"><span style="position:absolute;right:3px;top:3px;width:20px;height:20px;border-radius:50%;background:var(--accentInk)"></span></span><span aria-hidden="true" style="color:var(--muted)">▾</span></summary>
+<div style="display:flex;flex-direction:column;gap:10px;padding:0 0 14px"><div style="display:flex;gap:12px;align-items:center"><div style="{{ s.clerkSlot }}">worker-clerk<br>96×96</div><div style="display:flex;flex-direction:column;gap:6px;flex:1"><span style="font-size:13px;line-height:1.25">Let the clerk handle Faithful customers</span><span style="font-size:13px;color:var(--muted)">Knows how to sell Honey drop.</span></div></div>
+<sc-for list="{{ s.training }}" as="t" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>{{ t.name }}</span><span style="font-family:'JetBrains Mono',monospace;color:var(--muted)">0 / 2 by hand</span></div><div style="display:flex;gap:4px"><span style="flex:1;height:6px;border-radius:3px;background:var(--line)"></span><span style="flex:1;height:6px;border-radius:3px;background:var(--line)"></span></div></div></sc-for></div>
+</details>
+</sc-if>
+
+<!-- EVENING --><!-- EVENING -->
+<sc-if value="{{ s.isEvening }}" hint-placeholder-val="{{ false }}">
+<div style="{{ s.note }}"><span style="{{ s.overP }}">JOURNAL · DAY 1</span><p style="margin:0;font:400 20px/1.3 'Young Serif',serif;font-style:italic">Few came today. The bees hummed something that sounded like sympathy.</p></div>
+<div style="background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px"><h3 style="margin:0;font:400 18px 'Young Serif',serif">Today's report</h3>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px 8px"><sc-for list="{{ s.report }}" as="r" hint-placeholder-count="6"><div style="display:flex;flex-direction:column"><span style="font:400 22px/1.1 'Young Serif',serif;{{ r.hl }}">{{ r.v }}</span><span style="font-size:12px;color:var(--muted);line-height:1.25">{{ r.k }}</span></div></sc-for></div></div>
+<section style="{{ s.frame }}"><div style="display:flex;flex-direction:column;gap:12px;background:var(--panel);border-radius:14px;padding:14px">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="margin:0;font:400 24px 'Young Serif',serif">Skill tree</h2><span style="font:500 13px 'JetBrains Mono',monospace;color:var(--accent)">290 coins</span></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px"><sc-for list="{{ s.tabs }}" as="t" hint-placeholder-count="3"><button style="{{ t.style }}"><span aria-hidden="true">{{ t.glyph }}</span><b style="font-size:13px">{{ t.label }}</b><span style="font-size:11px;color:var(--muted)">{{ t.sub }}</span></button></sc-for></div>
+<sc-for list="{{ s.upgrades }}" as="u" hint-placeholder-count="5"><div style="{{ u.card }}">
+<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><b style="font-size:15px">{{ u.name }}</b><span style="{{ u.state }}">{{ u.stateLabel }}</span></div>
+<div style="font-size:13px;line-height:1.35;color:var(--muted)">{{ u.desc }}</div>
+<sc-if value="{{ u.hasLevel }}"><div style="display:flex;gap:4px;align-items:center"><sc-for list="{{ u.pips }}" as="pp"><span style="{{ pp.style }}"></span></sc-for><span style="font:500 12px 'JetBrains Mono',monospace;color:var(--muted);margin-left:6px">{{ u.level }}</span></div></sc-if>
+<sc-if value="{{ u.buy }}"><button style="{{ u.btn }}">{{ u.btnLabel }}</button></sc-if>
+<sc-if value="{{ u.note }}"><div style="font-size:12px;color:var(--muted);display:flex;gap:6px"><span aria-hidden="true">🔒</span>{{ u.noteText }}</div></sc-if>
+</div></sc-for>
+<div style="font-size:13px;color:var(--muted);text-align:center">Swipe or tap Shop and Temple / Hive for their upgrades.</div>
+</div></section>
+<section style="{{ s.frame }}"><div style="display:flex;flex-direction:column;gap:10px;background:var(--panel);border-radius:14px;padding:14px"><h3 style="margin:0;font:400 18px 'Young Serif',serif">Around the shop</h3>
+<div style="{{ s.mapSlot }}">map-strip · 640×120</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><span style="min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--accent);color:var(--accent);display:inline-flex;align-items:center;font-size:14px">Millpond</span><span style="min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--accent);color:var(--accent);display:inline-flex;align-items:center;font-size:14px">Old orchard</span><span style="min-height:36px;padding:0 14px;border-radius:999px;border:1px dashed var(--line);color:var(--muted);display:inline-flex;align-items:center;font-size:14px">🔒 Unknown place</span></div></div></section>
+</sc-if>
+
+<!-- SETTINGS -->
+<sc-if value="{{ s.isSettings }}" hint-placeholder-val="{{ false }}">
+<section style="{{ s.frame }}"><div style="display:flex;flex-direction:column;gap:18px;background:var(--panel);border-radius:14px;padding:16px">
+<h2 style="margin:0;font:400 24px 'Young Serif',serif">Settings</h2>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="{{ s.over }}">LANGUAGE</span><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--panel2);border-radius:12px;padding:4px"><span style="min-height:44px;border-radius:9px;background:var(--btn);color:var(--accentInk);font:700 15px 'Bricolage Grotesque';display:inline-flex;align-items:center;justify-content:center">English</span><span style="min-height:44px;border-radius:9px;font:500 15px 'Bricolage Grotesque';display:inline-flex;align-items:center;justify-content:center">Français</span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid var(--line)"><span style="{{ s.over }}">NEW GAME</span><input placeholder="Seed (optional)" style="min-height:48px;box-sizing:border-box;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:500 15px 'JetBrains Mono',monospace"><button style="min-height:48px;border-radius:12px;border:1px solid var(--warn);background:transparent;color:var(--warn);font:700 15px 'Bricolage Grotesque'">Start over…</button><span style="font-size:13px;color:var(--muted)">You will be asked to confirm. Your current save is replaced.</span></div>
+<div style="display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid var(--line)"><span style="{{ s.over }}">SAVE</span><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button style="min-height:48px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);font:500 15px 'Bricolage Grotesque'">Export save</button><button style="min-height:48px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);font:500 15px 'Bricolage Grotesque'">Import save</button></div><span style="font-size:13px;color:var(--muted)">The game saves automatically.</span></div>
+</div></section>
+</sc-if>
+
+<!-- Errands (craft idle + evening) -->
+<sc-if value="{{ s.hasErrands }}" hint-placeholder-val="{{ false }}">
+<section style="{{ s.frame }}"><div style="display:flex;flex-direction:column;gap:8px;background:var(--panel);border-radius:14px;padding:14px"><h3 style="margin:0;font:400 18px 'Young Serif',serif">Errands</h3>
+<sc-for list="{{ s.errands }}" as="e" hint-placeholder-count="3">
+<details style="background:var(--panel2);border-radius:12px;padding:0 12px"><summary style="display:flex;align-items:center;gap:8px;min-height:56px;padding:10px 0;box-sizing:border-box">
+<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0"><b style="font-size:15px">{{ e.name }}</b><span style="font:500 12px 'JetBrains Mono',monospace;color:var(--muted)">{{ e.needs }}</span><span style="{{ e.tag }}">{{ e.tagLabel }}</span></div>
+<span style="min-height:44px;padding:0 16px;border-radius:10px;background:var(--btn);box-shadow:var(--btnShadow);color:var(--accentInk);font:700 14px 'Bricolage Grotesque';display:inline-flex;align-items:center">Accept</span></summary>
+<p style="margin:0 0 12px;font-size:13px;line-height:1.45;color:var(--muted)">{{ e.desc }}</p></details></sc-for>
+</div></section>
+</sc-if>
+
+<!-- bottom action bar -->
+<div style="{{ s.wood }};position:sticky;bottom:0"><button style="{{ s.prim }}" style-active="transform:translateY(3px);box-shadow:inset 0 2px 4px rgba(0,0,0,.25),0 0 0 #8f5c0e;filter:brightness(.94)">{{ s.endLabel }} →</button><div style="font-size:11px;text-align:center;color:var(--muted);margin-top:6px;font-family:'JetBrains Mono',monospace">fixed to the bottom edge · thumb reach</div></div>
+</div></div></sc-for>
+</div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const dark = (this.props.theme ?? 'dark') === 'dark';
+    const enc = (seed,freq,rgb,k,off) => 'url("data:image/svg+xml,'+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='420' height='420'><filter id='f' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='"+freq+"' numOctaves='3' seed='"+seed+"' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 "+rgb[0]+" 0 0 0 0 "+rgb[1]+" 0 0 0 0 "+rgb[2]+" "+k+" 0 0 0 "+off+"'/></filter><rect width='100%' height='100%' filter='url(#f)'/></svg>")+'")';
+    const seam = (h,d,l) => 'repeating-linear-gradient(180deg,rgba(0,0,0,0) 0 '+(h-4)+'px,rgba(0,0,0,'+d+') '+(h-4)+'px '+(h-2)+'px,rgba(255,205,140,'+l+') '+(h-2)+'px '+h+'px)';
+    const gD = enc(4,'0.004 0.16',[.05,.025,0],1.0,-.3), gL = enc(9,'0.003 0.22',[1,.75,.45],0.35,-.17), pN = enc(6,'0.8',[.45,.3,.1],1.2,-.55);
+    const T = dark
+      ? '--bg:#1b1612;--panel:#2a211a;--panel2:#352a20;--wood:'+seam(170,.45,.07)+','+gD+','+gL+',linear-gradient(180deg,#4a3422,#3b2a1b);--ink:#fbf0dc;--muted:#d1bfa4;--accent:#f5b83d;--accentInk:#2a1704;--btn:linear-gradient(180deg,#ffd878,#eba526);--btnShadow:inset 0 1px 0 rgba(255,255,255,.55),0 3px 0 #8f5c0e,0 7px 10px rgba(0,0,0,.35);--btn2:linear-gradient(180deg,#46331f,#33261a);--btn2Border:#150e08;--btn2Shadow:inset 0 1px 0 rgba(255,225,170,.2),0 2px 0 rgba(0,0,0,.5);--line:#5a4635;--ok:#a6d98f;--warn:#ff9c85;--shelf:#3b2d21;--shelfEdge:#241a12;--scene:#241c15;--paper:'+pN+',linear-gradient(180deg,#f3e5c0,#e5d1a2);--paperInk:#2e2010;--slotInk:#f1e4cc;--slotC:#4f7a60;--kit:#f5a85a;--shop:#78cfc1;--tem:#cdb0f4;'
+      : '--bg:#f3e8d0;--panel:#fffaf0;--panel2:#f3e6c9;--wood:'+seam(170,.2,.25)+','+gD+','+gL+',linear-gradient(180deg,#f0d8a8,#e4c68e);--ink:#2b1c0e;--muted:#5f4a30;--accent:#c97b0c;--accentInk:#2a1704;--btn:linear-gradient(180deg,#ffd878,#eba526);--btnShadow:inset 0 1px 0 rgba(255,255,255,.6),0 3px 0 #8f5c0e,0 7px 10px rgba(80,40,0,.3);--btn2:linear-gradient(180deg,#ead5a3,#d9bd85);--btn2Border:#8d6837;--btn2Shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 0 rgba(120,80,30,.45);--line:#d2bd92;--ok:#3f7a2c;--warn:#b4412c;--shelf:#e6d2a8;--shelfEdge:#cdb383;--scene:#efe0bd;--paper:'+pN+',linear-gradient(180deg,#fff5d6,#f4e3b4);--paperInk:#2b1f12;--slotInk:#3d2f1e;--slotC:#b9d4bf;--kit:#a8550a;--shop:#12695e;--tem:#62399e;';
+    const sh = 'box-shadow:inset 0 1px 0 rgba(255,225,170,.18),inset 0 -2px 0 rgba(0,0,0,.25),0 6px 0 -3px rgba(0,0,0,.3),0 12px 20px rgba(0,0,0,.3);';
+    const woodHead = `background:var(--wood);border:1px solid var(--line);${sh}border-radius:18px;padding:10px 12px;display:flex;flex-direction:column;gap:10px`;
+    const frame = `background:linear-gradient(var(--panel),var(--panel)) padding-box,var(--wood);border:8px solid transparent;border-radius:22px;${sh}`;
+    const stripes = dark ? 'background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 8px,rgba(255,255,255,0) 8px 16px);background-color:#4a3c30;' : 'background-image:repeating-linear-gradient(135deg,rgba(0,0,0,.07) 0 8px,rgba(0,0,0,0) 8px 16px);background-color:#e2cfa4;';
+    const slotCol = { honey:'#f2b632', seed:'#6b5a4a', drop:'#e88a2b', brit:'#b9a237', toff:'#a8683a' };
+    const slotBg = (c) => `background-color:${c};background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.14) 0 8px,rgba(255,255,255,0) 8px 16px);color:#2a1a05;`;
+    const slotBase = 'display:grid;place-items:center;text-align:center;font:500 10px JetBrains Mono,monospace;padding:4px;box-sizing:border-box;border-radius:12px;flex:none;';
+    const slot96 = (c) => `width:96px;height:96px;${slotBase}${slotBg(c)}`;
+    const pips = (n,t,on,off,h=8) => Array.from({length:t},(_,i)=>({style:`flex:1;height:${h}px;border-radius:${h/2}px;background:${i<n?on:off};min-width:8px`}));
+    const dots = (n,t) => Array.from({length:t},(_,i)=>({style:`width:10px;height:10px;border-radius:50%;background:${i<n?'var(--accent)':'var(--line)'}`}));
+    const days = [0,1,2,3,4,5,6].map(i=>({style:`flex:1;height:10px;border-radius:5px;background:${i===0?'var(--accent)':'var(--line)'};${i===2?'outline:2px solid var(--warn);outline-offset:1px;':''}`}));
+    const phases = (ix) => ['Morning','Afternoon','Evening'].map((l,i)=>({label:l,style:`flex:1;text-align:center;padding:10px 4px;border-radius:999px;font:700 13px 'Bricolage Grotesque';background:${i===ix?'var(--btn)':'transparent'};box-shadow:${i===ix?'var(--btnShadow)':'none'};color:${i===ix?'var(--accentInk)':'var(--muted)'}`}));
+    const bench = false;
+    const mkShelf = (held) => [['Honey',3,4,slotCol.honey,'ingredient-honey',held,false],['Dark sunflower seed',2,2,slotCol.seed,'ingredient-dark-seed',false,held]].map(([n,l,t,c,id,h,off])=>({name:n,left:l,pips:dots(l,t),slot:slot96(c),slotLabel:id+' 96×96',style:`display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 6px;border-radius:12px;background:${h?'var(--panel)':'transparent'};border:2px solid ${h?'var(--accent)':'transparent'};box-shadow:${h?'0 0 0 4px rgba(245,184,61,.25)':'none'};opacity:${off?.45:1}`}));
+    const recipes = [['Honey drop','2 Honey',5,slotCol.drop,'candy-honey-drop'],['Sunflower brittle','3 Honey',8,slotCol.brit,'candy-sunflower-brittle'],['Honey toffee','4 Honey',12,slotCol.toff,'candy-honey-toffee']].map(([n,c,p,col,id],i)=>({name:n,cost:c,price:p,slotLabel:id,slot:slot96(col),
+      style:`display:flex;gap:12px;align-items:center;padding:8px 12px 8px 8px;border-radius:14px;cursor:pointer;color:var(--ink);background:${i===0?'var(--panel2)':'transparent'};border:2px solid ${i===0?'var(--accent)':'var(--line)'}`,
+      radio:`width:22px;height:22px;border-radius:50%;flex:none;border:2px solid ${i===0?'var(--accent)':'var(--line)'};background:${i===0?'radial-gradient(var(--accent) 0 40%,transparent 45%)':'transparent'}`}));
+    const qualities = [['Plain','×1',false,true],['Fine','×1.6 · oven',false,false],['Perfect','dark seed',true,false]].map(([l,n,d,sel])=>({label:l,note:n,disabled:d,style:`min-height:52px;border:0;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:${sel?700:500} 15px 'Bricolage Grotesque';background:${sel?'var(--btn)':'transparent'};box-shadow:${sel?'var(--btnShadow)':'none'};color:${sel?'var(--accentInk)':'var(--ink)'};opacity:${d?.4:1}`}));
+    const steps = [['Fill','1 / 2 Honey'],['Stir','tap or circle'],['Bake','Fine only'],['Shape','4 candies']].map(([l,n],i)=>({label:l,note:n,n:i+1,style:`display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 2px;border-radius:12px;background:${i===0?'var(--panel2)':'transparent'};border:2px solid ${i===0?'var(--accent)':'var(--line)'};opacity:${i===2?.5:1}`,dot:`width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:700 13px 'Bricolage Grotesque';background:${i===0?'var(--accent)':'var(--line)'};color:${i===0?'var(--accentInk)':'var(--ink)'}`}));
+    const batches = [1,1,0].map(on=>({style:`width:26px;height:26px;border-radius:50%;background:${on?'var(--accent)':'transparent'};border:2px solid ${on?'var(--accent)':'var(--line)'}`}));
+    const tagS = `font:700 11px 'Bricolage Grotesque';padding:4px 8px;border-radius:999px;border:1px solid var(--warn);color:var(--warn);white-space:nowrap;align-self:flex-start;margin-top:6px`;
+    const errands = [
+      {name:'The queen is sick',needs:'4 × Royal tonic (Plain)',desc:'The hive queen has a fever. Brew a royal tonic by hand and bring four. The hive will repay you with more honey, for good, and once she is well the bees will come to your shop asking for the tonic too.'},
+      {name:"The pilgrims' feast",needs:'8 × Honey drop (Fine)',desc:'The faithful plan a feast. Bring eight Fine honey drops and the counter will be widened for good.'},
+      {name:'A splinter hive',needs:'Send the clerk away 2 days',rival:true,desc:'Send the clerk to parley with the rival hive for two days. If it works, the honey they steal comes back for good.'}
+    ].map(e=>({...e,tag:e.rival?tagS:'display:none',tagLabel:'Against the rival hive'}));
+    const mk = (id,type,budget,wantId,wantCol,wants,min,pat,max,can,pay) => { const urg=pat<=1, low=pat/max<=.5, col=urg?'var(--warn)':low?'var(--accent)':'var(--ok)';
+      return {id,type,budget,wantId:wantId.replace('candy-',''),wantSlot:`width:48px;height:48px;${slotBase}border-radius:8px;font-size:7px;padding:2px;${slotBg(wantCol)}`,wants,min,canServe:can,cannot:!can,reason:'Nothing in stock fits this customer.',pay,
+        portrait:`width:96px;height:120px;${slotBase}color:var(--slotInk);${stripes}`,
+        pText:urg?'Leaving!':'Patience '+pat,pLabel:`font:700 12px 'Bricolage Grotesque';min-width:72px;color:${col}`,pips:pips(pat,max,col,'var(--line)',10),
+        card:`background:var(--panel2);border:1px solid ${urg?'var(--warn)':'var(--line)'};border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;box-shadow:${urg?'0 0 0 3px rgba(255,156,133,.2)':'none'}`}; };
+    const customers = [mk('faithful','Faithful',6,'candy-honey-drop',slotCol.drop,'Honey drop','Plain',6,6,true,5),mk('traveler','Traveler',12,'candy-sunflower-brittle',slotCol.brit,'Sunflower brittle','Plain',3,4,false,0),mk('merchant','Merchant',30,'candy-honey-drop',slotCol.drop,'Honey drop','Fine',1,2,false,0),mk('traveler','Traveler',12,'candy-honey-drop',slotCol.drop,'Honey drop','Plain',4,4,true,5)];
+    const kit = [['Honey yield','More honey delivered each morning.',2,4,'150'],['Bigger cauldrons','Each batch makes more candies.',0,3,'40'],['Second cauldron','A cauldron that makes Plain honey drops by itself every morning, using the day\'s honey.',0,1,'250'],['Oven','Unlocks Fine quality.',0,1,'60'],['Dark seed garden','Unlocks Perfect quality.',0,1,'400','Requires oven first.']];
+    const upgrades = kit.map(([n,d,lv,mx,cost,lock])=>{ const c=+cost, afford=!lock&&c<=290; return {name:n,desc:d,hasLevel:mx>1,level:`${lv} / ${mx}`,pips:Array.from({length:mx},(_,i)=>({style:`flex:1;height:8px;border-radius:4px;background:${i<lv?'var(--kit)':'var(--line)'}`})),
+      buy:!lock,btnLabel:`Buy · ${cost}`,note:!!lock,noteText:lock||'',stateLabel:lock?'Locked':afford?'Can afford':'',state:`font:700 11px 'Bricolage Grotesque';color:${lock?'var(--muted)':'var(--accent)'}`,
+      btn:`min-height:48px;border-radius:10px;border:0;background:var(--btn);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 3px 0 #8f5c0e;color:var(--accentInk);font:700 15px 'Bricolage Grotesque'`,
+      card:`background:var(--panel2);border:1px solid ${afford?'var(--kit)':'var(--line)'};border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;opacity:${lock?.6:1};box-shadow:${afford?'inset 3px 0 0 var(--kit)':'none'}`}; });
+    upgrades.forEach(u=>{ if(!u.buy||u.note)return; });
+    upgrades[4].buy = false;
+    const tabs = [['♨','Kitchen','2 can afford','var(--kit)',true],['⌂','Shop','3 can afford','var(--shop)',false],['☾','Temple / Hive','1 can afford','var(--tem)',false]].map(([g,l,sub,c,on])=>({glyph:g,label:l,sub,style:`min-height:64px;padding:6px 2px;border:0;border-bottom:3px solid ${on?c:'transparent'};border-radius:10px 10px 0 0;background:${on?'var(--panel2)':'transparent'};color:${c};display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer`}));
+    const report = [['10','Earned',1],['2','Served (clerk: 1)',0],['14','Left without buying',0],['0','Refused',0],['0','Contracts delivered',0],['0','Contracts expired',0]].map(([v,k,h])=>({v,k,hl:h?'color:var(--accent)':''}));
+    const mkStock=(arr)=>arr.map(([n,c,r])=>({n,dot:`width:22px;height:22px;border-radius:50%;flex:none;background-color:${c};background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.2) 0 4px,rgba(255,255,255,0) 4px 8px);${r===1?'box-shadow:0 0 0 2px var(--paper),0 0 0 4px #2a1704;':r===2?'box-shadow:0 0 0 2px var(--paper),0 0 0 4px #2a1704,0 0 0 6px var(--paper),0 0 0 8px #2a1704;margin:0 4px 0 2px;':''}`}));
+    const common = {hasToday:false,hasLatest:false,stock:[],stockEmpty:false,stockText:'',wood:woodHead,frame,days,over:`font:700 11px 'Bricolage Grotesque';letter-spacing:.1em;color:var(--muted)`,overP:`font:700 11px 'Bricolage Grotesque';letter-spacing:.1em;opacity:.7`,
+      note:`background:var(--paper);color:var(--paperInk);border-radius:6px 6px 18px 18px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;box-shadow:0 5px 0 rgba(0,0,0,.18)`,
+      prim:`width:100%;min-height:52px;border:0;border-radius:14px;background:var(--btn);box-shadow:var(--btnShadow);color:var(--accentInk);font:700 17px 'Bricolage Grotesque';cursor:pointer;transition:transform .06s,box-shadow .06s`,
+      serve:`flex:1;min-height:48px;padding:0 14px;border:0;border-radius:12px;background:var(--btn);box-shadow:var(--btnShadow);color:var(--accentInk);font:700 15px 'Bricolage Grotesque';cursor:pointer;transition:transform .06s,box-shadow .06s`,
+      ghost:`min-height:48px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--muted);font:500 15px 'Bricolage Grotesque';opacity:.55`,
+      stage:`width:240px;height:180px;border-radius:10px;display:grid;place-items:center;text-align:center;font:500 12px JetBrains Mono,monospace;color:var(--slotInk);${stripes}`,
+      mapSlot:`height:72px;border-radius:12px;display:grid;place-items:center;font:500 11px JetBrains Mono,monospace;color:var(--slotInk);${stripes}`,
+      clerkSlot:`width:96px;height:96px;${slotBase}color:var(--slotInk);background-color:var(--slotC);${stripes.split(';')[0]};`,
+      hasErrands:false,warnOpen:false,errands,isCraft:false,isIdle:false,isBench:false,isServe:false,isEvening:false,isSettings:false};
+    const screens = [
+      {id:'M1',label:'Morning · craft',coins:420,earned:0,endLabel:'Open the shop',phases:phases(0),isCraft:true,isIdle:true,hasToday:true,stockEmpty:true,stockText:'Nothing in stock.',hasErrands:true,warnOpen:true,shelf:mkShelf(false),recipes,qualities,batches,cauldron:'border:3px solid transparent;border-radius:14px;padding:4px'},
+      {id:'M2',label:'Morning · bench',coins:420,earned:0,endLabel:'Open the shop',phases:phases(0),isCraft:true,isBench:true,hasToday:true,stockEmpty:true,stockText:'Nothing in stock.',shelf:mkShelf(true),steps,batches,cauldron:'border:3px dashed var(--accent);box-shadow:0 0 0 5px rgba(245,184,61,.2);border-radius:14px;padding:4px'},
+      {id:'M3',label:'Afternoon · serve',coins:430,earned:10,endLabel:'Close the shop',phases:phases(1),isServe:true,hasToday:true,hasLatest:true,stock:mkStock([[6,slotCol.drop,0]]),stockText:'6 × Honey drop (Plain)',customers,training:[{name:'Sunflower brittle'},{name:'Honey toffee'},{name:'Royal tonic'}]},
+      {id:'M4',label:'Evening',coins:290,earned:10,endLabel:'Go to sleep',phases:phases(2),isEvening:true,hasErrands:true,report,tabs,upgrades},
+      {id:'M5',label:'Settings',coins:420,earned:0,endLabel:'Back to the shop',phases:phases(0),isSettings:true}
+    ].map(s=>({...common,...s}));
+    return { themeVars:T, screens };
+  }
+}
+</script>
+</body>
+</html>

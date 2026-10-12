@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700&amp;family=Young+Serif&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#0f0c09}a{color:#f0b33a}a:hover{color:#ffd37a}details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-marker{display:none}button{font-family:inherit}</style>
+</helmet>
+<div style="{{ themeVars }}">
+<div style="background:var(--bg);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,sans-serif;min-height:100vh;padding:20px 0 48px">
+<div style="width:100%;max-width:1200px;box-sizing:border-box;padding:0 16px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
+
+<!-- demo switcher -->
+<div style="display:flex;gap:8px;align-items:center;font:500 12px 'JetBrains Mono',monospace;color:var(--muted)">
+<span>SCREEN</span>
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4"><button onClick="{{ t.go }}" style="{{ t.style }}">{{ t.label }}</button></sc-for>
+<span style="margin-left:auto">design v2 · {{ themeName }}</span>
+</div>
+
+<!-- HUD -->
+<header style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;background:var(--wood);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,225,170,.18),inset 0 -2px 0 rgba(0,0,0,.25),0 8px 0 -3px rgba(0,0,0,.3),0 16px 26px rgba(0,0,0,.3);border-radius:18px;padding:12px 16px 12px 20px">
+<div style="display:flex;align-items:center;gap:12px;flex:none">
+<img src="logo/app-icon.svg" alt="" width="48" height="48" style="display:block;flex:none;border-radius:13px;box-shadow:0 3px 0 rgba(0,0,0,.35)">
+<div style="font:400 19px/1 'Young Serif',serif;white-space:nowrap">Cult of Sweet Tooth</div>
+</div>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-left:auto">
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font:700 11px 'Bricolage Grotesque';letter-spacing:.08em;color:var(--muted)">DAY</span><span style="font:400 22px/1 'Young Serif',serif">1<span style="color:var(--muted);font-size:14px"> / 7</span></span></div>
+<div style="display:flex;background:var(--panel2);border-radius:999px;padding:4px;gap:2px">
+<sc-for list="{{ phases }}" as="p" hint-placeholder-count="3"><span style="{{ p.style }}">{{ p.label }}</span></sc-for>
+</div>
+<div style="display:flex;align-items:center;gap:8px;background:var(--panel2);border-radius:999px;padding:6px 16px 6px 8px">
+<span style="width:26px;height:26px;border-radius:50%;background:var(--accent);box-shadow:inset 0 0 0 3px var(--accentInk);opacity:.95"></span>
+<span style="font:400 22px/1 'Young Serif',serif">{{ coins }}</span><span style="font-size:13px;color:var(--muted)">coins</span>
+</div>
+<button onClick="{{ endPhase }}" style="min-height:48px;padding:0 24px;border:0;border-radius:999px;background:var(--btn);box-shadow:var(--btnShadow);transition:transform .06s,box-shadow .06s;color:var(--accentInk);font:700 16px 'Bricolage Grotesque';cursor:pointer;display:flex;align-items:center;gap:8px" style-hover="filter:brightness(1.08)" style-active="transform:translateY(3px);box-shadow:inset 0 2px 4px rgba(0,0,0,.25),0 0 0 #8f5c0e;filter:brightness(.94)">{{ endLabel }}<span aria-hidden="true">→</span></button>
+<button style="min-height:44px;padding:0 14px;border:1px solid var(--btn2Border);border-radius:12px;background:var(--btn2);box-shadow:var(--btn2Shadow);color:var(--ink);font:500 14px 'Bricolage Grotesque';cursor:pointer;transition:transform .06s,box-shadow .06s" style-active="transform:translateY(2px);box-shadow:inset 0 2px 3px rgba(0,0,0,.3)">EN</button>
+<button onClick="{{ goSettings }}" style="min-height:44px;padding:0 14px;border:1px solid var(--btn2Border);border-radius:12px;background:var(--btn2);box-shadow:var(--btn2Shadow);color:var(--ink);font:500 14px 'Bricolage Grotesque';cursor:pointer;transition:transform .06s,box-shadow .06s" style-active="transform:translateY(2px);box-shadow:inset 0 2px 3px rgba(0,0,0,.3)">Settings</button>
+</div>
+</header>
+
+<!-- Stage strip -->
+<div style="display:flex;align-items:center;gap:16px;padding:0 6px">
+<div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:0">
+<div style="display:flex;justify-content:space-between;font-size:14px"><span><b>Gathering pilgrims</b> <span style="color:var(--muted)">· day 1 / 7</span></span><span style="font-family:'JetBrains Mono',monospace;font-size:13px">{{ earned }} / 800 coins earned</span></div>
+<div style="display:flex;gap:4px">
+<sc-for list="{{ days }}" as="d" hint-placeholder-count="7"><div style="{{ d.style }}"></div></sc-for>
+</div>
+</div>
+<sc-if value="{{ showWarning }}" hint-placeholder-val="{{ true }}">
+<details style="position:relative;flex:none">
+<summary style="display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--warn);color:var(--warn);font:700 13px 'Bricolage Grotesque';background:var(--panel)"><span aria-hidden="true">▲</span> Rival hive from day 3 <span style="color:var(--muted);font-weight:500">· hint ▾</span></summary>
+<div style="position:absolute;right:0;top:52px;width:340px;z-index:5;background:var(--panel);border:1px solid var(--warn);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.45;box-shadow:0 12px 30px rgba(0,0,0,.35)">
+<div style="color:var(--warn);font-weight:700">A rival hive will start stealing 1 honey each morning from day 3 of the week.</div>
+<div style="margin-top:6px">The errand "A splinter hive" can reduce it: take it on the Errands board.</div></div>
+</details>
+</sc-if>
+</div>
+
+<!-- ================= CRAFT IDLE / BENCH ================= -->
+<sc-if value="{{ isCraft }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+<section style="flex:3 1 560px;min-width:0;background:linear-gradient(var(--panel),var(--panel)) padding-box,var(--wood);border:12px solid transparent;box-shadow:inset 0 1px 0 rgba(255,225,170,.18),inset 0 -2px 0 rgba(0,0,0,.25),0 8px 0 -3px rgba(0,0,0,.3),0 16px 26px rgba(0,0,0,.3);border-radius:22px;padding:22px 24px;display:flex;flex-direction:column;gap:20px;">
+<div style="display:flex;align-items:baseline;gap:12px"><h2 style="margin:0;font:400 28px 'Young Serif',serif;text-shadow:0 2px 0 rgba(0,0,0,.35)">Workshop</h2>
+<span style="font-size:14px;color:var(--muted)">The old shack, before the pilgrims arrive</span></div>
+
+<!-- scene row -->
+<div style="display:grid;grid-template-columns:230px minmax(0,1fr);gap:24px">
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="font:700 11px 'Bricolage Grotesque';letter-spacing:.1em;color:var(--muted)">SHELF · DELIVERED THIS MORNING</div>
+<div style="background:var(--shelf);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:2px;border-bottom:6px solid var(--shelfEdge)">
+<sc-for list="{{ shelf }}" as="g" hint-placeholder-count="2">
+<button disabled="{{ g.disabled }}" style="{{ g.style }}">
+<div style="width:96px;height:96px;flex:none;border-radius:12px;display:grid;place-items:center;text-align:center;font:500 10px 'JetBrains Mono',monospace;color:var(--slotInk);padding:4px;box-sizing:border-box;{{ g.slot }}">{{ g.slotLabel }}</div>
+<div style="display:flex;flex-direction:column;gap:6px;text-align:left"><b style="font-size:16px">{{ g.name }}</b>
+<div style="display:flex;gap:4px"><sc-for list="{{ g.pips }}" as="pp"><span style="{{ pp.style }}"></span></sc-for></div>
+<span style="font-size:13px;color:var(--muted)">{{ g.left }} left</span></div>
+</button></sc-for>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+<div style="align-self:stretch;display:flex;justify-content:space-between;font:700 11px 'Bricolage Grotesque';letter-spacing:.1em;color:var(--muted)"><span>CAULDRON</span><span>BATCHES LEFT TODAY</span></div>
+<div style="align-self:stretch;display:flex;gap:20px;align-items:center;justify-content:center;background:var(--scene);border-radius:14px;padding:18px;border-bottom:6px solid var(--shelfEdge)">
+<div style="{{ cauldronStyle }}">
+<div style="width:240px;height:180px;border-radius:10px;display:grid;place-items:center;text-align:center;font:500 12px 'JetBrains Mono',monospace;color:var(--slotInk);{{ stripes }}">station-cauldron<br>240×180</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px;min-width:150px">
+<div style="display:flex;gap:6px"><sc-for list="{{ batches }}" as="b"><span style="{{ b.style }}"></span></sc-for></div>
+<div style="font-size:13px;color:var(--muted)">3 batches · 4 candies each</div>
+<sc-if value="{{ isBench }}"><div style="font-size:14px"><span style="color:var(--muted)">In the cauldron</span><br><b style="font:400 20px 'Young Serif',serif">Honey 1 / 2</b></div></sc-if>
+</div>
+</div>
+</div>
+</div>
+
+<sc-if value="{{ isIdle }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:baseline;justify-content:space-between"><h3 style="margin:0;font:400 20px 'Young Serif',serif">Start a batch</h3></div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
+<sc-for list="{{ recipes }}" as="r" hint-placeholder-count="3">
+<button style="{{ r.style }}">
+<div style="width:96px;height:96px;flex:none;border-radius:12px;display:grid;place-items:center;text-align:center;font:500 10px 'JetBrains Mono',monospace;padding:4px;box-sizing:border-box;color:var(--slotInk);{{ r.slot }}">{{ r.slotLabel }}</div>
+<div style="display:flex;flex-direction:column;gap:4px;text-align:left"><b style="font-size:16px">{{ r.name }}</b><span style="font-size:13px;color:var(--muted)">{{ r.cost }}</span><span style="font:500 13px 'JetBrains Mono',monospace;color:var(--accent)">{{ r.price }} coins</span></div>
+</button></sc-for>
+</div>
+<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+<div style="display:flex;background:var(--panel2);border-radius:12px;padding:4px;gap:2px">
+<sc-for list="{{ qualities }}" as="q" hint-placeholder-count="3"><button disabled="{{ q.disabled }}" style="{{ q.style }}">{{ q.label }}<span style="font-size:12px;opacity:.8;margin-left:6px">{{ q.note }}</span></button></sc-for>
+</div>
+<button onClick="{{ startBatch }}" style="min-height:48px;padding:0 28px;border:0;border-radius:12px;background:var(--btn);box-shadow:var(--btnShadow);transition:transform .06s,box-shadow .06s;color:var(--accentInk);font:700 16px 'Bricolage Grotesque';cursor:pointer" style-hover="filter:brightness(1.08)" style-active="transform:translateY(3px);box-shadow:inset 0 2px 4px rgba(0,0,0,.25),0 0 0 #8f5c0e;filter:brightness(.94)">Start batch</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isBench }}">
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:stretch;gap:0">
+<sc-for list="{{ steps }}" as="s" hint-placeholder-count="4"><div style="{{ s.style }}"><span style="{{ s.dot }}">{{ s.n }}</span><div style="display:flex;flex-direction:column"><b style="font-size:15px">{{ s.label }}</b><span style="font-size:12px;color:var(--muted)">{{ s.note }}</span></div></div></sc-for>
+</div>
+<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+<div style="font:700 16px 'Bricolage Grotesque';background:var(--btn);box-shadow:var(--btnShadow);color:var(--accentInk);padding:10px 16px;border-radius:12px">Now tap the Cauldron to put it in.</div>
+<button disabled="{{ true }}" style="min-height:44px;padding:0 20px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--muted);font:500 15px 'Bricolage Grotesque';opacity:.55">Stir</button>
+<button disabled="{{ true }}" style="min-height:44px;padding:0 20px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--muted);font:500 15px 'Bricolage Grotesque';opacity:.55">Shape the candies</button>
+<button onClick="{{ cancelBatch }}" style="min-height:44px;padding:0 20px;border-radius:12px;border:1px solid var(--ink);background:transparent;color:var(--ink);font:500 15px 'Bricolage Grotesque';cursor:pointer;margin-left:auto">Cancel</button>
+</div>
+</div>
+</sc-if>
+</section>
+
+<aside style="flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:16px">
+<div style="background:var(--paper);color:var(--paperInk);border-radius:6px 6px 18px 18px;padding:18px 20px 20px;display:flex;flex-direction:column;gap:12px;transform:rotate(-.6deg);box-shadow:0 6px 0 rgba(0,0,0,.18)">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><h3 style="margin:0;font:400 20px 'Young Serif',serif">Today's board</h3><span style="width:12px;height:12px;border-radius:50%;background:var(--warn)"></span></div>
+<div style="font:400 17px/1.2 'Young Serif',serif">A busy day is expected</div>
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font:700 11px 'Bricolage Grotesque';letter-spacing:.1em;opacity:.7">CONTRACTS</span><span style="font-size:14px;opacity:.8">No contract on the board.</span></div>
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font:700 11px 'Bricolage Grotesque';letter-spacing:.1em;opacity:.7">CANDY IN STOCK</span><span style="font-size:14px;opacity:.8">{{ stockText }}</span></div>
+</div>
+<div style="background:linear-gradient(var(--panel),var(--panel)) padding-box,var(--wood);border:12px solid transparent;box-shadow:inset 0 1px 0 rgba(255,225,170,.18),inset 0 -2px 0 rgba(0,0,0,.25),0 8px 0 -3px rgba(0,0,0,.3),0 16px 26px rgba(0,0,0,.3);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<h3 style="margin:0;font:400 18px 'Young Serif',serif">Errands</h3>
+<sc-for list="{{ errands }}" as="e" hint-placeholder-count="3">
+<details style="background:var(--panel2);border-radius:12px;padding:0 12px">
+<summary style="display:flex;align-items:center;gap:8px;min-height:56px;padding:10px 0;box-sizing:border-box">
+<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0"><b style="font-size:15px">{{ e.name }}</b><span style="font:500 12px 'JetBrains Mono',monospace;color:var(--muted)">{{ e.needs }}</span><span style="{{ e.tag }}">{{ e.tagLabel }}</span></div>
+
+<span style="min-height:36px;padding:0 14px;border-radius:10px;background:var(--btn);box-shadow:var(--btnShadow);transition:transform .06s,box-shadow .06s;color:var(--accentInk);font:700 14px 'Bricolage Grotesque';display:inline-flex;align-items:center" style-active="transform:translateY(3px);box-shadow:inset 0 2px 4px rgba(0,0,0,.25),0 0 0 #8f5c0e;filter:brightness(.94)">Accept</span>
+</summary>
+<p style="margin:0 0 12px;font-size:13px;line-height:1.45;color:var(--muted)">{{ e.desc }}</p>
+</details></sc-for>
+</div>
+</aside>
+</div>
+</sc-if>
+
+<!-- ================= SERVE ================= -->
+<sc-if value="{{ isServe }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+<section style="flex:3 1 560px;min-width:0;background:linear-gradient(var(--panel),var(--panel)) padding-box,var(--wood);border:12px solid transparent;box-shadow:inset 0 1px 0 rgba(255,225,170,.18),inset 0 -2px 0 rgba(0,0,0,.25),0 8px 0 -3px rgba(0,0,0,.3),0 16px 26px rgba(0,0,0,.3);border-radius:22px;padding:22px 24px;display:flex;flex-direction:column;gap:18px">
+<div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap"><h2 style="margin:0;font:400 28px 'Young Serif',serif;text-shadow:0 2px 0 rgba(0,0,0,.35)">Counter</h2>
+<span style="font-size:14px;color:var(--muted)">At the counter: 4 / 4 · Today: 2 served, 0 lost, 10 coins</span></div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
+<sc-for list="{{ customers }}" as="c" hint-placeholder-count="4">
+<article style="{{ c.card }}">
+<div style="display:flex;gap:14px">
+<div style="width:96px;height:120px;flex:none;border-radius:12px;display:grid;place-items:center;text-align:center;font:500 10px 'JetBrains Mono',monospace;color:var(--slotInk);padding:4px;box-sizing:border-box;{{ stripes }}">customer-{{ c.id }}<br>96×120</div>
+<div style="display:flex;flex-direction:column;gap:8px;flex:1;min-width:0">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font:400 20px 'Young Serif',serif">{{ c.type }}</b><span style="font:500 13px 'JetBrains Mono',monospace;color:var(--muted)">{{ c.budget }} coins max</span></div>
+<div style="display:flex;align-items:center;gap:10px;background:var(--panel2);border-radius:12px;padding:8px">
+<div style="width:48px;height:48px;flex:none;border-radius:8px;display:grid;place-items:center;font:500 8px 'JetBrains Mono',monospace;color:var(--slotInk);text-align:center;{{ c.wantSlot }}">{{ c.wantId }}</div>
+<div style="display:flex;flex-direction:column;font-size:14px"><span style="color:var(--muted);font-size:12px">Wants</span><b>{{ c.wants }}</b><span style="font-size:13px">At least <b>{{ c.min }}</b></span></div></div>
+<div style="display:flex;align-items:center;gap:8px"><span style="{{ c.pLabel }}">{{ c.pText }}</span>
+<div style="display:flex;gap:3px;flex:1"><sc-for list="{{ c.pips }}" as="pp"><span style="{{ pp.style }}"></span></sc-for></div></div>
+</div></div>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+<sc-if value="{{ c.canServe }}"><button style="min-height:44px;padding:0 18px;border:0;border-radius:12px;background:var(--btn);box-shadow:var(--btnShadow);transition:transform .06s,box-shadow .06s;color:var(--accentInk);font:700 15px 'Bricolage Grotesque';cursor:pointer" style-hover="filter:brightness(1.08)" style-active="transform:translateY(3px);box-shadow:inset 0 2px 4px rgba(0,0,0,.25),0 0 0 #8f5c0e;filter:brightness(.94)">Serve Plain · {{ c.pay }}</button></sc-if>
+<sc-if value="{{ c.cannot }}"><span style="flex:1;font-size:13px;color:var(--muted);line-height:1.3;display:flex;gap:6px"><span aria-hidden="true">⊘</span>{{ c.reason }}</span></sc-if>
+<button style="min-height:44px;padding:0 16px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--ink);font:500 15px 'Bricolage Grotesque';cursor:pointer;margin-left:auto" style-hover="border-color:var(--ink)">Refuse</button>
+</div>
+</article></sc-for>
+</div>
+<div style="color:var(--warn);font-size:14px;display:flex;gap:8px"><span aria-hidden="true">▲</span>4 waiting customer(s) will leave if you close now.</div>
+</section>
+<aside style="flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:16px">
+<div style="background:var(--panel);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,225,170,.18),inset 0 -2px 0 rgba(0,0,0,.25),0 8px 0 -3px rgba(0,0,0,.3),0 16px 26px rgba(0,0,0,.3);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:12px;align-items:center">
+<div style="width:96px;height:96px;flex:none;border-radius:14px;display:grid;place-items:center;text-align:center;font:500 10px 'JetBrains Mono',monospace;color:var(--slotInk);background:var(--slotC);{{ stripes }}">worker-clerk<br>96×96</div>
+<div style="display:flex;flex-direction:column;gap:8px"><h3 style="margin:0;font:400 20px 'Young Serif',serif">Clerk</h3>
+<label style="display:flex;align-items:center;gap:10px;cursor:pointer;min-height:44px"><span style="width:46px;height:26px;border-radius:999px;background:var(--accent);position:relative;flex:none"><span style="position:absolute;right:3px;top:3px;width:20px;height:20px;border-radius:50%;background:var(--accentInk)"></span></span><span style="font-size:13px;line-height:1.25">Let the clerk handle Faithful customers</span></label></div></div>
+<div style="font-size:13px;color:var(--muted)">Knows how to sell Honey drop.</div>
+<sc-for list="{{ training }}" as="t" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>Sunflower brittle</span><span style="font-family:'JetBrains Mono',monospace;color:var(--muted)">0 / 2 by hand</span></div><div style="display:flex;gap:4px"><span style="flex:1;height:6px;border-radius:3px;background:var(--line)"></span><span style="flex:1;height:6px;border-radius:3px;background:var(--line)"></span></div></div></sc-for>
+</div>
+<div style="background:var(--paper);color:var(--paperInk);border-radius:6px 6px 18px 18px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;box-shadow:0 6px 0 rgba(0,0,0,.18)">
+<span style="font:700 11px 'Bricolage Grotesque';letter-spacing:.1em;opacity:.7">IN STOCK</span><span style="font:400 18px 'Young Serif',serif">6 × Honey drop (Plain)</span>
+<span style="font:700 11px 'Bricolage Grotesque';letter-spacing:.1em;opacity:.7;margin-top:6px">CONTRACTS</span><span style="font-size:14px;opacity:.8">No contract on the board.</span>
+</div>
+<div style="background:var(--panel);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,225,170,.18),inset 0 -2px 0 rgba(0,0,0,.25),0 8px 0 -3px rgba(0,0,0,.3),0 16px 26px rgba(0,0,0,.3);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:8px">
+<h3 style="margin:0;font:400 18px 'Young Serif',serif">Latest</h3>
+<div style="font-size:14px;display:flex;gap:8px"><span style="color:var(--accent)">●</span>Traveler bought Honey drop (Plain) for 5.</div>
+<div style="font-size:14px;display:flex;gap:8px;color:var(--muted)"><span>●</span>The clerk sold Honey drop (Plain) to Faithful for 5.</div>
+</div>
+</aside>
+</div>
+</sc-if>
+
+<!-- ================= EVENING ================= -->
+<sc-if value="{{ isEvening }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+<section style="flex:3 1 560px;display:flex;flex-direction:column;gap:16px;min-width:0">
+<div style="display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px">
+<div style="background:var(--paper);color:var(--paperInk);border-radius:6px 6px 18px 18px;padding:20px 24px;display:flex;flex-direction:column;gap:6px;box-shadow:0 6px 0 rgba(0,0,0,.18);transform:rotate(-.4deg)">
+<span style="font:700 11px 'Bricolage Grotesque';letter-spacing:.1em;opacity:.7">JOURNAL · DAY 1</span>
+<p style="margin:0;font:400 22px/1.3 'Young Serif',serif;font-style:italic">Few came today. The bees hummed something that sounded like sympathy.</p></div>
+<div style="background:var(--panel);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,225,170,.18),inset 0 -2px 0 rgba(0,0,0,.25),0 8px 0 -3px rgba(0,0,0,.3),0 16px 26px rgba(0,0,0,.3);border-radius:18px;padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+<h3 style="margin:0;font:400 18px 'Young Serif',serif">Today's report</h3>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+<sc-for list="{{ report }}" as="r" hint-placeholder-count="6"><div style="display:flex;flex-direction:column"><span style="font:400 24px/1.1 'Young Serif',serif;{{ r.hl }}">{{ r.v }}</span><span style="font-size:12px;color:var(--muted)">{{ r.k }}</span></div></sc-for>
+</div></div>
+</div>
+<div style="background: linear-gradient(var(--panel),var(--panel)) padding-box,var(--wood); border: 12px solid transparent; box-shadow: inset 0 1px 0 rgba(255,225,170,.18),inset 0 -2px 0 rgba(0,0,0,.25),0 8px 0 -3px rgba(0,0,0,.3),0 16px 26px rgba(0,0,0,.3); border-radius: 22px; padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; border-width: 12px">
+<div style="display:flex;align-items:baseline;justify-content:space-between"><h2 style="margin:0;font:400 28px 'Young Serif',serif;text-shadow:0 2px 0 rgba(0,0,0,.35)">Skill tree</h2>
+<div style="display:flex;gap:14px;font-size:12px;color:var(--muted)"><span>● Owned</span><span style="color:var(--accent)">● Can afford</span><span>◌ Short of coins</span><span>🔒 Locked</span></div></div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start">
+<sc-for list="{{ branches }}" as="b" hint-placeholder-count="3">
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="{{ b.head }}"><span aria-hidden="true" style="font-size:18px">{{ b.glyph }}</span><b style="font:400 18px 'Young Serif',serif">{{ b.name }}</b></div>
+<sc-for list="{{ b.items }}" as="u" hint-placeholder-count="4">
+<div style="{{ u.card }}">
+<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><b style="font-size:15px">{{ u.name }}</b><span style="{{ u.state }}">{{ u.stateLabel }}</span></div>
+<div style="font-size:13px;line-height:1.35;color:var(--muted)">{{ u.desc }}</div>
+<sc-if value="{{ u.hasLevel }}"><div style="display:flex;gap:4px;align-items:center"><sc-for list="{{ u.pips }}" as="pp"><span style="{{ pp.style }}"></span></sc-for><span style="font:500 12px 'JetBrains Mono',monospace;color:var(--muted);margin-left:6px">{{ u.level }}</span></div></sc-if>
+<sc-if value="{{ u.buy }}"><button style="{{ u.btn }}">{{ u.btnLabel }}</button></sc-if>
+<sc-if value="{{ u.note }}"><div style="font-size:12px;color:var(--muted);display:flex;gap:6px"><span aria-hidden="true">🔒</span>{{ u.noteText }}</div></sc-if>
+</div></sc-for>
+</div></sc-for>
+</div></div>
+</section>
+<aside style="flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:16px">
+<div style="background:linear-gradient(var(--panel),var(--panel)) padding-box,var(--wood);border:12px solid transparent;box-shadow:inset 0 1px 0 rgba(255,225,170,.18),inset 0 -2px 0 rgba(0,0,0,.25),0 8px 0 -3px rgba(0,0,0,.3),0 16px 26px rgba(0,0,0,.3);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<h3 style="margin:0;font:400 18px 'Young Serif',serif">Around the shop</h3>
+<div style="height:96px;border-radius:12px;display:grid;place-items:center;font:500 11px 'JetBrains Mono',monospace;color:var(--slotInk);text-align:center;{{ stripes }}">map-strip · 640×120</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><span style="min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--accent);color:var(--accent);display:inline-flex;align-items:center;font-size:14px">Millpond</span><span style="min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--accent);color:var(--accent);display:inline-flex;align-items:center;font-size:14px">Old orchard</span><span style="min-height:36px;padding:0 14px;border-radius:999px;border:1px dashed var(--line);color:var(--muted);display:inline-flex;align-items:center;font-size:14px">🔒 Unknown place</span></div>
+</div>
+<div style="background:linear-gradient(var(--panel),var(--panel)) padding-box,var(--wood);border:12px solid transparent;box-shadow:inset 0 1px 0 rgba(255,225,170,.18),inset 0 -2px 0 rgba(0,0,0,.25),0 8px 0 -3px rgba(0,0,0,.3),0 16px 26px rgba(0,0,0,.3);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<h3 style="margin:0;font:400 18px 'Young Serif',serif">Errands</h3>
+<sc-for list="{{ errands }}" as="e" hint-placeholder-count="3">
+<details style="background:var(--panel2);border-radius:12px;padding:0 12px">
+<summary style="display:flex;align-items:center;gap:8px;min-height:56px;padding:10px 0;box-sizing:border-box">
+<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0"><b style="font-size:15px">{{ e.name }}</b><span style="font:500 12px 'JetBrains Mono',monospace;color:var(--muted)">{{ e.needs }}</span><span style="{{ e.tag }}">{{ e.tagLabel }}</span></div>
+<span style="min-height:36px;padding:0 14px;border-radius:10px;background:var(--btn);box-shadow:var(--btnShadow);transition:transform .06s,box-shadow .06s;color:var(--accentInk);font:700 14px 'Bricolage Grotesque';display:inline-flex;align-items:center" style-active="transform:translateY(3px);box-shadow:inset 0 2px 4px rgba(0,0,0,.25),0 0 0 #8f5c0e;filter:brightness(.94)">Accept</span>
+</summary>
+<p style="margin:0 0 12px;font-size:13px;line-height:1.45;color:var(--muted)">{{ e.desc }}</p>
+</details></sc-for>
+</div>
+</aside>
+</div>
+</sc-if>
+
+<!-- ================= SETTINGS ================= -->
+<sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+<section style="max-width:620px;background:var(--panel);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,225,170,.18),inset 0 -2px 0 rgba(0,0,0,.25),0 8px 0 -3px rgba(0,0,0,.3),0 16px 26px rgba(0,0,0,.3);border-radius:22px;padding:24px 28px;display:flex;flex-direction:column;gap:22px">
+<h2 style="margin:0;font:400 28px 'Young Serif',serif;text-shadow:0 2px 0 rgba(0,0,0,.35)">Settings</h2>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font:700 11px 'Bricolage Grotesque';letter-spacing:.1em;color:var(--muted)">LANGUAGE</span>
+<div style="display:flex;background:var(--panel2);border-radius:12px;padding:4px;gap:2px;align-self:flex-start"><span style="min-height:44px;padding:0 22px;border-radius:9px;background:var(--btn);box-shadow:var(--btnShadow);color:var(--accentInk);font:700 15px 'Bricolage Grotesque';display:inline-flex;align-items:center">English</span><span style="min-height:44px;padding:0 22px;border-radius:9px;color:var(--ink);font:500 15px 'Bricolage Grotesque';display:inline-flex;align-items:center">Français</span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px;padding-top:18px;border-top:1px solid var(--line)"><span style="font:700 11px 'Bricolage Grotesque';letter-spacing:.1em;color:var(--muted)">NEW GAME</span>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><input placeholder="Seed (optional)" style="min-height:48px;box-sizing:border-box;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:500 15px 'JetBrains Mono',monospace;width:220px"><button style="min-height:48px;padding:0 20px;border-radius:12px;border:1px solid var(--warn);background:transparent;color:var(--warn);font:700 15px 'Bricolage Grotesque';cursor:pointer">Start over…</button></div>
+<span style="font-size:13px;color:var(--muted)">You will be asked to confirm. Your current save is replaced.</span></div>
+<div style="display:flex;flex-direction:column;gap:8px;padding-top:18px;border-top:1px solid var(--line)"><span style="font:700 11px 'Bricolage Grotesque';letter-spacing:.1em;color:var(--muted)">SAVE</span>
+<div style="display:flex;gap:10px"><button style="min-height:48px;padding:0 20px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);font:500 15px 'Bricolage Grotesque';cursor:pointer">Export save</button><button style="min-height:48px;padding:0 20px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);font:500 15px 'Bricolage Grotesque';cursor:pointer">Import save</button></div>
+<span style="font-size:13px;color:var(--muted)">The game saves automatically.</span></div>
+<button onClick="{{ goBack }}" style="align-self:flex-start;min-height:48px;padding:0 24px;border:0;border-radius:12px;background:var(--btn);box-shadow:var(--btnShadow);transition:transform .06s,box-shadow .06s;color:var(--accentInk);font:700 16px 'Bricolage Grotesque';cursor:pointer" style-active="transform:translateY(3px);box-shadow:inset 0 2px 4px rgba(0,0,0,.25),0 0 0 #8f5c0e;filter:brightness(.94)">Back to the shop</button>
+</section>
+</sc-if>
+
+<!-- notes -->
+<section style="border-top:1px solid var(--line);padding-top:20px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;font-size:14px;line-height:1.5;color:var(--muted)">
+<div><b style="color:var(--ink)">Approach</b><br>The shack is a place: the HUD holds day, phase, coins and the phase button in one bar. The stage strip is one line of seven day pips; the rival warning is a chip that opens its hint. Errands collapse to a row with Accept; the description opens on tap.</div>
+<div><b style="color:var(--ink)">Built for motion later</b><br>Shelf, cauldron, customer, clerk and upgrade are self-contained blocks with states. Patience is a segmented meter that can become continuous; the cauldron slot sits in a scene panel that can hold steam and stirring.</div>
+<div><b style="color:var(--ink)">Extra art slots wanted</b><br>customer ×4 (96×120), bee, rival hive (240×180), upgrade icons (48×48), Sweet Tooth (320×320), shop background (1200×240). Candy and ingredient slots stay 96×96.</div>
+</section>
+</div></div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Look&quot;},&quot;showWarning&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;State&quot;}}">
+class Component extends DCLogic {
+  state = { screen: 'idle' };
+  go = (s) => () => this.setState({ screen: s });
+  renderVals() {
+    const p = this.props, st = this.state.screen;
+    const dark = (p.theme ?? 'dark') === 'dark';
+    const svg=(seed,freq,rgb,k,off)=>'url("data:image/svg+xml,'+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='420' height='420'><filter id='f' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='"+freq+"' numOctaves='3' seed='"+seed+"' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 "+rgb[0]+" 0 0 0 0 "+rgb[1]+" 0 0 0 0 "+rgb[2]+" "+k+" 0 0 0 "+off+"'/></filter><rect width='100%' height='100%' filter='url(#f)'/></svg>")+'")';
+    const seam=(h,d,l)=>'repeating-linear-gradient(180deg,rgba(0,0,0,0) 0 '+(h-4)+'px,rgba(0,0,0,'+d+') '+(h-4)+'px '+(h-2)+'px,rgba(255,205,140,'+l+') '+(h-2)+'px '+h+'px)';
+    const gDark=svg(4,'0.004 0.16',[.05,.025,0],1.0,-.3), gLite=svg(9,'0.003 0.22',[1,.75,.45],0.35,-.17), knot=svg(2,'0.02 0.09',[.04,.02,0],2.4,-.95);
+    const paperN=svg(6,'0.8',[.45,.3,.1],1.2,-.55);
+    const T = dark
+      ? '--bg:#1b1612;--panel:#2a211a;--panel2:#352a20;--wood:'+seam(170,.45,.07)+','+gDark+','+gLite+','+knot+',linear-gradient(180deg,#4a3422,#3b2a1b);--ink:#fbf0dc;--muted:#d1bfa4;--accent:#f5b83d;--accentInk:#2a1704;--btn:linear-gradient(180deg,#ffd878,#eba526);--btnShadow:inset 0 1px 0 rgba(255,255,255,.55),0 3px 0 #8f5c0e,0 7px 10px rgba(0,0,0,.35);--btn2:linear-gradient(180deg,#46331f,#33261a);--btn2Border:#150e08;--btn2Shadow:inset 0 1px 0 rgba(255,225,170,.2),0 2px 0 rgba(0,0,0,.5);--line:#5a4635;--ok:#a6d98f;--warn:#ff9c85;--shelf:#3b2d21;--shelfEdge:#241a12;--scene:#241c15;--paper:'+paperN+',linear-gradient(180deg,#f3e5c0,#e5d1a2);--paperInk:#2e2010;--slotInk:#f1e4cc;--slotC:#4f7a60;--kit:#f5a85a;--shop:#78cfc1;--tem:#cdb0f4;'
+      : '--bg:#f3e8d0;--panel:#fffaf0;--panel2:#f3e6c9;--wood:'+seam(170,.2,.25)+','+gDark+','+gLite+',linear-gradient(180deg,#f0d8a8,#e4c68e);--ink:#2b1c0e;--muted:#5f4a30;--accent:#c97b0c;--accentInk:#2a1704;--btn:linear-gradient(180deg,#ffd878,#eba526);--btnShadow:inset 0 1px 0 rgba(255,255,255,.6),0 3px 0 #8f5c0e,0 7px 10px rgba(80,40,0,.3);--btn2:linear-gradient(180deg,#ead5a3,#d9bd85);--btn2Border:#8d6837;--btn2Shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 0 rgba(120,80,30,.45);--line:#d2bd92;--ok:#3f7a2c;--warn:#b4412c;--shelf:#e6d2a8;--shelfEdge:#cdb383;--scene:#efe0bd;--paper:'+paperN+',linear-gradient(180deg,#fff5d6,#f4e3b4);--paperInk:#2b1f12;--slotInk:#3d2f1e;--slotC:#b9d4bf;--kit:#a8550a;--shop:#12695e;--tem:#62399e;';
+    const stripes = dark
+      ? 'background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 8px,rgba(255,255,255,0) 8px 16px);background-color:#4a3c30;'
+      : 'background-image:repeating-linear-gradient(135deg,rgba(0,0,0,.07) 0 8px,rgba(0,0,0,0) 8px 16px);background-color:#e2cfa4;';
+    const slotCol = { honey:'#f2b632', seed:'#6b5a4a', drop:'#e88a2b', brit:'#b9a237', toff:'#a8683a', tonic:'#8a6bb5' };
+    const slot = (c) => `background-color:${c};background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.14) 0 8px,rgba(255,255,255,0) 8px 16px);color:#2a1a05;`;
+    const isCraft = st === 'idle' || st === 'bench';
+    const phaseIdx = isCraft ? 0 : st === 'serve' ? 1 : 2;
+    const tabs = [['idle','Morning · craft'],['bench','Morning · bench'],['serve','Afternoon · serve'],['evening','Evening'],['settings','Settings']].map(([k,l]) => ({
+      label: l, go: this.go(k),
+      style: `min-height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--line);cursor:pointer;font:500 12px 'JetBrains Mono',monospace;background:${st===k?'var(--accent)':'transparent'};color:${st===k?'var(--accentInk)':'var(--ink)'}`
+    }));
+    const phases = ['Morning','Afternoon','Evening'].map((l,i) => ({ label: l,
+      style: `padding:9px 13px;border-radius:999px;font:700 14px 'Bricolage Grotesque';background:${i===phaseIdx?'var(--btn)':'transparent'};box-shadow:${i===phaseIdx?'var(--btnShadow)':'none'};color:${i===phaseIdx?'var(--accentInk)':'var(--muted)'}` }));
+    const days = [0,1,2,3,4,5,6].map(i => ({ style: `flex:1;height:10px;border-radius:5px;background:${i===0?'var(--accent)':'var(--line)'};${i===2?'outline:2px solid var(--warn);outline-offset:1px;':''}` }));
+    const pips = (n, tot, on, off, h = 8) => Array.from({length: tot}, (_, i) => ({ style: `flex:1;height:${h}px;border-radius:${h/2}px;background:${i < n ? on : off};min-width:8px` }));
+    const dot = (n, tot, on, off) => Array.from({length: tot}, (_, i) => ({ style: `width:10px;height:10px;border-radius:50%;background:${i < n ? on : off}` }));
+    const bench = st === 'bench';
+    const shelf = [
+      { name:'Honey', left:3, tot:4, c:slotCol.honey, id:'ingredient-honey', held:bench },
+      { name:'Dark sunflower seed', left:2, tot:2, c:slotCol.seed, id:'ingredient-dark-seed', held:false, off:bench }
+    ].map(g => ({ name:g.name, left:g.left, disabled:!!g.off, slotLabel:g.id+' 96×96', slot:slot(g.c),
+      pips: dot(g.left, g.tot, 'var(--accent)', 'var(--line)'),
+      style:`display:flex;gap:14px;align-items:center;padding:10px;border-radius:12px;font-family:inherit;color:var(--ink);cursor:${g.off?'default':'pointer'};background:${g.held?'var(--panel)':'transparent'};border:2px ${g.held?'solid var(--accent)':'solid transparent'};opacity:${g.off?.45:1};box-shadow:${g.held?'0 0 0 4px rgba(240,179,58,.25)':'none'}` }));
+    const recSel = 0;
+    const recipes = [
+      ['Honey drop','2 Honey',5,slotCol.drop,'candy-honey-drop'],
+      ['Sunflower brittle','3 Honey',8,slotCol.brit,'candy-sunflower-brittle'],
+      ['Honey toffee','4 Honey',12,slotCol.toff,'candy-honey-toffee']
+    ].map(([n,c,pr,col,id],i) => ({ name:n, cost:c, price:pr, slotLabel:id, slot:slot(col),
+      style:`display:flex;gap:12px;align-items:center;padding:10px;border-radius:14px;cursor:pointer;font-family:inherit;color:var(--ink);background:${i===recSel?'var(--panel)':'var(--panel2)'};border:2px solid ${i===recSel?'var(--accent)':'transparent'}` }));
+    const qualities = [['Plain','×1',false,true],['Fine','×1.6 · oven',false,false],['Perfect','×3 · dark seed',true,false]].map(([l,n,dis,sel]) => ({ label:l, note:n, disabled:dis,
+      style:`min-height:44px;padding:0 16px;border:0;border-radius:9px;font:${sel?700:500} 15px 'Bricolage Grotesque';cursor:${dis?'default':'pointer'};background:${sel?'var(--accent)':'transparent'};color:${sel?'var(--accentInk)':'var(--ink)'};opacity:${dis?.4:1}` }));
+    const batches = [1,1,0].map(on => ({ style:`width:28px;height:28px;border-radius:50%;background:${on?'var(--accent)':'transparent'};border:2px solid ${on?'var(--accent)':'var(--line)'}` }));
+    const stepDefs = [['Fill','1 / 2 Honey'],['Stir','tap or circle'],['Bake','Fine only'],['Shape','4 candies']];
+    const steps = stepDefs.map(([l,n],i) => { const cur = i===0, skip = i===2;
+      return { label:l, note:n, n:i+1,
+        style:`flex:1;display:flex;gap:10px;align-items:center;padding:10px 14px;border-radius:${i===0?'12px 0 0 12px':i===3?'0 12px 12px 0':'0'};background:${cur?'var(--panel)':'var(--panel2)'};border:2px solid ${cur?'var(--accent)':'transparent'};opacity:${skip?.5:1}`,
+        dot:`width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:700 14px 'Bricolage Grotesque';background:${cur?'var(--accent)':'var(--line)'};color:${cur?'var(--accentInk)':'var(--ink)'}` }; });
+    const tag = (a) => a ? `font:700 11px 'Bricolage Grotesque';padding:4px 8px;border-radius:999px;border:1px solid var(--warn);color:var(--warn);white-space:nowrap;align-self:flex-start;margin-top:6px` : 'display:none';
+    const errands = [
+      { name:'The queen is sick', needs:'4 × Royal tonic (Plain)', desc:'The hive queen has a fever. Brew a royal tonic by hand and bring four. The hive will repay you with more honey, for good, and once she is well the bees will come to your shop asking for the tonic too.' },
+      { name:"The pilgrims' feast", needs:'8 × Honey drop (Fine)', desc:'The faithful plan a feast. Bring eight Fine honey drops and the counter will be widened for good.' },
+      { name:'A splinter hive', needs:'Send the clerk away 2 days', rival:true, desc:'Send the clerk to parley with the rival hive for two days. If it works, the honey they steal comes back for good.' }
+    ].map(e => ({ ...e, tag: tag(e.rival), tagLabel:'Against the rival hive' }));
+    // serve
+    const mk = (id,type,budget,wantId,wantCol,wants,min,pat,max,canServe,reason,pay) => {
+      const urgent = pat <= 1, low = pat/max <= .5;
+      const col = urgent ? 'var(--warn)' : low ? 'var(--accent)' : 'var(--ok)';
+      return { id, type, budget, wantId, wantSlot:slot(wantCol), wants, min, canServe, cannot:!canServe, reason, pay,
+        pText: urgent ? 'Leaving!' : 'Patience '+pat, pLabel:`font:700 12px 'Bricolage Grotesque';min-width:70px;color:${col}`,
+        pips: pips(pat, max, col, 'var(--line)', 10),
+        card:`background:var(--panel);border:1px solid ${urgent?'var(--warn)':'var(--line)'};border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:12px;box-shadow:${urgent?'0 0 0 3px rgba(240,138,116,.2)':'none'}` };
+    };
+    const customers = [
+      mk('faithful','Faithful',6,'candy-honey-drop',slotCol.drop,'Honey drop','Plain',6,6,true,'',5),
+      mk('traveler','Traveler',12,'candy-sunflower-brittle',slotCol.brit,'Sunflower brittle','Plain',3,4,false,'Nothing in stock fits this customer.',0),
+      mk('merchant','Merchant',30,'candy-honey-drop',slotCol.drop,'Honey drop','Fine',1,2,false,'Nothing in stock fits this customer.',0),
+      mk('traveler','Traveler',12,'candy-honey-drop',slotCol.drop,'Honey drop','Plain',4,4,true,'',5)
+    ];
+    // evening
+    const B = [
+      { name:'Kitchen', glyph:'♨', c:'var(--kit)', items:[
+        ['Honey yield','More honey delivered each morning.',2,4,'150'],
+        ['Bigger cauldrons','Each batch makes more candies.',0,3,'40'],
+        ['Second cauldron','A cauldron that makes Plain honey drops by itself every morning, using the day\'s honey.',0,1,'250'],
+        ['Oven','Unlocks Fine quality.',0,1,'60'],
+        ['Dark seed garden','Unlocks Perfect quality.',0,1,'400','Requires oven first.'] ] },
+      { name:'Shop', glyph:'⌂', c:'var(--shop)', items:[
+        ['Counter space','The shop can welcome more customers each day.',1,3,'120'],
+        ['Patience','Customers wait longer.',1,3,'120'],
+        ['Sunflower brittle','A new recipe. Make it by hand twice before the clerk can sell it.',0,1,'80'],
+        ['Honey toffee','Another new recipe. Make it by hand twice before the clerk can sell it.',0,1,'350','Requires sunflower brittle first.'],
+        ['Hire a clerk','Serves Faithful customers for you.',0,1,'100'],
+        ['Contract board','Merchants post orders with a quantity and a deadline.',0,1,'120'] ] },
+      { name:'Temple / Hive', glyph:'☾', c:'var(--tem)', items:[
+        ['The Faithful','More regular customers come.',0,3,'40'],
+        ['Hive bond','The hive sends a little more honey, and its visitors fill the shop.',0,3,'200','Requires the faithful first.'],
+        ['Errands board','The hive and the temple post errands with lasting rewards.',0,1,'90','Requires the faithful first.'],
+        ['Map strip','Reveals places around the shop as the weeks go by.',0,1,'60','Requires the faithful first.'] ] }
+    ];
+    const coinsEve = 290;
+    const branches = B.map(b => ({ name:b.name, glyph:b.glyph,
+      head:`display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:var(--panel2);color:${b.c};border-bottom:3px solid ${b.c}`,
+      items: b.items.map(([n,d,lv,mx,cost,lock]) => {
+        const c = +cost, locked = !!lock, afford = !locked && c <= coinsEve, short = !locked && !afford;
+        const owned = lv > 0 && mx === 1, hasLevel = mx > 1 || owned;
+        return { name:n, desc:d, hasLevel:mx>1, level:`${lv} / ${mx}`, pips: Array.from({length:mx},(_,i)=>({style:`flex:1;height:8px;border-radius:4px;background:${i<lv?b.c:'var(--line)'}`})),
+          buy:!locked, btnLabel:`Buy · ${cost}`, note:locked, noteText:lock||'',
+          stateLabel: locked?'Locked': afford?'Can afford':'', state:`font:700 11px 'Bricolage Grotesque';color:${locked?'var(--muted)':'var(--accent)'}`,
+          btn:`min-height:44px;border-radius:10px;border:${afford?'0':'1px dashed var(--line)'};background:${afford?'var(--accent)':'transparent'};color:${afford?'var(--accentInk)':'var(--muted)'};font:700 15px 'Bricolage Grotesque';cursor:${afford?'pointer':'default'}`,
+          card:`background:var(--panel);border:1px solid ${afford?b.c:'var(--line)'};border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;opacity:${locked?.6:1};box-shadow:${afford?'inset 3px 0 0 '+b.c:'none'}` };
+      }) }));
+    const report = [['10','Earned',1],['2','Served (clerk: 1)',0],['14','Left without buying',0],['0','Refused',0],['0','Contracts delivered',0],['0','Contracts expired',0]].map(([v,k,h]) => ({ v,k,hl: h?'color:var(--accent)':'' }));
+    const endLabel = isCraft ? 'Open the shop' : st==='serve' ? 'Close the shop' : 'Go to sleep';
+    return {
+      themeVars:T, themeName: dark?'dark':'light', stripes,
+      tabs, phases, days, coins: st==='serve'?430:st==='evening'?290:420, earned: st==='idle'||st==='bench'?0:10,
+      showWarning: p.showWarning ?? true, endLabel,
+      endPhase: () => this.setState({ screen: isCraft ? 'serve' : st==='serve' ? 'evening' : 'idle' }),
+      goSettings: this.go('settings'), goBack: this.go('idle'),
+      isCraft, isIdle: st==='idle', isBench: bench, isServe: st==='serve', isEvening: st==='evening', isSettings: st==='settings',
+      shelf, recipes, qualities, batches, steps, errands, customers, branches, report,
+      cauldronStyle:`border-radius:14px;padding:6px;${bench?'border:3px dashed var(--accent);box-shadow:0 0 0 5px rgba(240,179,58,.2)':'border:3px solid transparent'}`,
+      stockText: 'Nothing in stock.',
+      training:[1,2,3], startBatch: this.go('bench'), cancelBatch: this.go('idle')
+    };
+  }
+}
+</script>
+</body>
+</html>

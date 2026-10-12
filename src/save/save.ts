@@ -5,7 +5,7 @@ import type { State } from '../engine/types.ts';
 
 // Saves are a versioned envelope around the plain engine State. Bump SAVE_VERSION whenever the
 // State shape changes and add a step to `migrate`, so old saves keep loading.
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 const EXPORT_PREFIX = 'CST1:';
 
 const num = z.number();
@@ -31,6 +31,7 @@ const StateSchema = z.object({
   unlocks: z.array(z.string()),
   stations: z.array(z.object({ type: z.string(), batchesLeft: num })),
   supply: rec(num),
+  supplyToday: rec(num),
   stock: rec(num),
   forecast: z.string(),
   contracts: z.array(
@@ -67,6 +68,12 @@ const MIGRATIONS: Record<number, (state: unknown) => unknown> = {
   1: (state) => {
     if (typeof state !== 'object' || state === null) return state;
     return { ...state, stage: { index: 0, day: 0, revenue: 0 }, lastWeek: null, completed: false, errands: {} };
+  },
+  // v2 -> v3: the shelf remembers what was delivered this morning. Old games take today's remaining stock.
+  2: (state) => {
+    if (typeof state !== 'object' || state === null) return state;
+    const supply = (state as { supply?: Record<string, number> }).supply ?? {};
+    return { ...state, supplyToday: { ...supply } };
   },
 };
 

@@ -47,6 +47,7 @@ export function newGame(c: Content, opts: NewGameOptions): State {
     unlocks: [...(opts.unlocks ?? [])],
     stations: c.settings.startStations.map((type) => ({ type, batchesLeft: 0 })),
     supply: {},
+    supplyToday: {},
     stock: {},
     forecast: '',
     contracts: [],
@@ -108,7 +109,8 @@ function craft(c: Content, s: State, a: Extract<Action, { type: 'craft' }>, ev: 
   if (station.batchesLeft <= 0) return fail('no-batches', {}, 'station has no batches left today');
   const cost = batchCost(c, a.candy, a.quality);
   for (const [ing, qty] of Object.entries(cost))
-    if ((s.supply[ing] ?? 0) < qty) return fail('not-enough-ingredient', { ingredient: ing }, `not enough ${ing}`);
+    if ((s.supply[ing] ?? 0) < qty)
+      return fail('not-enough-ingredient', { ingredient: ing, need: String(qty), have: String(s.supply[ing] ?? 0) }, `not enough ${ing}`);
 
   for (const [ing, qty] of Object.entries(cost)) s.supply[ing] = (s.supply[ing] ?? 0) - qty;
   station.batchesLeft -= 1;
@@ -434,6 +436,7 @@ function startDay(c: Content, s: State, ev: GameEvent[]) {
   s.report = emptyReport(s.day, s.stage.index, s.forecast);
   progressMissions(c, s, ev);
   s.supply = Object.fromEntries(c.ingredients.map((i) => [i.id, morningSupply(c, s, i.id, i.dailySupply)]));
+  s.supplyToday = { ...s.supply };
   for (const st of s.stations) st.batchesLeft = c.stations.find((x) => x.id === st.type)!.batchesPerDay;
   runAutoStations(c, s, ev);
 

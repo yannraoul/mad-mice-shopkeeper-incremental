@@ -1,51 +1,147 @@
-:root {
-  --bg: #fbf6ea;
-  --panel: #fffdf7;
-  --ink: #3a2f22;
-  --muted: #7a6b57;
-  --accent: #c9801f;
-  --accent-ink: #fff;
-  --line: #e2d6bc;
-  --ok: #3f7d3a;
-  --warn: #a8322a;
-  --gap: 0.75rem;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1e1a14;
-    --panel: #2a241b;
-    --ink: #f1e8d4;
-    --muted: #b3a58c;
-    --accent: #e0a043;
-    --accent-ink: #1e1a14;
-    --line: #473d2d;
-    --ok: #7fc279;
-    --warn: #e5857d;
-  }
-}
+@import './tokens.css';
+
+/* Shared look of the v2 restyle. Two surface levels: wood frames (level 1) around flat panels
+   (level 2); parchment notes are the exception. Components add their own layout in scoped styles
+   and take every colour from tokens.css. */
+
 * { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: system-ui, sans-serif;
+  font-family: var(--body);
+  font-size: 15px;
   line-height: 1.4;
 }
-button, select {
-  font: inherit;
-  color: inherit;
-  min-height: 44px; /* touch target */
-  padding: 0.4rem 0.9rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
-  cursor: pointer;
-}
-button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
-button:disabled { opacity: 0.45; cursor: default; }
-button.selected { outline: 3px solid var(--accent); }
-h1, h2, h3 { margin: 0 0 0.5rem; }
-h2 { font-size: 1.15rem; }
-.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: var(--gap); }
+h1, h2, h3, p { margin: 0; }
+h2 { font: 400 28px/1.15 var(--display); text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35); }
+h3 { font: 400 18px/1.2 var(--display); }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; }
 .muted { color: var(--muted); }
-.row { display: flex; flex-wrap: wrap; gap: var(--gap); align-items: center; }
+.mono { font-family: var(--mono); font-weight: 500; }
+
+/* Keyboard focus: a dark gap then a light-honey ring, visible on wood, honey and flat panels. */
+:focus-visible { outline: none; box-shadow: var(--focusRing); }
+.btn:focus-visible, .btn2:focus-visible { box-shadow: var(--focusRing), var(--ringKeep, 0 0 0 transparent); }
+.btn:focus-visible { --ringKeep: 0 3px 0 #8f5c0e; }
+
+/* ---- surfaces ---- */
+.frame {
+  background: linear-gradient(var(--panel), var(--panel)) padding-box, var(--wood);
+  border: var(--frame) solid transparent;
+  border-radius: 22px;
+  box-shadow: var(--frameShadow);
+  padding: 22px 24px;
+  min-width: 0;
+}
+.frame.small { border-radius: 18px; padding: 16px; }
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--frameShadow);
+  padding: 16px;
+  min-width: 0;
+}
+/* Parchment note, slightly rotated. */
+.note {
+  background: var(--paper);
+  color: var(--paperInk);
+  border-radius: 6px 6px 18px 18px;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.18);
+  min-width: 0;
+}
+.note .overline { opacity: 0.7; color: inherit; }
+.overline { font: 700 11px/1.2 var(--body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+/* ---- buttons ---- */
+/* Primary: raised honey, sinks 3px when pressed. */
+.btn {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--btn);
+  box-shadow: var(--btnShadow);
+  color: var(--accentInk);
+  font: 700 15px/1.2 var(--body);
+  transition: transform 0.06s, box-shadow 0.06s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+.btn:hover:not(:disabled) { filter: brightness(1.08); }
+.btn:active:not(:disabled) { transform: translateY(3px); box-shadow: var(--pressedShadow); filter: brightness(0.94); }
+.btn.big { min-height: 48px; padding: 0 24px; font-size: 16px; }
+.btn.pill { border-radius: 999px; }
+.btn.sm { min-height: 36px; padding: 0 14px; border-radius: 10px; font-size: 14px; }
+.btn:disabled { background: transparent; box-shadow: none; border: 1px dashed var(--line); color: var(--muted); }
+/* Secondary on wood: a dark wooden plate, sinks 2px. */
+.btn2 {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--btn2Border);
+  border-radius: 12px;
+  background: var(--btn2);
+  box-shadow: var(--btn2Shadow);
+  color: var(--ink);
+  font: 500 14px/1.2 var(--body);
+  transition: transform 0.06s, box-shadow 0.06s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn2:active:not(:disabled) { transform: translateY(2px); box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.3); }
+/* Secondary on flat panels: outline only. */
+.btn3 {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font: 500 15px/1.2 var(--body);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn3:hover:not(:disabled) { border-color: var(--ink); }
+.btn3:disabled { color: var(--muted); opacity: 0.55; }
+.btn3.warn { border-color: var(--warn); color: var(--warn); font-weight: 700; }
+
+/* ---- small parts ---- */
+.chip {
+  font: 700 11px/1.2 var(--body);
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.chip.warn { color: var(--warn); }
+.chip.accent { color: var(--accent); }
+.chip.ok { color: var(--ok); }
+.slot {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 12px;
+  max-width: 100%;
+}
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn, .btn2 { transition: none; }
+}
+@media (max-width: 640px) {
+  :root { --frame: 8px; --gap: 12px; }
+  .frame { padding: 14px; border-radius: 22px; }
+  .frame.small { border-radius: 14px; padding: 14px; }
+  h2 { font-size: 24px; }
+}

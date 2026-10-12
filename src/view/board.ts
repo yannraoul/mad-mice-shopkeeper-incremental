@@ -12,6 +12,10 @@ export interface BoardView {
   stockTitle: string;
   stockEmpty: string;
   stock: { key: string; count: number; candy: string; quality: string; text: string }[];
+  stockLabel: string;
+  /** One chip per candy in stock; `rings` is the quality rank (0 Plain, 1 Fine, 2 Perfect). */
+  stockChips: { key: string; art: string; count: number; rings: number; text: string }[];
+  ringLegend: string;
   errands: ErrandsView | null;
 }
 
@@ -45,6 +49,21 @@ export function buildBoardView(c: Content, s: State, t: Translate): BoardView {
         const qualityName = t(`quality.${quality}`);
         return { key, count, candy: candyName, quality: qualityName, text: `${count} × ${candyName} (${qualityName})` };
       }),
+    stockLabel: t('board.stockLabel'),
+    stockChips: Object.entries(s.stock)
+      .filter(([, n]) => n > 0)
+      .map(([key, count]) => {
+        const [candy, quality] = key.split(':') as [string, string];
+        const rank = c.qualities.find((q) => q.id === quality)?.rank ?? 0;
+        return {
+          key,
+          art: `candy-${candy}`,
+          count,
+          rings: rank,
+          text: `${count} × ${t(`candy.${candy}`)} (${t(`quality.${quality}`)})`,
+        };
+      }),
+    ringLegend: t('board.ringLegend'),
     errands: buildErrandsView(c, s, t),
   };
 }

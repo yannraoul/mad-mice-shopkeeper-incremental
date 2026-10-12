@@ -79,6 +79,8 @@ export interface State {
   stations: StationInstance[];
   /** Ingredient stock for today; reset every morning. */
   supply: Record<string, number>;
+  /** What was delivered this morning (before any use); only for display, so the shelf pips do not move when a bonus is bought mid-day. */
+  supplyToday: Record<string, number>;
   /** Candy stock keyed `candy:quality`; carries over between days. */
   stock: Record<string, number>;
   forecast: string;

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;700&family=Young+Serif&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"><style>body{margin:0}a{color:#f5b83d}a:hover{color:#ffd878}</style></helmet>
+<div style="background:#1b1612;color:#fbf0dc;font-family:'Bricolage Grotesque',system-ui,sans-serif;min-height:100vh;padding:40px 32px 64px">
+<div style="max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:36px">
+<div style="display:flex;align-items:center;gap:28px;flex-wrap:wrap">
+<img src="logo/app-icon.svg" alt="" width="160" height="160" style="display:block;border-radius:36px;box-shadow:0 8px 0 rgba(0,0,0,.35)">
+<div><h1 style="margin:0;font:400 40px/1.1 'Young Serif',serif">Cult of Sweet Tooth</h1><p style="margin:8px 0 0;color:#d1bfa4;font-size:16px">Honey pot mark. Amber body, darker rim, one drip, a honeycomb seal on the front: three cells at 72 px and above, one cell below that.</p></div>
+</div>
+
+<section style="display:flex;flex-direction:column;gap:14px"><h2 style="margin:0;font:400 22px 'Young Serif',serif">Mark on different grounds</h2>
+<div style="display:flex;gap:16px;flex-wrap:wrap">
+<div style="width:180px;height:180px;border-radius:16px;background:#1b1612;border:1px solid #5a4635;display:grid;place-items:center"><img src="logo/logo-mark.svg" alt="" width="128" height="128"></div>
+<div style="width:180px;height:180px;border-radius:16px;background:#f3e8d0;display:grid;place-items:center"><img src="logo/logo-mark.svg" alt="" width="128" height="128"></div>
+<div style="width:180px;height:180px;border-radius:16px;background:#f3e8d0;display:grid;place-items:center"><img src="logo/logo-mono.svg" alt="" width="128" height="128"></div>
+<div style="width:180px;height:180px;border-radius:16px;background:#f3e8d0;display:grid;place-items:center"><img src="logo/logo-mark-small.svg" alt="" width="128" height="128"></div>
+<div style="width:180px;height:180px;border-radius:16px;background:#4a3422;display:grid;place-items:center"><img src="logo/logo-mono-light.svg" alt="" width="128" height="128"></div>
+</div></section>
+
+<section style="display:flex;flex-direction:column;gap:14px"><h2 style="margin:0;font:400 22px 'Young Serif',serif">Sizes in use</h2>
+<div style="display:flex;gap:28px;align-items:flex-end;flex-wrap:wrap">
+<sc-for list="{{ sizes }}" as="s" hint-placeholder-count="8"><div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start"><img src="{{ s.src }}" alt="" width="{{ s.px }}" height="{{ s.px }}" style="display:block"><span style="font:500 12px 'JetBrains Mono',monospace;color:#d1bfa4">{{ s.label }}</span></div></sc-for>
+</div></section>
+
+<section style="display:flex;flex-direction:column;gap:14px"><h2 style="margin:0;font:400 22px 'Young Serif',serif">Files</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;font-size:14px;line-height:1.5">
+<sc-for list="{{ files }}" as="f" hint-placeholder-count="6"><div style="background:#2a211a;border:1px solid #5a4635;border-radius:12px;padding:12px 14px"><b>{{ f.name }}</b><br><span style="color:#d1bfa4">{{ f.use }}</span></div></sc-for>
+</div></section>
+</div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const sizes = [['favicon-16',16,'16 · browser tab'],['favicon-32',32,'32 · tab (retina)'],['favicon-48',48,'48 · .ico / Windows'],['app-icon-60',60,'60 · iOS notification'],['app-icon-96',96,'96 · file details / Android'],['app-icon-180',180,'180 · iOS home screen'],['app-icon-192',192,'192 · Android / PWA']];
+    return {
+      sizes: sizes.map(([n,px,label]) => ({ src:'logo/png/'+n+'.png', px, label })),
+      files: [
+        ['logo/favicon.ico','16, 32 and 48 px, simplified mark: one hexagon, no highlight.'],
+        ['logo/favicon.svg','Vector favicon for modern browsers.'],
+        ['logo/app-icon.svg','Rounded-square app icon, three-cell honeycomb. Source of the PNGs from 72 px up.'],['logo/app-icon-small.svg','Same icon with a single hexagon. Used under 72 px (57, 60) and in the app header.'],
+        ['logo/maskable-icon.svg','Full-bleed, mark inside the 80% safe zone, for Android adaptive icons.'],
+        ['logo/logo-mark.svg','Transparent background, mark only. Use in the header and in print.'],
+        ['logo/logo-mono*.svg','Single colour: black, white, and a one-hexagon small version for stamps and engraving.'],['logo/logo-mark-small.svg','Transparent mark with one hexagon, for small placements.'],
+        ['logo/png/ (23 files)','favicon 16 to 64, app-icon 57 to 1024 (iOS, Android, desktop, Windows tiles), maskable 192 and 512, mark 256 and 512.'],
+        ['logo/site.webmanifest','PWA manifest listing the 192 and 512 icons, plain and maskable.']
+      ].map(([name,use]) => ({ name, use }))
+    };
+  }
+}
+</script>
+</body>
+</html>

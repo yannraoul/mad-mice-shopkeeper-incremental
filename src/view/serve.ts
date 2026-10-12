@@ -1,6 +1,6 @@
 import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
-import { canAfford, qualityRank, salePrice, stockKey } from '../engine/economy.ts';
+import { canAfford, modifier, qualityRank, salePrice, stockKey } from '../engine/economy.ts';
 import type { Action, GameEvent, State } from '../engine/types.ts';
 
 export interface ServeOption {
@@ -17,6 +17,17 @@ export interface CustomerCard {
   name: string;
   /** Art slot id of the candy they want. */
   art: string;
+  /** Art slot id of the customer's own portrait. */
+  portrait: string;
+  /** Short labels for the "Wants" row: "Wants" / "Honey drop" / "At least" / "Plain". */
+  wantsLabel: string;
+  candyName: string;
+  atLeastLabel: string;
+  qualityName: string;
+  /** "6 coins max" */
+  budgetText: string;
+  /** Patience as a segmented meter: `left` of `max` segments, `tier` picks the colour. */
+  patienceMeter: { left: number; max: number; tier: 'ok' | 'low' | 'urgent'; label: string };
   wants: string;
   minQuality: string;
   budget: number;
@@ -34,9 +45,9 @@ export interface ClerkPanel {
   name: string;
   art: string;
   /** One switch per customer type this worker can take over. */
-  toggles: { customerType: string; label: string; on: boolean; setOn: Action; setOff: Action }[];
+  toggles: { customerType: string; label: string; shortLabel: string; on: boolean; setOn: Action; setOff: Action }[];
   /** Per recipe: has the worker been taught it yet (by hand-crafting it)? */
-  training: { candy: string; text: string; trained: boolean }[];
+  training: { candy: string; name: string; text: string; trained: boolean; made: number; need: number; byHand: string }[];
 }
 
 export interface ServeView {
@@ -70,6 +81,23 @@ export function feedLine(t: Translate, e: GameEvent): string {
   }
 }
 
+/** The most patience a customer of this type can have today (their type's base plus upgrades). */
+export function maxPatience(c: Content, s: State, type: string): number {
+  return (c.customerTypes.find((x) => x.id === type)?.patience ?? 0) + modifier(c, s, 'patience');
+}
+
+/** One segment per unit of patience; at most half left is "low", one left is "urgent". */
+function patienceMeter(c: Content, s: State, t: Translate, cu: { type: string; patience: number }) {
+  const max = Math.max(cu.patience, maxPatience(c, s, cu.type));
+  const tier = cu.patience <= 1 ? 'urgent' : cu.patience / max <= 0.5 ? 'low' : 'ok';
+  return {
+    left: cu.patience,
+    max,
+    tier,
+    label: tier === 'urgent' ? t('serve.leaving') : t('serve.patienceN', { n: cu.patience }),
+  } as const;
+}
+
 export function buildServeView(c: Content, s: State, t: Translate, feed: GameEvent[] = []): ServeView {
   const need = c.settings.delegateAfterBatches;
   const customers = s.queue.map((cu): CustomerCard => {
@@ -93,6 +121,13 @@ export function buildServeView(c: Content, s: State, t: Translate, feed: GameEve
       type: cu.type,
       name: t(`customer.${cu.type}`),
       art: `candy-${cu.wants}`,
+      portrait: `customer-${cu.type}`,
+      wantsLabel: t('serve.wantsLabel'),
+      candyName: t(`candy.${cu.wants}`),
+      atLeastLabel: t('serve.atLeast'),
+      qualityName: t(`quality.${cu.minQuality}`),
+      budgetText: t('serve.budgetMax', { n: cu.budget }),
+      patienceMeter: patienceMeter(c, s, t, cu),
       wants: t('serve.wants', { candy: t(`candy.${cu.wants}`) }),
       minQuality: t('serve.minQuality', { quality: t(`quality.${cu.minQuality}`) }),
       budget: cu.budget,
@@ -117,6 +152,7 @@ export function buildServeView(c: Content, s: State, t: Translate, feed: GameEve
       toggles: w.serves.map((type) => ({
         customerType: type,
         label: t('clerk.handles', { type: t(`customer.${type}`) }),
+        shortLabel: t('clerk.handlesShort', { type: t(`customer.${type}`) }),
         on: s.delegated.includes(type),
         setOn: { type: 'delegate', customerType: type, on: true },
         setOff: { type: 'delegate', customerType: type, on: false },
@@ -125,6 +161,10 @@ export function buildServeView(c: Content, s: State, t: Translate, feed: GameEve
         const made = s.batchesMade[cd.id] ?? 0;
         return {
           candy: cd.id,
+          name: t(cd.nameKey),
+          made: Math.min(made, need),
+          need,
+          byHand: t('clerk.byHand', { n: Math.min(made, need), need }),
           trained: made >= need,
           text:
             made >= need

@@ -29,6 +29,14 @@ describe('save', () => {
     expect(text.startsWith('CST1:')).toBe(true);
     expect(importString(c, `  ${text}\n`)).toEqual({ ok: true, state: s });
   });
+  it('upgrades a v2 save: the morning delivery is taken from the remaining stock', () => {
+    const s = played();
+    const old = JSON.parse(serialize(s));
+    old.v = 2;
+    delete old.state.supplyToday;
+    const r = deserialize(c, JSON.stringify(old));
+    expect(r).toEqual({ ok: true, state: { ...s, supplyToday: s.supply } });
+  });
   it('rejects garbage, wrong shapes, future versions and unknown content ids', () => {
     expect(deserialize(c, 'nope').ok).toBe(false);
     expect(deserialize(c, '{"v":1,"state":{}}').ok).toBe(false);

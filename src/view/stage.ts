@@ -14,6 +14,13 @@ export interface StageView {
   target: number;
   /** 0..100, for a progress bar. */
   pct: number;
+  /** "day 3 / 7" and "120 / 240 coins earned", split so a UI can lay them out. */
+  dayText: string;
+  earnedText: string;
+  /** One pip per day of the week; `rival` marks the day the rival hive starts stealing. */
+  pips: { state: 'done' | 'current' | 'todo'; rival: boolean }[];
+  /** Short form of the rival warning for a compact chip; the full text is `warning` + `hints`. */
+  chip: { label: string; hintLabel: string } | null;
   /** The rival hive: stealing now, about to start, or coming next week (null when no threat). */
   warning: string | null;
   /** How the player can stop the threat: one line per relieving errand. */
@@ -69,6 +76,17 @@ export function buildStageView(c: Content, s: State, t: Translate): StageView {
       }
   }
 
+  const chip = !warning
+    ? null
+    : {
+        label:
+          stolen > 0 ? t('stage.chip.active')
+          : startingSoon ? t('stage.chip.soon', { day: startingSoon.startsOnDay })
+          : t('stage.chip.nextWeek'),
+        hintLabel: t('stage.hint'),
+      };
+  const rivalDay = startingSoon?.startsOnDay ?? (stolen > 0 ? rival?.startsOnDay : undefined);
+  const shownDay = Math.min(today, stage.days);
   const week = s.stage.day === 0 ? s.lastWeek : null;
   const ending = c.strings[t.locale]['ending.text'];
   return {
@@ -84,6 +102,13 @@ export function buildStageView(c: Content, s: State, t: Translate): StageView {
     days: stage.days,
     earned,
     target: stage.target,
+    dayText: t('stage.dayOf', { week: s.stage.index + 1, day: shownDay, days: stage.days }),
+    earnedText: t('stage.earned', { n: earned, target: stage.target }),
+    pips: Array.from({ length: stage.days }, (_, i) => ({
+      state: i + 1 < shownDay ? 'done' : i + 1 === shownDay ? 'current' : 'todo',
+      rival: rivalDay === i + 1,
+    })),
+    chip,
     pct: Math.min(100, Math.round((earned / stage.target) * 100)),
     warning,
     hints,

@@ -15,6 +15,9 @@ export interface MenuView {
     seedLabel: string;
     seedHint: string;
     button: string;
+    /** "Start over…" and the line under it (asks to confirm, replaces the save). */
+    startOver: string;
+    note: string;
     /** Ask this before throwing the current game away. */
     confirm: string;
   };
@@ -43,6 +46,8 @@ export function buildMenuView(_c: Content, t: Translate, persistent: boolean): M
       seedLabel: t('save.seed'),
       seedHint: t('save.seedHint'),
       button: t('save.new'),
+      startOver: t('settings.startOver'),
+      note: t('save.newNote'),
       confirm: t('save.confirmNew'),
     },
     save: {

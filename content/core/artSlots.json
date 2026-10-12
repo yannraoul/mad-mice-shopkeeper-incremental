@@ -75,5 +75,33 @@
     "height": 120,
     "file": "art/map-strip.svg",
     "altKey": "art.map-strip"
+  },
+  {
+    "id": "customer-faithful",
+    "width": 96,
+    "height": 120,
+    "file": "art/customer-faithful.svg",
+    "altKey": "art.customer-faithful"
+  },
+  {
+    "id": "customer-traveler",
+    "width": 96,
+    "height": 120,
+    "file": "art/customer-traveler.svg",
+    "altKey": "art.customer-traveler"
+  },
+  {
+    "id": "customer-merchant",
+    "width": 96,
+    "height": 120,
+    "file": "art/customer-merchant.svg",
+    "altKey": "art.customer-merchant"
+  },
+  {
+    "id": "customer-bee",
+    "width": 96,
+    "height": 120,
+    "file": "art/customer-bee.svg",
+    "altKey": "art.customer-bee"
   }
 ]

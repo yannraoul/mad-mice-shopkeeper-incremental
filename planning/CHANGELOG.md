@@ -22,3 +22,5 @@ lives in its own `bugs/MMSIB-y.md` file; this file is just the index.
 - [MMSIB-7](bugs/MMSIB-7.md) — Royal tonic stayed craftable after its errand and nothing said nobody buys it
 - [MMSIB-8](bugs/MMSIB-8.md) — Two errands for the same problem: the peace offering competed with the real fix
 - [MMSIB-9](bugs/MMSIB-9.md) — The royal tonic had no customers; bees should come for it after the queen's errand
+- [MMSIB-10](bugs/MMSIB-10.md) — Playtest batch 1: action placement, collapsed rival pip, empty evening rail, unclear errors
+- [MMSIB-11](bugs/MMSIB-11.md) — Recipe cost ignored the chosen quality; shelf pips moved mid-day; bar and Cancel placement

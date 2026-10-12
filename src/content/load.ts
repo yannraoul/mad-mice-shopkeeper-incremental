@@ -148,7 +148,7 @@ export function validateRefs(c: Content): string[] {
 
   // Every craftable thing needs an image slot (placeholders at final size, swappable files).
   const slots = ids(c.artSlots);
-  for (const [prefix, rows] of [['ingredient', c.ingredients], ['candy', c.candies], ['station', c.stations], ['worker', c.workers]] as const)
+  for (const [prefix, rows] of [['ingredient', c.ingredients], ['candy', c.candies], ['station', c.stations], ['worker', c.workers], ['customer', c.customerTypes]] as const)
     for (const r of rows)
       if (!slots.has(`${prefix}-${r.id}`)) errors.push(`artSlots: missing slot "${prefix}-${r.id}"`);
 

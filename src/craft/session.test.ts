@@ -30,7 +30,7 @@ describe('craft session', () => {
     s.supply.honey = 1;
     expect(startSession(c, s, 0, 'honey-drop', 'plain')).toMatchObject({
       code: 'not-enough-ingredient',
-      params: { ingredient: 'honey' },
+      params: { ingredient: 'honey', need: '2', have: '1' },
     });
   });
   it('places one unit per tap and keeps holding until the ingredient is complete', () => {

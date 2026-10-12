@@ -88,7 +88,7 @@ describe('crafting', () => {
 describe('failures are machine-readable', () => {
   it('carry a code and id params the UI can translate', () => {
     const s = run(newGame(c, { seed: 1 }), craft(), craft());
-    expect(failCode(s, craft())).toEqual({ code: 'not-enough-ingredient', params: { ingredient: 'honey' } });
+    expect(failCode(s, craft())).toEqual({ code: 'not-enough-ingredient', params: { ingredient: 'honey', need: '2', have: '0' } });
     expect(failCode(newGame(c, { seed: 1 }), craft('fine'))).toEqual({ code: 'quality-locked', params: { quality: 'fine' } });
     expect(failCode(afternoon(), craft())).toEqual({ code: 'wrong-phase', params: { phase: 'morning' } });
   });

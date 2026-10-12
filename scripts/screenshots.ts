@@ -85,29 +85,29 @@ const btn = (re) => [...document.querySelectorAll('button')].find((b) => re.test
 const click = async (re, ms = 120) => { const b = btn(re); if (!b) throw new Error('no button ' + re); b.click(); await wait(ms); };
 const images = async () => { for (let i = 0; i < 40; i++) { if ([...document.images].every((m) => m.complete)) return; await wait(100); } };
 const craftBatch = async (quality) => {
-  if (quality) { const q = [...document.querySelectorAll('.workshop select')].pop(); q.value = quality; q.dispatchEvent(new Event('change', { bubbles: true })); await wait(60); }
-  await click(/^Start$/);
-  const st = document.querySelector('.stationbtn');
+  if (quality) { const q = [...document.querySelectorAll('.workshop .seg .opt')].find((o) => o.textContent.toLowerCase().startsWith(quality)); q.click(); await wait(60); }
+  await click(/^Start batch$/);
+  const st = document.querySelector('button.cauldron');
   for (let i = 0; i < 12; i++) {
-    const open = [...document.querySelectorAll('.bench .contents li')].find((x) => { const m = x.textContent.match(/(\\d+) \\/ (\\d+)/); return m && +m[1] < +m[2]; });
+    const open = [...document.querySelectorAll('.inside b')].find((x) => { const m = x.textContent.match(/(\\d+) \\/ (\\d+)$/); return m && +m[1] < +m[2]; });
     if (!open) break;
-    const name = open.textContent.split(':')[0];
-    [...document.querySelectorAll('.item')].find((b) => b.textContent.includes(name)).click(); await wait(40);
+    const name = open.textContent.replace(/ \\d+ \\/ \\d+$/, '');
+    [...document.querySelectorAll('button.tile')].find((b) => b.textContent.includes(name)).click(); await wait(40);
     st.click(); await wait(40);
   }
   for (let i = 0; i < 6; i++) {
     if (!document.querySelector('.bench')) break; // the batch is finished and the form is back
-    const next = [...document.querySelectorAll('.workshop .row button')].find((b) => !b.disabled && !/Cancel/.test(b.textContent));
+    const next = [...document.querySelectorAll('.workshop .actions button.btn3')].find((b) => !b.disabled && !b.classList.contains('cancel'));
     if (!next) break; next.click(); await wait(70);
   }
 };
 const openShop = () => click(/Open the shop/, 300);
 const closeShop = () => click(/Close the shop/, 300);
-const clerkOn = async () => { const c = document.querySelector('.serve input[type=checkbox]'); if (c && !c.checked) { c.click(); await wait(200); } };
-const serveOne = async () => { const b = [...document.querySelectorAll('.serve button')].find((x) => /^Serve/.test(x.textContent.trim()) && !x.disabled); if (b) { b.click(); await wait(150); } };
-const buy = async (name) => { const n = [...document.querySelectorAll('.node')].find((x) => x.querySelector('strong').textContent.trim() === name); const b = n && n.querySelector('button:not([disabled])'); if (b) { b.click(); await wait(120); } };
+const clerkOn = async () => { const c = document.querySelector('.rail input[role=switch]'); if (c && !c.checked) { c.click(); await wait(200); } };
+const serveOne = async () => { const b = [...document.querySelectorAll('.cust button')].find((x) => /^Serve/.test(x.textContent.trim()) && !x.disabled); if (b) { b.click(); await wait(150); } };
+const buy = async (name) => { const n = [...document.querySelectorAll('.node')].find((x) => x.querySelector('.nhead b').textContent.trim() === name); const b = n && n.querySelector('.buy:not([disabled])'); if (b) { b.click(); await wait(120); } };
 const endDay = async () => { await click(/Open the shop/, 200); await click(/Close the shop/, 200); await click(/Go to sleep/, 200); };
-const settings = () => click(/^Settings$/, 200);
+const settings = async () => { document.querySelector('button[aria-label=Settings]').click(); await wait(200); };
 `;
 
 const RICH = '?seed=11&stage=2&money=420&unlocks=oven,clerk,errandsBoard,map,contractBoard,recipe-2,dark-garden,tonic-recipe';
@@ -121,7 +121,7 @@ interface Scenario {
 }
 const SCENARIOS: Scenario[] = [
   { name: '01-morning-craft-form', query: RICH, steps: '' },
-  { name: '02-morning-craft-bench', query: RICH, steps: `await click(/^Start$/); document.querySelector('.item').click(); await wait(80); document.querySelector('.stationbtn').click(); await wait(100);` },
+  { name: '02-morning-craft-bench', query: RICH, steps: `await click(/^Start batch$/); document.querySelector('button.tile').click(); await wait(80); document.querySelector('button.cauldron').click(); await wait(100);` },
   { name: '03-afternoon-serve', query: RICH, steps: AFTERNOON },
   { name: '04-evening-tree-and-report', query: RICH, steps: EVENING },
   { name: '05-settings', query: RICH, steps: `${EVENING} await settings();` },

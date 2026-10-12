@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><meta name="design_doc_mode" content="canvas"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;700&family=Young+Serif&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"><style>body{margin:0}a{color:#f5b83d}a:hover{color:#ffd878}button{font-family:inherit}</style></helmet>
+<div style="{{ themeVars }}">
+<div style="background:var(--bg);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,sans-serif;padding:40px 44px 64px;width:1180px;box-sizing:border-box;display:flex;flex-direction:column;gap:44px">
+
+<div><h1 style="margin:0;font:400 36px/1.1 'Young Serif',serif">States</h1>
+<p style="margin:8px 0 0;color:var(--muted);font-size:15px;max-width:720px;line-height:1.5">Upgrade cards, errands and focus rings. The upgrade sheet assumes <b style="color:var(--ink)">130 coins</b>. Columns follow the branch colours: Kitchen, Shop, Temple / Hive.</p></div>
+
+<section style="display:flex;flex-direction:column;gap:16px">
+<h2 style="margin:0;font:400 26px 'Young Serif',serif">Upgrade cards</h2>
+<div style="display:grid;grid-template-columns:130px repeat(3,minmax(0,1fr));gap:14px;align-items:start">
+<div></div>
+<sc-for list="{{ branches }}" as="b" hint-placeholder-count="3"><div style="{{ b.head }}"><span aria-hidden="true" style="font-size:18px">{{ b.glyph }}</span><b style="font:400 18px 'Young Serif',serif">{{ b.name }}</b></div></sc-for>
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+<div style="display:contents">
+<div style="display:flex;flex-direction:column;gap:4px;padding-top:6px"><b style="font-size:15px">{{ r.label }}</b><span style="font-size:12px;line-height:1.4;color:var(--muted)">{{ r.note }}</span></div>
+<sc-for list="{{ r.cards }}" as="u" hint-placeholder-count="3">
+<div style="{{ u.card }}">
+<sc-if value="{{ u.check }}"><span style="{{ u.badge }}">✓</span></sc-if>
+<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><b style="font-size:15px">{{ u.name }}</b><span style="{{ u.state }}">{{ u.stateLabel }}</span></div>
+<div style="font-size:13px;line-height:1.35;color:var(--muted)">{{ u.desc }}</div>
+<sc-if value="{{ u.hasLevel }}"><div style="display:flex;gap:4px;align-items:center"><sc-for list="{{ u.pips }}" as="pp"><span style="{{ pp.style }}"></span></sc-for><span style="font:500 12px 'JetBrains Mono',monospace;color:var(--muted);margin-left:6px">{{ u.level }}</span></div></sc-if>
+<sc-if value="{{ u.buy }}"><button style="{{ u.btn }}">{{ u.btnLabel }}</button></sc-if>
+<sc-if value="{{ u.short }}"><div style="font-size:12px;color:var(--muted)">{{ u.shortText }}</div></sc-if>
+<sc-if value="{{ u.note }}"><div style="font-size:12px;color:var(--muted);display:flex;gap:6px"><span aria-hidden="true">🔒</span>{{ u.noteText }}</div></sc-if>
+</div></sc-for>
+</div></sc-for>
+</div></section>
+
+<section style="display:flex;flex-direction:column;gap:16px">
+<h2 style="margin:0;font:400 26px 'Young Serif',serif">Errands</h2>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start">
+<sc-for list="{{ errands }}" as="e" hint-placeholder-count="6">
+<div style="display:flex;flex-direction:column;gap:8px">
+<span style="font:700 11px 'Bricolage Grotesque';letter-spacing:.1em;color:var(--muted)">{{ e.state }}</span>
+<div style="{{ e.card }}">
+<div style="display:flex;gap:8px;align-items:flex-start"><div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0"><b style="font-size:15px">{{ e.name }}</b><span style="font:500 12px 'JetBrains Mono',monospace;color:var(--muted)">{{ e.needs }}</span><span style="{{ e.tag }}">{{ e.tagLabel }}</span></div>
+<sc-if value="{{ e.chip }}"><span style="{{ e.chipStyle }}">{{ e.chipLabel }}</span></sc-if></div>
+<p style="margin:0;font-size:13px;line-height:1.45;color:var(--muted)">{{ e.desc }}</p>
+<sc-if value="{{ e.progress }}"><div style="display:flex;flex-direction:column;gap:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>{{ e.progLabel }}</span><span style="font-family:'JetBrains Mono',monospace;color:var(--muted)">{{ e.progValue }}</span></div><div style="display:flex;gap:4px"><sc-for list="{{ e.pips }}" as="pp"><span style="{{ pp.style }}"></span></sc-for></div></div></sc-if>
+<sc-if value="{{ e.reward }}"><div style="font-size:13px;display:flex;gap:8px;color:var(--ok)"><span aria-hidden="true">✓</span>{{ e.rewardText }}</div></sc-if>
+<sc-if value="{{ e.lock }}"><div style="font-size:12px;color:var(--muted);display:flex;gap:6px"><span aria-hidden="true">🔒</span>{{ e.lockText }}</div></sc-if>
+<sc-if value="{{ e.action }}"><button style="{{ e.btn }}">{{ e.btnLabel }}</button></sc-if>
+</div></div></sc-for>
+</div></section>
+
+<section style="display:flex;flex-direction:column;gap:16px">
+<h2 style="margin:0;font:400 26px 'Young Serif',serif">Focus ring</h2>
+<p style="margin:0;color:var(--muted);font-size:14px;max-width:760px;line-height:1.5">A 2px dark gap, then a 3px light-honey ring (<span style="font-family:'JetBrains Mono',monospace">0 0 0 2px #1b1612, 0 0 0 5px #ffe08a</span>). The gap keeps it visible on wood, honey buttons and flat panels. Keyboard focus only (<span style="font-family:'JetBrains Mono',monospace">:focus-visible</span>).</p>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px">
+<div style="{{ cell }}"><span style="{{ cap }}">Primary button</span><button style="min-height:48px;padding:0 24px;border:0;border-radius:12px;background:var(--btn);color:var(--accentInk);font:700 16px 'Bricolage Grotesque';box-shadow:0 0 0 2px #1b1612,0 0 0 5px #ffe08a,0 3px 0 #8f5c0e,0 7px 10px rgba(0,0,0,.35);align-self:flex-start;margin:6px">Start batch</button></div>
+<div style="{{ cell }};background:var(--woodBg)"><span style="{{ capW }}">Secondary on wood</span><button style="min-height:44px;padding:0 14px;border:1px solid var(--btn2Border);border-radius:12px;background:var(--btn2);color:var(--ink);font:500 14px 'Bricolage Grotesque';box-shadow:0 0 0 2px #1b1612,0 0 0 5px #ffe08a,0 2px 0 rgba(0,0,0,.5);align-self:flex-start;margin:6px">Settings</button></div>
+<div style="{{ cell }}"><span style="{{ cap }}">Outline secondary</span><button style="min-height:44px;padding:0 16px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--ink);font:500 15px 'Bricolage Grotesque';box-shadow:0 0 0 2px #1b1612,0 0 0 5px #ffe08a;align-self:flex-start;margin:6px">Refuse</button></div>
+<div style="{{ cell }}"><span style="{{ cap }}">Segmented option</span><div style="display:flex;background:var(--panel2);border-radius:12px;padding:4px;gap:2px;align-self:flex-start"><span style="min-height:44px;padding:0 16px;border-radius:9px;background:var(--btn);color:var(--accentInk);font:700 15px 'Bricolage Grotesque';display:inline-flex;align-items:center">Plain</span><span style="min-height:44px;padding:0 16px;border-radius:9px;color:var(--ink);font:500 15px 'Bricolage Grotesque';display:inline-flex;align-items:center;box-shadow:0 0 0 2px #1b1612,0 0 0 5px #ffe08a">Fine</span></div></div>
+<div style="{{ cell }}"><span style="{{ cap }}">Toggle</span><div style="display:flex;align-items:center;gap:10px;min-height:44px"><span style="width:46px;height:26px;border-radius:999px;background:var(--accent);position:relative;flex:none;box-shadow:0 0 0 2px #1b1612,0 0 0 5px #ffe08a"><span style="position:absolute;right:3px;top:3px;width:20px;height:20px;border-radius:50%;background:var(--accentInk)"></span></span><span style="font-size:13px">Let the clerk handle Faithful customers</span></div></div>
+<div style="{{ cell }}"><span style="{{ cap }}">Text input</span><input placeholder="Seed (optional)" style="min-height:48px;box-sizing:border-box;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:500 15px 'JetBrains Mono',monospace;outline:none;box-shadow:0 0 0 2px #1b1612,0 0 0 5px #ffe08a;margin:4px"></div>
+<div style="{{ cell }}"><span style="{{ cap }}">Errand row</span><div style="background:var(--panel2);border-radius:12px;padding:0 12px;box-shadow:0 0 0 2px #1b1612,0 0 0 5px #ffe08a;margin:4px"><div style="display:flex;align-items:center;gap:8px;min-height:56px;padding:10px 0;box-sizing:border-box"><div style="display:flex;flex-direction:column;gap:3px;flex:1"><b style="font-size:15px">The queen is sick</b><span style="font:500 12px 'JetBrains Mono',monospace;color:var(--muted)">4 × Royal tonic (Plain)</span></div><span style="min-height:36px;padding:0 14px;border-radius:10px;background:var(--btn);color:var(--accentInk);font:700 14px 'Bricolage Grotesque';display:inline-flex;align-items:center">Accept</span></div></div></div>
+<div style="{{ cell }}"><span style="{{ cap }}">Upgrade Buy</span><button style="min-height:44px;border-radius:10px;border:0;background:var(--btn);color:var(--accentInk);font:700 15px 'Bricolage Grotesque';box-shadow:0 0 0 2px #1b1612,0 0 0 5px #ffe08a,0 3px 0 #8f5c0e;margin:6px">Buy · 60</button></div>
+<div style="{{ cell }}"><span style="{{ cap }}">Customer card action</span><div style="display:flex;gap:8px;margin:6px"><button style="min-height:44px;padding:0 18px;border:0;border-radius:12px;background:var(--btn);color:var(--accentInk);font:700 15px 'Bricolage Grotesque';box-shadow:0 0 0 2px #1b1612,0 0 0 5px #ffe08a,0 3px 0 #8f5c0e">Serve Plain · 5</button><button style="min-height:44px;padding:0 16px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--ink);font:500 15px 'Bricolage Grotesque'">Refuse</button></div></div>
+</div></section>
+</div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const dark = (this.props.theme ?? 'dark') === 'dark';
+    const enc = (seed,freq,rgb,k,off) => 'url("data:image/svg+xml,'+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='420' height='420'><filter id='f' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='"+freq+"' numOctaves='3' seed='"+seed+"' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 "+rgb[0]+" 0 0 0 0 "+rgb[1]+" 0 0 0 0 "+rgb[2]+" "+k+" 0 0 0 "+off+"'/></filter><rect width='100%' height='100%' filter='url(#f)'/></svg>")+'")';
+    const gD = enc(4,'0.004 0.16',[.05,.025,0],1.0,-.3), gL = enc(9,'0.003 0.22',[1,.75,.45],0.35,-.17);
+    const T = dark
+      ? '--bg:#1b1612;--panel:#2a211a;--panel2:#352a20;--woodBg:'+gD+','+gL+',linear-gradient(180deg,#4a3422,#3b2a1b);--ink:#fbf0dc;--muted:#d1bfa4;--accent:#f5b83d;--accentInk:#2a1704;--btn:linear-gradient(180deg,#ffd878,#eba526);--btn2:linear-gradient(180deg,#46331f,#33261a);--btn2Border:#150e08;--line:#5a4635;--ok:#a6d98f;--warn:#ff9c85;--kit:#f5a85a;--shop:#78cfc1;--tem:#cdb0f4;'
+      : '--bg:#f3e8d0;--panel:#fffaf0;--panel2:#f3e6c9;--woodBg:'+gD+','+gL+',linear-gradient(180deg,#f0d8a8,#e4c68e);--ink:#2b1c0e;--muted:#5f4a30;--accent:#c97b0c;--accentInk:#2a1704;--btn:linear-gradient(180deg,#ffd878,#eba526);--btn2:linear-gradient(180deg,#ead5a3,#d9bd85);--btn2Border:#8d6837;--line:#d2bd92;--ok:#3f7a2c;--warn:#b4412c;--kit:#a8550a;--shop:#12695e;--tem:#62399e;';
+    const B = [{name:'Kitchen',glyph:'♨',v:'var(--kit)'},{name:'Shop',glyph:'⌂',v:'var(--shop)'},{name:'Temple / Hive',glyph:'☾',v:'var(--tem)'}];
+    const COINS = 130;
+    const D = (n,d,lv,mx,cost,lock) => ({n,d,lv,mx,cost,lock});
+    const rows = [
+      ['Locked','Prerequisite not owned. Dimmed, no Buy button, reason shown.','locked',[D('Dark seed garden','Unlocks Perfect quality.',0,1,400,'Requires oven first.'),D('Honey toffee','Another new recipe. Make it by hand twice before the clerk can sell it.',0,1,350,'Requires sunflower brittle first.'),D('Hive bond','The hive sends a little more honey, and its visitors fill the shop.',0,3,200,'Requires the faithful first.')]],
+      ['Short of coins','Dashed muted button, plus how many coins are missing.','short',[D('Second cauldron','A cauldron that makes Plain honey drops by itself every morning, using the day\'s honey.',0,1,250),D('Counter space','The shop can welcome more customers each day.',2,3,400),D('The Faithful','More regular customers come.',1,3,200)]],
+      ['Can afford','Branch-coloured border and left bar, honey Buy button.','afford',[D('Honey yield','More honey delivered each morning.',1,4,60),D('Patience','Customers wait longer.',1,3,120),D('Errands board','The hive and the temple post errands with lasting rewards.',0,1,90)]],
+      ['Owned','One-time unlock. Branch tint, check badge, no Buy button.','owned',[D('Oven','Unlocks Fine quality.',1,1,60),D('Hire a clerk','Serves Faithful customers for you.',1,1,100),D('Map strip','Reveals places around the shop as the weeks go by.',1,1,60)]],
+      ['Maxed','Repeatable upgrade at top level. All pips filled.','maxed',[D('Bigger cauldrons','Each batch makes more candies.',3,3,0),D('Counter space','The shop can welcome more customers each day.',3,3,0),D('The Faithful','More regular customers come.',3,3,0)]]
+    ].map(([label,note,kind,items]) => ({ label, note, cards: items.map((it,i) => {
+      const c = B[i].v, done = kind==='owned'||kind==='maxed', locked = kind==='locked', afford = kind==='afford', short = kind==='short';
+      return { name:it.n, desc:it.d, check:done,
+        badge:`width:22px;height:22px;border-radius:50%;background:${c};color:#1b1612;display:grid;place-items:center;font:700 13px 'Bricolage Grotesque';position:absolute;top:-8px;right:-8px;box-shadow:0 0 0 3px var(--bg)`,
+        stateLabel: done?(kind==='maxed'?'Maxed':'Owned'):locked?'Locked':afford?'Can afford':'',
+        state:`font:700 11px 'Bricolage Grotesque';color:${done?c:locked?'var(--muted)':'var(--accent)'}`,
+        hasLevel: it.mx>1, level:`${it.lv} / ${it.mx}`, pips:Array.from({length:it.mx},(_,k)=>({style:`flex:1;height:8px;border-radius:4px;background:${k<it.lv?c:'var(--line)'}`})),
+        buy: afford||short, btnLabel:`Buy · ${it.cost}`,
+        btn:`min-height:44px;border-radius:10px;border:${afford?'0':'1px dashed var(--line)'};background:${afford?'var(--btn)':'transparent'};box-shadow:${afford?'inset 0 1px 0 rgba(255,255,255,.55),0 3px 0 #8f5c0e':'none'};color:${afford?'var(--accentInk)':'var(--muted)'};font:700 15px 'Bricolage Grotesque';cursor:${afford?'pointer':'default'}`,
+        short, shortText:`Short by ${it.cost-COINS} coins`, note:locked, noteText:it.lock||'',
+        card:`position:relative;background:${done?`linear-gradient(${c}22,${c}22),var(--panel)`:'var(--panel)'};border:1px solid ${done||afford?c:'var(--line)'};border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;opacity:${locked?.6:1};box-shadow:${afford?'inset 3px 0 0 '+c:'none'}` };
+    }) }));
+    const tag = `font:700 11px 'Bricolage Grotesque';padding:4px 8px;border-radius:999px;border:1px solid var(--warn);color:var(--warn);white-space:nowrap;align-self:flex-start;margin-top:6px`;
+    const none = 'display:none';
+    const card = (o,dim) => `background:var(--panel2);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;border:1px solid ${o||'transparent'};opacity:${dim?.6:1}`;
+    const chip = (c) => `font:700 11px 'Bricolage Grotesque';padding:4px 8px;border-radius:999px;border:1px solid ${c};color:${c};white-space:nowrap`;
+    const prim = `min-height:44px;border-radius:10px;border:0;background:var(--btn);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 3px 0 #8f5c0e;color:var(--accentInk);font:700 15px 'Bricolage Grotesque';cursor:pointer`;
+    const dis = `min-height:44px;border-radius:10px;border:1px dashed var(--line);background:transparent;color:var(--muted);font:700 15px 'Bricolage Grotesque'`;
+    const bar = (n,t,c) => Array.from({length:t},(_,k)=>({style:`flex:1;height:8px;border-radius:4px;background:${k<n?c:'var(--line)'}`}));
+    const Q = 'The hive queen has a fever. Brew a royal tonic by hand and bring four. The hive will repay you with more honey, for good, and once she is well the bees will come to your shop asking for the tonic too.';
+    const S = 'Send the clerk to parley with the rival hive for two days. If it works, the honey they steal comes back for good.';
+    const base = {tag:none,tagLabel:'',chip:false,progress:false,reward:false,lock:false,action:false};
+    const errands = [
+      {...base,state:'AVAILABLE',name:'The queen is sick',needs:'4 × Royal tonic (Plain)',desc:Q,action:true,btn:prim,btnLabel:'Accept',card:card()},
+      {...base,state:'AVAILABLE · AGAINST THE RIVAL HIVE',name:'A splinter hive',needs:'Send the clerk away 2 days',tag,tagLabel:'Against the rival hive',desc:S,action:true,btn:prim,btnLabel:'Accept',card:card('var(--warn)')},
+      {...base,state:'UNDER WAY · DELIVER GOODS',name:'The queen is sick',needs:'4 × Royal tonic (Plain)',desc:Q,chip:true,chipLabel:'Under way',chipStyle:chip('var(--accent)'),progress:true,progLabel:'In stock',progValue:'2 / 4',pips:bar(2,4,'var(--accent)'),action:true,btn:dis,btnLabel:'Deliver',card:card('var(--accent)')},
+      {...base,state:'UNDER WAY · MISSION',name:'A splinter hive',needs:'Send the clerk away 2 days',tag,tagLabel:'Against the rival hive',desc:S,chip:true,chipLabel:'Clerk away',chipStyle:chip('var(--accent)'),progress:true,progLabel:'Day',progValue:'1 / 2',pips:bar(1,2,'var(--accent)'),card:card('var(--accent)')},
+      {...base,state:'READY TO DELIVER',name:'The pilgrims\' feast',needs:'8 × Honey drop (Fine)',desc:'The faithful plan a feast. Bring eight Fine honey drops and the counter will be widened for good.',chip:true,chipLabel:'Ready',chipStyle:chip('var(--ok)'),progress:true,progLabel:'In stock',progValue:'8 / 8',pips:bar(8,8,'var(--ok)'),action:true,btn:prim,btnLabel:'Deliver',card:card('var(--ok)')},
+      {...base,state:'LOCKED',name:'The queen is sick',needs:'4 × Royal tonic (Plain)',desc:Q,lock:true,lockText:'Requires the errands board first.',card:card('',true)},
+      {...base,state:'DONE',name:'The queen is sick',needs:'4 × Royal tonic (Plain)',desc:Q,chip:true,chipLabel:'Done',chipStyle:chip('var(--ok)'),reward:true,rewardText:'Reward received.',card:card('',true)}
+    ];
+    const cell = 'background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:96px';
+    return {
+      themeVars:T, rows, errands, cell,
+      cap:`font:700 11px 'Bricolage Grotesque';letter-spacing:.1em;color:var(--muted);text-transform:uppercase`,
+      capW:`font:700 11px 'Bricolage Grotesque';letter-spacing:.1em;color:var(--ink);text-transform:uppercase;text-shadow:0 1px 0 rgba(0,0,0,.4)`,
+      branches: B.map(b => ({ name:b.name, glyph:b.glyph, head:`display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:var(--panel2);color:${b.v};border-bottom:3px solid ${b.v}` }))
+    };
+  }
+}
+</script>
+</body>
+</html>

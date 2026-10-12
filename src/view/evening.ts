@@ -17,6 +17,16 @@ export interface TreeNode {
   maxed: boolean;
   /** Shown instead of the buy button when maxed ("Maximum level" for repeatable nodes). */
   maxedText: string;
+  /** Presentation state of the card: owned (one-time unlock), maxed (top level), affordable, short of coins, or locked. */
+  state: 'owned' | 'maxed' | 'afford' | 'short' | 'locked';
+  /** "Can afford", "Locked", "Owned", "Maxed" or empty for the corner label. */
+  stateLabel: string;
+  /** Level pips for repeatable nodes (null for one-time unlocks). */
+  pips: { level: number; max: number } | null;
+  /** "Requires X first." for locked nodes. */
+  lockReason: string | null;
+  /** "Short by 12 coins" for nodes that are not locked but unaffordable. */
+  shortBy: string | null;
   /** The buy button, absent once maxed. `enabled`/`why` come from the engine's own refusal. */
   buy: { label: string; cost: number; action: Action; enabled: boolean; why: string | null } | null;
 }
@@ -24,18 +34,35 @@ export interface TreeNode {
 export interface TreeBranch {
   id: string;
   name: string;
+  /** A small symbol standing for the branch. */
+  glyph: string;
+  /** "2 can afford" for tab labels. */
+  affordText: string;
   nodes: TreeNode[];
 }
 
 export interface EveningView {
-  report: { title: string; lines: string[] };
-  journal: { title: string; text: string } | null;
+  report: {
+    title: string;
+    lines: string[];
+    /** The same numbers as big figures with captions; `highlight` marks the coins earned. */
+    stats: { value: number; label: string; highlight: boolean }[];
+  };
+  journal: { title: string; dayLine: string; text: string } | null;
   tree: { title: string; branches: TreeBranch[] };
   map: MapView | null;
   errands: ErrandsView | null;
 }
 
 const BRANCHES = ['kitchen', 'shop', 'temple'] as const;
+const STATE_LABEL: Record<TreeNode['state'], string> = {
+  afford: 'tree.state.afford',
+  locked: 'tree.state.locked',
+  owned: 'tree.owned',
+  maxed: 'tree.state.maxed',
+  short: '',
+};
+const GLYPHS: Record<(typeof BRANCHES)[number], string> = { kitchen: '♨', shop: '⌂', temple: '☾' };
 
 export function buildEveningView(c: Content, s: State, t: Translate): EveningView {
   const r = s.report;
@@ -48,9 +75,17 @@ export function buildEveningView(c: Content, s: State, t: Translate): EveningVie
     const action: Action = { type: 'buy', node: n.id };
     const probe = maxed ? null : step(c, s, action);
     const cost = n.costs[level] ?? 0;
+    const buyable = probe?.ok ?? false;
+    const locked = !maxed && !probe!.ok && probe!.code === 'node-locked';
+    const state: TreeNode['state'] = maxed ? (max > 1 ? 'maxed' : 'owned') : locked ? 'locked' : buyable ? 'afford' : 'short';
     return {
       id: n.id,
       name: t(n.nameKey),
+      state,
+      stateLabel: STATE_LABEL[state] ? t(STATE_LABEL[state]) : '',
+      pips: max > 1 ? { level, max } : null,
+      lockReason: locked ? describeFail(t, probe!.code, probe!.params) : null,
+      shortBy: state === 'short' ? t('tree.shortBy', { n: Math.max(0, cost - s.money) }) : null,
       description: t(n.descKey),
       level: max > 1 ? t('tree.level', { n: level, max }) : level > 0 ? t('tree.owned') : '',
       owned: level > 0,
@@ -77,15 +112,28 @@ export function buildEveningView(c: Content, s: State, t: Translate): EveningVie
         t('evening.refused', { n: r.refused }),
         t('evening.contracts', { n: r.contractsDone, expired: r.contractsExpired }),
       ],
+      stats: [
+        { value: r.revenue, label: t('evening.k.revenue'), highlight: true },
+        { value: r.served, label: t('evening.k.served', { auto: r.autoServed }), highlight: false },
+        { value: r.lost, label: t('evening.k.lost'), highlight: false },
+        { value: r.refused, label: t('evening.k.refused'), highlight: false },
+        { value: r.contractsDone, label: t('evening.k.contractsDone'), highlight: false },
+        { value: r.contractsExpired, label: t('evening.k.contractsExpired'), highlight: false },
+      ],
     },
-    journal: journal ? { title: t('journal.title'), text: t(journal) } : null,
+    journal: journal ? { title: t('journal.title'), dayLine: t('ui.day', { n: s.day }), text: t(journal) } : null,
     tree: {
       title: `${t('tree.title')} · ${t('ui.money', { n: s.money })}`,
-      branches: BRANCHES.map((id) => ({
-        id,
-        name: t(`branch.${id}`),
-        nodes: c.skillNodes.filter((n) => n.branch === id).map(node),
-      })),
+      branches: BRANCHES.map((id) => {
+        const nodes = c.skillNodes.filter((n) => n.branch === id).map(node);
+        return {
+          id,
+          name: t(`branch.${id}`),
+          glyph: GLYPHS[id],
+          affordText: t('tree.canAffordN', { n: nodes.filter((n) => n.state === 'afford').length }),
+          nodes,
+        };
+      }),
     },
     map: buildMapView(c, s, t),
     errands: buildErrandsView(c, s, t),

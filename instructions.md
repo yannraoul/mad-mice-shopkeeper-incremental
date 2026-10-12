@@ -81,14 +81,20 @@ string, what is deliberately not localized.
 
 ## Theming
 
-TODO: where theme tokens live, which themes/modes must be supported (light and
-dark from the start), rule against hardcoding colors/spacing in components,
-link to the design handoff under `design/`.
+All colours and composite tokens (wood, parchment, button gradients and shadows) live in
+`src/ui/tokens.css`; light is the default and dark follows `prefers-color-scheme`. Both modes must
+keep working. Components take every colour from tokens, never hardcode one. Shared look (wood
+`.frame`, `.card`, `.note`, buttons `.btn`/`.btn2`/`.btn3`, focus ring) is in `src/ui/app.css`.
+Source of truth: `design/design_handoff_sweet_tooth_v2/README.md` (read-only). Fonts are
+self-hosted via `@fontsource`; no external font CDN.
 
 ## Responsive design
 
-TODO: target devices/viewports, shared page-width convention, what must be
-checked before a UI change is considered done.
+Page max-width 1200 px; one phone layout at `max-width: 640px` (design target 390 px). Where the
+phone is a different structure, not just different CSS (branch tabs, collapsible Today/Clerk cards,
+bottom action bar), components read `media.narrow` from `src/ui/media.svelte.ts`. Before a UI
+change is done: no horizontal overflow at 375 px, tap targets 44 px, nothing relies on hover, FR
+text (20-30 % longer) wraps, check dark and light, and regenerate the screenshots.
 
 ## Folder structure
 

@@ -44,8 +44,8 @@ const afternoon = (seed = 1, unlocks: string[] = ['oven']) => run(newGame(c, { s
 
 describe('text helpers', () => {
   it('describeFail translates ids, lower-cases names mid-sentence and follows the language', () => {
-    expect(describeFail(en, 'not-enough-ingredient', { ingredient: 'honey' })).toBe('Not enough honey.');
-    expect(describeFail(fr, 'not-enough-ingredient', { ingredient: 'honey' })).toBe('Pas assez de miel.');
+    expect(describeFail(en, 'not-enough-ingredient', { ingredient: 'honey', need: '3', have: '2' })).toBe('Not enough honey: this batch needs 3, you have 2.');
+    expect(describeFail(fr, 'not-enough-ingredient', { ingredient: 'honey', need: '3', have: '2' })).toBe('Pas assez de miel : il en faut 3, vous en avez 2.');
     expect(describeFail(en, 'node-locked', { node: 'oven' })).toBe('Requires oven first.');
   });
 });
@@ -88,7 +88,7 @@ describe('serve view', () => {
     let s = run(newGame(c, { seed: 1, unlocks: ['oven'] }), craft('fine'), end);
     const v = buildServeView(c, s, en);
     const faithful = v.customers.find((x) => x.type === 'faithful')!;
-    expect(faithful.options.map((o) => o.label)).toEqual(['Serve Fine (6)']); // Fine sold to a budget-6 customer
+    expect(faithful.options.map((o) => o.label)).toEqual(['Serve Fine · 6']); // Fine sold to a budget-6 customer
     expect(faithful.options[0]!.enabled).toBe(true);
     expect(faithful.options[0]!.action).toEqual({ type: 'serve', customer: faithful.id, quality: 'fine' });
     expect(faithful.refuse.action).toEqual({ type: 'refuse', customer: faithful.id });
@@ -144,7 +144,7 @@ describe('evening view', () => {
   it('enabled purchases carry their action; owned and maxed nodes say so', () => {
     let s = evening(1000);
     const oven = buildEveningView(c, s, en).tree.branches[0]!.nodes.find((n) => n.id === 'oven')!;
-    expect(oven.buy).toMatchObject({ enabled: true, action: { type: 'buy', node: 'oven' }, label: 'Buy (60)' });
+    expect(oven.buy).toMatchObject({ enabled: true, action: { type: 'buy', node: 'oven' }, label: 'Buy · 60' });
     s = run(s, oven.buy!.action);
     const after = buildEveningView(c, s, en).tree.branches[0]!.nodes.find((n) => n.id === 'oven')!;
     expect(after).toMatchObject({ owned: true, maxed: true, buy: null, level: 'Owned' });
@@ -221,7 +221,7 @@ describe('errands view', () => {
     expect(queen).toMatchObject({ status: 'available', button: { label: 'Accept', enabled: true, action: { type: 'acceptErrand', errand: 'queen-fever' } } });
     expect(queen.requirements).toEqual(['4 × Royal tonic (Plain)']);
     expect(v.items.find((i) => i.id === 'rival-hive')).toMatchObject({ status: 'locked', tag: 'Against the rival hive', button: null });
-    expect(v.items.find((i) => i.id === 'rival-hive')!.statusText).toBe('Needs: Hire a clerk');
+    expect(v.items.find((i) => i.id === 'rival-hive')!.statusText).toBe('Requires Hire a clerk first.');
     const taken = run(s, { type: 'acceptErrand', errand: 'queen-fever' });
     v = buildErrandsView(c, taken, en)!;
     expect(v.items.find((i) => i.id === 'queen-fever')).toMatchObject({ status: 'deliver', button: { label: 'Deliver', enabled: false } });
@@ -256,6 +256,18 @@ describe('craft view and reducer', () => {
     expect(blocked.start.enabled).toBe(false);
     expect(blocked.blocked).toBe('Cannot start: fine quality is not unlocked yet.');
     expect(play(game, ui, { type: 'start' }).session).toBeNull(); // start is a no-op when blocked
+  });
+
+  it('recipe costs follow the chosen quality, and the shelf pips keep the morning total after a bonus is bought', () => {
+    const game = { s: newGame(c, { seed: 1, unlocks: ['oven'] }) };
+    let ui = initialCraftUi(c);
+    expect(buildCraftView(c, game.s, ui, en).idle!.recipes[0]!.costText).toBe('2 Honey');
+    ui = play(game, ui, { type: 'select', field: 'quality', value: 'fine' });
+    expect(buildCraftView(c, game.s, ui, en).idle!.recipes[0]!.costText).toBe('3 Honey');
+    const total = () => buildCraftView(c, game.s, ui, en).scene.shelf.find((x) => x.ingredient === 'honey')!.total;
+    const before = total();
+    game.s = { ...game.s, nodes: { ...game.s.nodes, 'honey-yield': 1 } };
+    expect(total()).toBe(before);
   });
 
   it('a full batch: start, pick, place, place, stir, shape crafts through the engine', () => {
