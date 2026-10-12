@@ -75,7 +75,7 @@ describe('save migration', () => {
     delete env.state.report.stage;
     const r = deserialize(c, JSON.stringify(env));
     if (!r.ok) throw new Error(r.error);
-    expect(r.state.stage).toEqual({ index: 0, day: 0, revenue: 0 });
+    expect(r.state.stage).toEqual({ index: 0, day: 0, revenue: 0, misses: 0 });
     expect(r.state.errands).toEqual({});
     expect(r.state.completed).toBe(false);
     expect(r.state.money).toBe(s.money);

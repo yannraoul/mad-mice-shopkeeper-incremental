@@ -38,6 +38,9 @@
   {/if}
 </section>
 
+{#if v.newThings}
+  <p class="week ok">{v.newThings}</p>
+{/if}
 {#if v.lastWeek}
   <p class="week" class:ok={v.lastWeek.passed}>{v.lastWeek.text}</p>
 {/if}

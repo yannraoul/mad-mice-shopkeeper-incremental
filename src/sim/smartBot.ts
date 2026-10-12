@@ -11,10 +11,11 @@ import { botErrands, must, type Bot } from './bot.ts';
 /** Upgrades in the order a thoughtful player would want them (a node id repeats once per level). */
 export const SMART_ORDER = [
   'counter-space', 'clerk', 'cauldron-size', 'oven', 'honey-yield', 'faithful',
-  'errands-board', 'sunflower-patch', 'honey-yield', 'patience', 'contract-board', 'cauldron-size',
-  'sunflower-yield', 'auto-cauldron', 'hive-bond', 'counter-space', 'honey-yield', 'pulling-machine',
-  'cauldron-size', 'faithful', 'patience', 'sunflower-yield', 'hive-bond', 'map', 'dark-garden',
-  'counter-space', 'patience', 'faithful', 'hive-bond', 'honey-yield', 'sunflower-yield',
+  'errands-board', 'sunflower-patch', 'reputation', 'honey-yield', 'patience', 'contract-board', 'cauldron-size',
+  'sunflower-yield', 'auto-cauldron', 'hive-bond', 'reputation', 'counter-space', 'honey-yield', 'pulling-machine',
+  'cauldron-size', 'faithful', 'patience', 'sunflower-yield', 'reputation', 'hive-bond', 'map', 'dark-garden',
+  'counter-space', 'patience', 'faithful', 'reputation', 'hive-bond', 'honey-yield', 'sunflower-yield', 'reputation',
+  'reputation',
 ];
 
 const total = (s: State, candy: string) =>
@@ -88,7 +89,7 @@ function smartEvening(c: Content, s: State): State {
     const r = step(c, s, { type: 'buy', node: id });
     if (!r.ok) {
       // Locked behind something later in the list? keep going. Too poor or maxed? stop and save up.
-      if (r.code === 'node-locked' || r.code === 'node-maxed' || r.code === 'unknown-node') continue;
+      if (['node-locked', 'unlock-needed', 'stage-locked', 'node-maxed', 'unknown-node'].includes(r.code)) continue;
       return s;
     }
     s = r.state;

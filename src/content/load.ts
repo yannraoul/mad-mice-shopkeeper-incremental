@@ -61,7 +61,7 @@ export function loadContent(files: RawFile[]): Content {
 
 /** capacity | counterSpace | patience | rivalRelief | arrivals | supply:<ingredient> | weight:<customerType> */
 function validStat(c: Content, stat: string): boolean {
-  if (['capacity', 'counterSpace', 'patience', 'rivalRelief', 'arrivals'].includes(stat)) return true;
+  if (['capacity', 'counterSpace', 'patience', 'rivalRelief', 'arrivals', 'priceBonus'].includes(stat)) return true;
   const [kind, id] = stat.split(':');
   if (kind === 'supply') return c.ingredients.some((i) => i.id === id && !i.alternateOf);
   if (kind === 'altChance') return c.ingredients.some((i) => i.id === id && i.alternateOf);
@@ -153,6 +153,7 @@ export function validateRefs(c: Content): string[] {
   if (c.stages.length === 0) errors.push('stages: at least one stage is required');
   for (const st of c.stages)
     if (st.rival && !ingredients.has(st.rival.ingredient)) errors.push(`stages/${st.id}: unknown ingredient "${st.rival.ingredient}"`);
+  if (c.errands.filter((e) => e.final).length > 1) errors.push('errands: at most one final errand');
   const workerIds = ids(c.workers);
   for (const e of c.errands) {
     if (e.kind === 'deliver' && e.deliver.length === 0) errors.push(`errands/${e.id}: a deliver errand needs deliver rows`);

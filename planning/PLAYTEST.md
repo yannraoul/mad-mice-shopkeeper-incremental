@@ -3,15 +3,17 @@
 The simulator can only say whether the numbers are *consistent*; whether the game is *fun* is yours to judge.
 Play from a fresh game on the plain URL (not the dev hooks), in the language you will ship first.
 
-## Pacing targets the numbers were tuned for (competent player; an average player is about a week behind)
+## Pacing targets the numbers were tuned for (nine stages of a week each; a competent player rarely misses one, an average player misses about three over the game)
 
-| Stage | Cleared around | Week feels like |
+| Stages | Cleared around | What opens |
 |---|---|---|
-| 1 The first week | day 7 | learning the loop; a handful of cheap upgrades |
-| 2 Gathering pilgrims | day 21 to 28 | rival hive steals honey; the tree opens up; errands appear |
-| 3 The feast of Sweet Tooth | day 49 | demand needs counter space and Faithful; everything matters |
+| 1 The first steps | day 7 | learning the loop; a handful of cheap upgrades |
+| 2 Gathering pilgrims | day 14 | sunflowers, errands board, contract board, the queen's quest; the rival hive steals honey |
+| 3 A name on the road | day 21 | second cauldron, hive bond, map (passive income), reputation, the pilgrims' feast |
+| 4 to 8 | day 28 to 56 | pulling machine (4), magic cauldron quest (5), dark seed garden and the hive's gratitude (6), more places |
+| 9 The feast of Sweet Tooth | day 63 | the final quest: the offering to Sweet Tooth |
 
-Total: about 7 weeks of in-game days. Re-measure any time with `npm run balance` (see `instructions.md`).
+A competent player passes each stage in its first week; an average one repeats about three weeks over the game (each repeat has a 10% lower target).
 
 ## What to look at, and the knob to turn
 

@@ -3,7 +3,7 @@
     "id": "queen-fever",
     "nameKey": "errand.queen-fever",
     "descKey": "errand.queen-fever.desc",
-    "minStage": 0,
+    "minStage": 1,
     "requires": [
       "errandsBoard",
       "oven"
@@ -33,7 +33,7 @@
     "id": "pilgrim-feast",
     "nameKey": "errand.pilgrim-feast",
     "descKey": "errand.pilgrim-feast.desc",
-    "minStage": 1,
+    "minStage": 2,
     "requires": [
       "errandsBoard",
       "oven",
@@ -64,7 +64,7 @@
     "id": "rival-hive",
     "nameKey": "errand.rival-hive",
     "descKey": "errand.rival-hive.desc",
-    "minStage": 0,
+    "minStage": 1,
     "requires": [
       "errandsBoard",
       "clerk"
@@ -86,7 +86,7 @@
     "id": "magic-cauldron",
     "nameKey": "errand.magic-cauldron",
     "descKey": "errand.magic-cauldron.desc",
-    "minStage": 1,
+    "minStage": 4,
     "requires": [
       "errandsBoard",
       "pulling-machine"
@@ -110,7 +110,7 @@
     "id": "royal-gift",
     "nameKey": "errand.royal-gift",
     "descKey": "errand.royal-gift.desc",
-    "minStage": 1,
+    "minStage": 5,
     "requires": [
       "errandsBoard",
       "magic-cauldron",
@@ -128,6 +128,33 @@
       {
         "type": "unlock",
         "id": "royal-jelly"
+      }
+    ]
+  },
+  {
+    "id": "sweet-tooth-offering",
+    "nameKey": "errand.sweet-tooth-offering",
+    "descKey": "errand.sweet-tooth-offering.desc",
+    "minStage": 8,
+    "requires": [
+      "errandsBoard",
+      "magic-cauldron",
+      "royal-jelly",
+      "dark-garden"
+    ],
+    "kind": "deliver",
+    "final": true,
+    "deliver": [
+      {
+        "candy": "sunflower-nougat",
+        "quality": "perfect",
+        "qty": 3
+      }
+    ],
+    "reward": [
+      {
+        "type": "unlock",
+        "id": "ending"
       }
     ]
   }

@@ -33,7 +33,7 @@ export const Ingredient = z.object({
   alternateOf: id.optional(),
   /** Chance per delivered base unit of turning into this alternate (modifier stat `altChance:<id>` adds to it). */
   chance: z.number().min(0).max(1).default(0),
-  /** Coins each unused unit is worth when the shop closes (base ingredients only: alternates carry over to the next day). */
+  /** Coins each unused unit is worth when the shop closes (the rare alternates are worth several times a base unit). */
   surplusValue: z.number().min(0).default(0),
 });
 export const Candy = z.object({
@@ -119,6 +119,8 @@ export const SkillNode = z.object({
   requires: z.array(id).default([]),
   /** Unlock ids (granted by other upgrades or by errands) that must be owned first. */
   needs: z.array(z.string()).default([]),
+  /** First stage index (0-based) at which this upgrade can be bought: passing a stage opens new things. */
+  minStage: z.number().int().min(0).default(0),
   effects: z.array(Effect).min(1),
 });
 /** A weekly stage: reach `target` coins of revenue within `days` days to open the next one. */
@@ -151,17 +153,20 @@ export const Errand = z.object({
   kind: z.enum(['deliver', 'mission']),
   deliver: z.array(z.object({ candy: id, quality: id.default('plain'), qty: z.number().int().positive() })).default([]),
   mission: z.object({ worker: id, days: z.number().int().positive() }).optional(),
+  /** The last quest: delivering it ends the game (the shop runs on afterwards). */
+  final: z.boolean().default(false),
   /** Applied when the errand is accepted (e.g. unlocking its special recipe). */
   onAccept: z.array(Effect).default([]),
   /** Permanent rewards, applied on completion. */
   reward: z.array(Effect).min(1),
 });
-/** A place on the map strip: flavor only; it shows once its unlock and stage are reached. */
+/** A place on the map strip: it shows once its unlock and stage are reached, and pays `income` coins every morning. */
 export const Place = z.object({
   id,
   nameKey: key,
   minStage: z.number().int().min(0).default(0),
   unlock: z.string().optional(),
+  income: z.number().int().min(0).default(0),
 });
 /** Evening journal line, shown when `when` matches the day's report; all conditions optional. */
 export const JournalLine = z.object({
@@ -211,6 +216,9 @@ export const Settings = z.object({
   contractDeadlineDays: range,
   /** Tip at full happiness (3 hearts) as a share of the price; 0 hearts-above-one gives no tip. */
   tipMax: z.number().min(0),
+  /** Easy mode: each missed week lowers the repeated stage's target by this share, up to `retryReliefMax`. */
+  retryRelief: z.number().min(0).max(1),
+  retryReliefMax: z.number().min(0).max(1),
   /** How many units of a craved ingredient one unit of its rare alternate counts for when judging happiness. */
   alternateUnits: z.number().int().positive(),
 });

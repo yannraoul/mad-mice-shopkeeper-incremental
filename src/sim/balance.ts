@@ -9,6 +9,8 @@ export interface RunStats {
   days: number;
   /** Day on which each stage was first cleared (null = not cleared within the run). Index = stage. */
   clearedDay: (number | null)[];
+  /** Day the final quest was delivered (null if never). */
+  completedDay: number | null;
   weeksPlayed: number;
   weeksMissed: number;
   revenue: number;
@@ -29,7 +31,7 @@ export interface RunStats {
 export function runOne(c: Content, bot: Bot, seed: number, days: number): RunStats {
   let s = newGame(c, { seed });
   const st: RunStats = {
-    seed, days, clearedDay: c.stages.map(() => null), weeksPlayed: 0, weeksMissed: 0, revenue: 0,
+    seed, days, clearedDay: c.stages.map(() => null), completedDay: null, weeksPlayed: 0, weeksMissed: 0, revenue: 0,
     revenueByDay: [], boughtDay: {}, arrivals: 0, lost: 0, refused: 0, ingredientsUnused: 0, ingredientsDelivered: 0, stockOnOpen: 0,
   };
   for (let d = 1; d <= days; d++) {
@@ -53,6 +55,7 @@ export function runOne(c: Content, bot: Bot, seed: number, days: number): RunSta
     s = bot.evening(c, s);
     for (const id of Object.keys(s.nodes)) if (!(id in before) && !(id in st.boughtDay)) st.boughtDay[id] = d;
     s = must(c, s, { type: 'endPhase' });
+    if (s.completed && st.completedDay === null) st.completedDay = d;
     if (s.stage.day === 0 && s.lastWeek) {
       st.weeksPlayed += 1;
       if (!s.lastWeek.passed) st.weeksMissed += 1;
@@ -83,6 +86,8 @@ export interface Summary {
   days: number;
   /** Per stage: the day it was first cleared. */
   stageCleared: Dist[];
+  /** Day the final quest was delivered. */
+  completed: Dist;
   weeksMissedPerRun: number;
   avgRevenuePerDay: number;
   /** Mean revenue per day, averaged within each week of play (index 0 = week 1). */
@@ -108,6 +113,7 @@ export function summarize(c: Content, bot: string, runs: RunStats[]): Summary {
     runs: runs.length,
     days,
     stageCleared: c.stages.map((_, i) => dist(runs.map((r) => r.clearedDay[i] ?? null))),
+    completed: dist(runs.map((r) => r.completedDay)),
     weeksMissedPerRun: sum((r) => r.weeksMissed) / Math.max(1, runs.length),
     avgRevenuePerDay: sum((r) => r.revenue) / Math.max(1, runs.length * days),
     revenueByWeek,
@@ -159,6 +165,7 @@ export function formatSummary(c: Content, r: Summary): string {
     const d = r.stageCleared[i]!;
     lines.push(`  ${i + 1} ${st.id.padEnd(8)} target ${String(st.target).padStart(4)}  ${f(d.p10)} / ${f(d.median)} / ${f(d.p90)}   never: ${d.never}/${d.n}`);
   });
+  lines.push(`  final quest delivered on day ${f(r.completed.p10)} / ${f(r.completed.median)} / ${f(r.completed.p90)}   never: ${r.completed.never}/${r.completed.n}`);
   lines.push('avg revenue/day by week: ' + r.revenueByWeek.map((v) => f(v)).join(' '));
   lines.push('upgrade bought on day (median, never):');
   lines.push(

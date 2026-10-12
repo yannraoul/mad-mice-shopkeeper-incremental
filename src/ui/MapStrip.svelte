@@ -12,7 +12,7 @@
     <div class="strip"><ImageSlot id={view.art} height={media.narrow ? 72 : 96} /></div>
     <div class="places">
       {#each view.places as p (p.id)}
-        <span class="place" class:locked={!p.open}>{p.text}</span>
+        <span class="place" class:locked={!p.open}>{p.text}{#if p.income} <span class="muted small">· {p.income}</span>{/if}</span>
       {/each}
     </div>
   </section>

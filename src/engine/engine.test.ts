@@ -35,7 +35,7 @@ describe('new game', () => {
     const s = newGame(c, { seed: 1 });
     expect(s.day).toBe(1);
     expect(s.phase).toBe('morning');
-    expect(s.supply.honey).toBe(3);
+    expect(s.supply.honey).toBe(2);
     expect(Object.keys(s.supply)).toEqual(['honey']); // only unlocked ingredients are delivered
     expect(s.stations).toEqual([{ type: 'cauldron', batchesLeft: 3 }]);
     expect(c.forecasts.map((f) => f.id)).toContain(s.forecast);
@@ -58,14 +58,14 @@ describe('new game', () => {
 describe('crafting', () => {
   it('consumes ingredients and adds station capacity to stock', () => {
     const s = run(newGame(c, { seed: 1 }), craft());
-    expect(s.supply.honey).toBe(2);
+    expect(s.supply.honey).toBe(1);
     expect(s.stock['candy-cane:plain']).toBe(4);
     expect(s.stations[0]!.batchesLeft).toBe(2);
     expect(s.report.crafted).toBe(4);
   });
   it('is limited by ingredient supply', () => {
-    const s = run(newGame(c, { seed: 1 }), craft(), craft(), craft());
-    s.stations[0]!.batchesLeft = 1;
+    const s = run(newGame(c, { seed: 1 }), craft(), craft()); // 2 honey, 2 batches: all used
+    expect(s.stations[0]!.batchesLeft).toBe(1);
     expect(fails(s, craft())).toMatch(/not enough honey/);
   });
   it('is limited by batches per day', () => {
@@ -96,7 +96,7 @@ describe('crafting', () => {
       const s = newGame(c, { seed, unlocks: ['royal-jelly'] });
       jelly += s.supply['royal-jelly']!;
       base += s.supply.honey!;
-      expect(s.supply['royal-jelly']! + s.supply.honey!).toBe(3); // a jelly replaces a honey, never adds one
+      expect(s.supply['royal-jelly']! + s.supply.honey!).toBe(2); // a jelly replaces a honey, never adds one
     }
     expect(jelly).toBeGreaterThan(0);
     expect(jelly / (jelly + base)).toBeCloseTo(0.15, 1);
@@ -177,12 +177,14 @@ describe('leftovers', () => {
     expect(s1.money - s0.money).toBe(s1.report.revenue); // customers' coins and leftovers are all in the revenue
     expect(s1.report.revenue).toBeGreaterThanOrEqual(honeyLeft * value);
   });
-  it('rare alternates are not sold: whatever is unused is still there tomorrow', () => {
+  it('rare alternates are sold too, for several times a base unit', () => {
     const s0 = newGame(c, { seed: 1, unlocks: ['royal-jelly'] });
     s0.supply['royal-jelly'] = 2;
-    const s1 = run(s0, { type: 'endPhase' }, { type: 'endPhase' }, { type: 'endPhase' });
-    expect(s1.supply['royal-jelly']).toBeGreaterThanOrEqual(2);
-    expect(s1.report.surplus).toBe(0);
+    const value = c.ingredients.find((i) => i.id === 'royal-jelly')!.surplusValue;
+    expect(value).toBeGreaterThan(c.ingredients.find((i) => i.id === 'honey')!.surplusValue);
+    const s1 = run(s0, { type: 'endPhase' }, { type: 'endPhase' });
+    expect(s1.supply['royal-jelly']).toBe(0);
+    expect(s1.report.surplus).toBeGreaterThanOrEqual(2 * value);
   });
 });
 
@@ -194,7 +196,7 @@ describe('day cycle', () => {
     expect(s1.day).toBe(2);
     expect(s1.phase).toBe('morning');
     expect(s1.stock['candy-cane:plain']).toBe(left);
-    expect(s1.supply.honey).toBe(3);
+    expect(s1.supply.honey).toBe(2);
     expect(s1.stations[0]!.batchesLeft).toBe(3);
     expect(s1.history).toHaveLength(1);
     expect(s1.history[0]!.day).toBe(1);
@@ -226,6 +228,19 @@ describe('contracts', () => {
     expect(s.stock['candy-cane:plain']).toBe(3);
     expect(s.contracts.find((x) => x.id === 900)).toBeUndefined();
     expect(s.report.contractsDone).toBe(1);
+  });
+  it('uses the cheapest qualities that qualify, and pays for what is handed over if that is worth more than the posted reward', () => {
+    const cheap = withContract();
+    cheap.stock = { 'candy-cane:plain': 5, 'candy-cane:fine': 5 };
+    const r1 = run(cheap, { type: 'fulfill', contract: 900 });
+    expect(r1.stock).toMatchObject({ 'candy-cane:plain': 0, 'candy-cane:fine': 5 }); // plain goes first
+    expect(r1.money).toBe(40); // 5 plain are worth 25 x 1.25 = 31: the posted 40 stands
+    const fine = withContract();
+    fine.stock = { 'candy-cane:fine': 5 };
+    const r2 = run(fine, { type: 'fulfill', contract: 900 });
+    const worth = 5 * priceOf(c, 'candy-cane', 'fine');
+    expect(r2.money).toBe(Math.round(worth * c.settings.contractMult)); // 5 Fine: 40 x 1.25 = 50
+    expect(r2.money).toBeGreaterThan(40);
   });
   it('needs enough stock', () => {
     expect(fails(run(withContract(), craft()), { type: 'fulfill', contract: 900 })).toMatch(/stock/);
@@ -339,11 +354,14 @@ describe('selling a better quality than asked for', () => {
     expect(s.money).toBe(s.report.autoServed * 8); // faithful budget 6 caps the price of a Fine cane (8), plus a 2 coin tip
   });
   it('a better quality costs more honey than plain, so plain stays worth making', () => {
-    const at = (quality: string) =>
-      run(newGame(c, { seed: 1, unlocks: ['oven', 'pulling-machine'] }), craft(quality)).supply.honey;
-    expect(at('plain')).toBe(2); // 3 - 1
-    expect(at('fine')).toBe(1); // 3 - 2
-    expect(at('excellent')).toBe(0); // 3 - 3
+    const at = (quality: string) => {
+      const s = newGame(c, { seed: 1, unlocks: ['oven', 'pulling-machine'] });
+      s.supply.honey = 5;
+      return run(s, craft(quality)).supply.honey;
+    };
+    expect(at('plain')).toBe(4); // 5 - 1
+    expect(at('fine')).toBe(3); // 5 - 2
+    expect(at('excellent')).toBe(2); // 5 - 3
   });
   it('a candy opens by itself once all its ingredients are unlocked', () => {
     const opens = (unlocks: string[]) => unlockedCandies(c, { unlocks }).map((x) => x.id);

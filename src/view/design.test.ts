@@ -103,9 +103,13 @@ describe('board stock chips', () => {
 });
 
 describe('errand presentation states', () => {
-  const withBoard = (unlocks: string[] = []) => newGame(c, { seed: 1, unlocks: ['errandsBoard', ...unlocks] });
+  const withBoard = (unlocks: string[] = []) => {
+    const s = newGame(c, { seed: 1, unlocks: ['errandsBoard', ...unlocks] });
+    s.stage.index = 1; // errands open with the second stage
+    return s;
+  };
   it('goes available -> under way -> ready -> done with a chip and progress', () => {
-    const e = c.errands.find((x) => x.kind === 'deliver' && x.minStage === 0 && x.requires.every((u) => u === 'errandsBoard' || u === 'oven'));
+    const e = c.errands.find((x) => x.kind === 'deliver' && x.minStage <= 1 && x.requires.every((u) => u === 'errandsBoard' || u === 'oven'));
     expect(e).toBeDefined();
     let s = withBoard(['oven']);
     const item = (st: State) => buildErrandsView(c, st, en)!.items.find((i) => i.id === e!.id)!;
@@ -140,7 +144,7 @@ describe('evening: upgrade states', () => {
     const poor = nodes(evening(0));
     expect(poor.some((n) => n.state === 'short' && n.shortBy?.startsWith('Short by '))).toBe(true);
     const locked = poor.find((n) => n.state === 'locked')!;
-    expect(locked.lockReason).toMatch(/^Requires .+ first\.$/);
+    expect(locked.lockReason).toMatch(/^(Requires .+ first|Opens at stage \d+)\.$/);
     expect(locked.stateLabel).toBe('Locked');
     const rich = nodes(evening(100000));
     expect(rich.some((n) => n.state === 'afford')).toBe(true);
@@ -160,7 +164,7 @@ describe('evening: upgrade states', () => {
   });
   it('gives the report as figures with captions', () => {
     const r = buildEveningView(c, evening(0), en).report;
-    expect(r.stats).toHaveLength(8);
+    expect(r.stats).toHaveLength(9);
     expect(r.stats[0]).toMatchObject({ label: 'Earned', highlight: true });
   });
 });

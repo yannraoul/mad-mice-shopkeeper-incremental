@@ -1,6 +1,6 @@
 import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
-import { currentStage, modifier, rivalPenalty } from '../engine/economy.ts';
+import { currentStage, modifier, rivalPenalty, stageTarget } from '../engine/economy.ts';
 import type { State } from '../engine/types.ts';
 import { rivalErrands, unlockName } from './text.ts';
 
@@ -27,12 +27,15 @@ export interface StageView {
   hints: string[];
   /** Result of the week that just closed, shown on the first day after it. */
   lastWeek: { passed: boolean; text: string } | null;
-  /** Final stage cleared: the optional ending text (from a pack) or a generic line. */
+  /** "New this stage: Sunflower patch, Errands board." on the first day of a stage that opens things (null otherwise). */
+  newThings: string | null;
+  /** Final quest delivered: the optional ending text (from a pack) or a generic line. */
   complete: string | null;
 }
 
 export function buildStageView(c: Content, s: State, t: Translate): StageView {
   const stage = currentStage(c, s);
+  const target = stageTarget(c, s);
   // Revenue shown includes today's sales so far (the week is judged after its last day).
   const earned = s.stage.revenue + s.report.revenue;
   const today = s.stage.day + 1;
@@ -95,21 +98,21 @@ export function buildStageView(c: Content, s: State, t: Translate): StageView {
       day: Math.min(today, stage.days),
       days: stage.days,
       revenue: earned,
-      target: stage.target,
+      target,
     }),
     name: t(stage.nameKey),
     day: Math.min(today, stage.days),
     days: stage.days,
     earned,
-    target: stage.target,
+    target,
     dayText: t('stage.dayOf', { stage: s.stage.index + 1, week: Math.floor((s.day - 1) / 7) + 1, day: shownDay, days: stage.days }),
-    earnedText: t('stage.earned', { n: earned, target: stage.target }),
+    earnedText: t('stage.earned', { n: earned, target }),
     pips: Array.from({ length: stage.days }, (_, i) => ({
       state: i + 1 < shownDay ? 'done' : i + 1 === shownDay ? 'current' : 'todo',
       rival: rivalDay === i + 1,
     })),
     chip,
-    pct: Math.min(100, Math.round((earned / stage.target) * 100)),
+    pct: Math.min(100, Math.round((earned / target) * 100)),
     warning,
     hints,
     lastWeek: week
@@ -120,6 +123,19 @@ export function buildStageView(c: Content, s: State, t: Translate): StageView {
             : t('stage.lastWeekMissed', { revenue: week.revenue, target: week.target }),
         }
       : null,
+    newThings: newThings(c, s, t),
     complete: s.completed ? (ending ?? t('stage.complete')) : null,
   };
+}
+
+/** What passing the previous stage opened: upgrades, quests and places that start at this stage. */
+function newThings(c: Content, s: State, t: Translate): string | null {
+  const i = s.stage.index;
+  if (i === 0 || s.stage.day !== 0 || s.stage.misses > 0) return null;
+  const names = [
+    ...c.skillNodes.filter((n) => n.minStage === i).map((n) => t(n.nameKey)),
+    ...c.errands.filter((e) => e.minStage === i).map((e) => t(e.nameKey)),
+    ...c.places.filter((p) => p.minStage === i).map((p) => t(p.nameKey)),
+  ];
+  return names.length > 0 ? t('stage.new', { list: names.join(', ') }) : null;
 }

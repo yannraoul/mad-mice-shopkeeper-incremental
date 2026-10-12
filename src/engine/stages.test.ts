@@ -3,6 +3,7 @@ import { loadContent } from '../content/load.ts';
 import { readContentFiles } from '../../scripts/lib/readContent.ts';
 import { newGame, step } from './engine.ts';
 import { journalKey } from './journal.ts';
+import { stageTarget } from './economy.ts';
 import type { Action, GameEvent, State } from './types.ts';
 
 const c = loadContent(readContentFiles(false));
@@ -36,18 +37,18 @@ const days = (s: State, n: number, revenue: number, events: GameEvent[] = []) =>
 
 describe('weekly stages', () => {
   it('start at stage 1, day 0', () => {
-    expect(newGame(c, { seed: 1 }).stage).toEqual({ index: 0, day: 0, revenue: 0 });
+    expect(newGame(c, { seed: 1 }).stage).toEqual({ index: 0, day: 0, revenue: 0, misses: 0 });
   });
   it('count days and revenue toward the week', () => {
     const s = days(newGame(c, { seed: 1 }), 3, 40);
-    expect(s.stage).toEqual({ index: 0, day: 3, revenue: 120 });
+    expect(s.stage).toEqual({ index: 0, day: 3, revenue: 120, misses: 0 });
     expect(s.lastWeek).toBeNull();
   });
   it('reaching the target opens the next stage and reports the week', () => {
     const events: GameEvent[] = [];
     const perDay = Math.ceil(c.stages[0]!.target / 7) + 1;
     const s = days(newGame(c, { seed: 1 }), 7, perDay, events);
-    expect(s.stage).toEqual({ index: 1, day: 0, revenue: 0 });
+    expect(s.stage).toEqual({ index: 1, day: 0, revenue: 0, misses: 0 });
     expect(s.lastWeek).toEqual({ stage: 0, passed: true, revenue: perDay * 7, target: c.stages[0]!.target });
     expect(events.filter((e) => e.type === 'weekEnded')).toHaveLength(1);
   });
@@ -56,21 +57,61 @@ describe('weekly stages', () => {
     s0.nodes.oven = 1;
     s0.stock['candy-cane:plain'] = 5;
     const s = days(s0, 7, 10); // 70 is far below any stage target
-    expect(s.stage).toEqual({ index: 0, day: 0, revenue: 0 });
+    expect(s.stage).toEqual({ index: 0, day: 0, revenue: 0, misses: 1 });
     expect(s.lastWeek).toMatchObject({ stage: 0, passed: false, revenue: 70 });
     expect(s.nodes.oven).toBe(1);
     expect(s.unlocks).toContain('clerk');
     expect(s.stock['candy-cane:plain']).toBe(5);
     expect(s.day).toBe(8);
   });
-  it('clearing the final stage sets completed and play continues on that stage', () => {
+  it('passing the last stage does not end the game: weeks go on until the final quest is delivered', () => {
     const last = c.stages.length - 1;
     const s0 = newGame(c, { seed: 1 });
     s0.stage.index = last;
     const s = days(s0, c.stages[last]!.days, 10_000);
-    expect(s.completed).toBe(true);
+    expect(s.completed).toBe(false);
     expect(s.stage.index).toBe(last);
     expect(failCode(s, end)).toBeNull();
+  });
+  it('delivering the final quest completes the game', () => {
+    const final = c.errands.find((e) => e.final)!;
+    expect(final.minStage).toBe(c.stages.length - 1);
+    let s = newGame(c, { seed: 1, unlocks: final.requires });
+    s.stage.index = final.minStage;
+    s.stock['sunflower-nougat:perfect'] = 3;
+    s = run(s, { type: 'acceptErrand', errand: final.id }, { type: 'deliverErrand', errand: final.id });
+    expect(s.completed).toBe(true);
+  });
+  it('easy mode: each missed week lowers the repeated stage target a little, up to a cap, and passing resets it', () => {
+    const target = c.stages[1]!.target;
+    const s0 = newGame(c, { seed: 1 });
+    s0.stage.index = 1;
+    expect(stageTarget(c, s0)).toBe(target);
+    const one = days(s0, 7, 0);
+    expect(one.stage).toMatchObject({ index: 1, misses: 1 });
+    expect(stageTarget(c, one)).toBe(Math.round(target * (1 - c.settings.retryRelief)));
+    let s = one;
+    for (let i = 0; i < 6; i++) s = days(s, 7, 0);
+    expect(stageTarget(c, s)).toBe(Math.round(target * (1 - c.settings.retryReliefMax)));
+    // a week that reaches the lowered target passes, and the next stage starts with no relief
+    const lowered = stageTarget(c, one);
+    const passed = days(one, 7, Math.ceil(lowered / 7) + 1);
+    expect(passed.stage).toMatchObject({ index: 2, misses: 0 });
+    expect(passed.lastWeek).toMatchObject({ passed: true, target: lowered });
+  });
+  it('places on the map pay their income every morning once open', () => {
+    const open = (map: boolean) => {
+      const s = newGame(c, { seed: 1, unlocks: map ? ['map'] : [] });
+      s.stage.index = 3;
+      return s;
+    };
+    const income = c.places.filter((p) => p.minStage <= 3).reduce((n, p) => n + p.income, 0);
+    expect(income).toBeGreaterThan(0);
+    const s0 = open(true);
+    const s1 = run(s0, end, end, end);
+    expect(s1.report.income).toBe(income);
+    expect(s1.report.revenue).toBeGreaterThanOrEqual(income);
+    expect(run(open(false), end, end, end).report.income).toBe(0); // no map, no places
   });
   it('later stages bring more customers', () => {
     const arrivals = (stage: number) => {
@@ -97,6 +138,7 @@ describe('rival hive', () => {
   const stageN = (index: number): State => {
     const s = newGame(c, { seed: 1 });
     s.stage.index = index;
+    s.nodes['honey-yield'] = 1; // 3 honey a day: the rival hive never cuts below 2
     return s;
   };
   /** Honey delivered on morning `d` of the week (1-based), playing empty days up to it. */
@@ -105,7 +147,7 @@ describe('rival hive', () => {
     return s.supply.honey;
   };
   it('does not exist in stage 1', () => {
-    expect(run(newGame(c, { seed: 1 }), end, end, end).supply.honey).toBe(3);
+    expect(run(newGame(c, { seed: 1 }), end, end, end).supply.honey).toBe(2);
   });
   it('gives a grace period: no theft before startsOnDay, then it steals', () => {
     const { startsOnDay, amount } = c.stages[1]!.rival!;
@@ -125,7 +167,11 @@ describe('rival hive', () => {
 });
 
 describe('errands', () => {
-  const board = (extra: string[] = []): State => newGame(c, { seed: 2, unlocks: ['errandsBoard', 'oven', ...extra] });
+  const board = (extra: string[] = []): State => {
+    const s = newGame(c, { seed: 2, unlocks: ['errandsBoard', 'oven', ...extra] });
+    s.stage.index = 1; // the errands open with the second stage
+    return s;
+  };
   const accept = (errand: string): Action => ({ type: 'acceptErrand', errand });
   const deliver = (errand: string): Action => ({ type: 'deliverErrand', errand });
   const craft = (): Action => ({ type: 'craft', station: 0, candy: 'candy-cane', quality: 'plain' });
@@ -155,7 +201,7 @@ describe('errands', () => {
       expect(queenDone().unlocks).not.toContain('royal-jelly');
       const gift = (): State => {
         const g = board(['magic-cauldron', 'sunflower']);
-        g.stage.index = 1;
+        g.stage.index = 5;
         g.stock['sunflower-nougat:fine'] = 8;
         return run(g, accept('royal-gift'), deliver('royal-gift'));
       };
@@ -181,7 +227,9 @@ describe('errands', () => {
       expect(bees.length).toBeLessThan(asked.length / 2); // sometimes, not most of the time
     });
     it('a bee pays for candy', () => {
-      let s = run(queenDone(), craft(), end);
+      const g = queenDone();
+      g.supply.honey = 2; // the Fine batch for the quest used it all
+      let s = run(g, craft(), end);
       const bee = { id: 9999, type: 'bee', want: { kind: 'ingredient', ingredient: 'honey' }, minQuality: 'plain', patience: 5, budget: 10 } as const;
       s.queue = [bee];
       s = run(s, { type: 'serve', customer: 9999, candy: 'candy-cane', quality: 'plain' });
@@ -195,7 +243,7 @@ describe('errands', () => {
     expect(s.errands['queen-fever']).toEqual({ status: 'done' });
     expect(s.stock['candy-cane:fine']).toBe(0);
     const next = run(s, end, end, end).supply;
-    expect(next.honey! + (next['royal-jelly'] ?? 0)).toBe(5); // 3 base + 2 reward (some may arrive as jelly)
+    expect(next.honey! + (next['royal-jelly'] ?? 0)).toBe(4); // 2 base + 2 reward (some may arrive as jelly)
     expect(failCode(s, deliver('queen-fever'))).toBe('errand-not-active');
   });
   it('cannot be delivered in the evening', () => {
@@ -205,6 +253,7 @@ describe('errands', () => {
   describe('mission', () => {
     const ready = () => {
       const s = board(['clerk']);
+      s.nodes['honey-yield'] = 1; // 3 honey a day
       s.stage.index = 1;
       return s;
     };

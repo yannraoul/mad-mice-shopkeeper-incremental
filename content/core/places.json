@@ -2,19 +2,36 @@
   {
     "id": "millpond",
     "nameKey": "place.millpond",
-    "minStage": 0,
-    "unlock": "map"
+    "minStage": 2,
+    "unlock": "map",
+    "income": 3
   },
   {
     "id": "old-orchard",
     "nameKey": "place.old-orchard",
-    "minStage": 1,
-    "unlock": "map"
+    "minStage": 3,
+    "unlock": "map",
+    "income": 5
   },
   {
     "id": "sunflower-hollow",
     "nameKey": "place.sunflower-hollow",
-    "minStage": 2,
-    "unlock": "map"
+    "minStage": 4,
+    "unlock": "map",
+    "income": 8
+  },
+  {
+    "id": "market-stall",
+    "nameKey": "place.market-stall",
+    "minStage": 6,
+    "unlock": "map",
+    "income": 12
+  },
+  {
+    "id": "roadside-inn",
+    "nameKey": "place.roadside-inn",
+    "minStage": 7,
+    "unlock": "map",
+    "income": 18
   }
 ]

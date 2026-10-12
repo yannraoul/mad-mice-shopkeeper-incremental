@@ -5,12 +5,22 @@
   "customersPerSpace": 4,
   "delegateAfterBatches": 2,
   "rivalMinSupply": 2,
-  "startStations": ["cauldron"],
+  "startStations": [
+    "cauldron"
+  ],
   "startMoney": 0,
   "contractChance": 0.5,
   "contractMult": 1.25,
-  "contractQty": [3, 6],
-  "contractDeadlineDays": [2, 4],
+  "contractQty": [
+    3,
+    6
+  ],
+  "contractDeadlineDays": [
+    2,
+    4
+  ],
   "tipMax": 0.5,
-  "alternateUnits": 3
+  "alternateUnits": 3,
+  "retryRelief": 0.1,
+  "retryReliefMax": 0.3
 }

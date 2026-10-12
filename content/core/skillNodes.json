@@ -5,10 +5,11 @@
     "nameKey": "node.honey-yield",
     "descKey": "node.honey-yield.desc",
     "costs": [
-      20,
-      60,
-      150,
-      400
+      15,
+      40,
+      100,
+      250,
+      550
     ],
     "effects": [
       {
@@ -52,7 +53,8 @@
         "type": "addStation",
         "station": "auto-cauldron"
       }
-    ]
+    ],
+    "minStage": 2
   },
   {
     "id": "oven",
@@ -85,7 +87,8 @@
         "type": "unlock",
         "id": "pulling-machine"
       }
-    ]
+    ],
+    "minStage": 3
   },
   {
     "id": "dark-garden",
@@ -106,7 +109,8 @@
     ],
     "needs": [
       "magic-cauldron"
-    ]
+    ],
+    "minStage": 5
   },
   {
     "id": "counter-space",
@@ -157,7 +161,8 @@
         "type": "unlock",
         "id": "sunflower"
       }
-    ]
+    ],
+    "minStage": 1
   },
   {
     "id": "sunflower-yield",
@@ -165,9 +170,10 @@
     "nameKey": "node.sunflower-yield",
     "descKey": "node.sunflower-yield.desc",
     "costs": [
-      60,
-      150,
-      400
+      40,
+      100,
+      220,
+      450
     ],
     "requires": [
       "sunflower-patch"
@@ -208,7 +214,8 @@
         "type": "unlock",
         "id": "contractBoard"
       }
-    ]
+    ],
+    "minStage": 1
   },
   {
     "id": "faithful",
@@ -257,7 +264,8 @@
         "stat": "arrivals",
         "add": 2
       }
-    ]
+    ],
+    "minStage": 2
   },
   {
     "id": "errands-board",
@@ -275,7 +283,8 @@
         "type": "unlock",
         "id": "errandsBoard"
       }
-    ]
+    ],
+    "minStage": 1
   },
   {
     "id": "map",
@@ -292,6 +301,28 @@
       {
         "type": "unlock",
         "id": "map"
+      }
+    ],
+    "minStage": 2
+  },
+  {
+    "id": "reputation",
+    "branch": "shop",
+    "nameKey": "node.reputation",
+    "descKey": "node.reputation.desc",
+    "costs": [
+      120,
+      300,
+      700,
+      1500,
+      3000
+    ],
+    "minStage": 2,
+    "effects": [
+      {
+        "type": "modifier",
+        "stat": "priceBonus",
+        "add": 6
       }
     ]
   }

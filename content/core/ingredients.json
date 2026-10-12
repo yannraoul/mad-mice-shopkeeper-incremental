@@ -2,7 +2,7 @@
   {
     "id": "honey",
     "nameKey": "ingredient.honey",
-    "dailySupply": 3,
+    "dailySupply": 2,
     "surplusValue": 1
   },
   {
@@ -11,12 +11,13 @@
     "dailySupply": 0,
     "unlock": "royal-jelly",
     "alternateOf": "honey",
-    "chance": 0.15
+    "chance": 0.15,
+    "surplusValue": 5
   },
   {
     "id": "sunflower-seed",
     "nameKey": "ingredient.sunflower-seed",
-    "dailySupply": 3,
+    "dailySupply": 2,
     "unlock": "sunflower",
     "surplusValue": 1
   },
@@ -26,6 +27,7 @@
     "dailySupply": 0,
     "unlock": "dark-garden",
     "alternateOf": "sunflower-seed",
-    "chance": 0.15
+    "chance": 0.15,
+    "surplusValue": 5
   }
 ]

@@ -1,6 +1,6 @@
 # Stages as a chain of unlocks (design, not built yet)
 
-Status: agreed direction, details open. Becomes **MMSIM-13**.
+Status: **MMSIM-13 built** (see `planning/features/MMSIM-13.md`): nine stages gated by `minStage`, easy mode retry, passive income from places, the final quest as an errand (placeholder candy until MMSIM-14). The schedule table below is the first draft; the real one is in `content/core/stages.json` and the `minStage` fields.
 
 ## Idea
 

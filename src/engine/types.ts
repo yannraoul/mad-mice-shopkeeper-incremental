@@ -44,6 +44,8 @@ export interface DayReport {
   tips: number;
   /** Coins from unused ingredients sold at closing (already part of `revenue`). */
   surplus: number;
+  /** Coins paid by the places on the map this morning (already part of `revenue`). */
+  income: number;
   /** Part of `served` that was sold by a worker. */
   autoServed: number;
   refused: number;
@@ -75,7 +77,8 @@ export interface State {
   nextId: number;
   money: number;
   /** Current weekly stage: index into `stages`, days played this week, revenue earned this week. */
-  stage: { index: number; day: number; revenue: number };
+  /** `misses`: weeks missed on this stage so far (easy mode lowers its target). */
+  stage: { index: number; day: number; revenue: number; misses: number };
   /** Outcome of the most recent finished week (null before the first). */
   lastWeek: WeekResult | null;
   /** True once the final stage has been cleared (play can continue). */
@@ -123,6 +126,7 @@ export type GameEvent =
   | { type: 'crafted'; candy: string; quality: string; qty: number }
   | { type: 'sold'; customer: number; customerType: string; candy: string; quality: string; price: number; tip: number; hearts: number; auto: boolean }
   | { type: 'surplusSold'; coins: number }
+  | { type: 'incomePaid'; coins: number }
   | { type: 'refused'; customer: number; customerType: string }
   | { type: 'left'; customer: number; customerType: string }
   | { type: 'delegated'; customerType: string; on: boolean }
@@ -156,6 +160,7 @@ export type FailCode =
   | 'node-maxed'
   | 'node-locked'
   | 'unlock-needed'
+  | 'stage-locked'
   | 'not-enough-money'
   | 'candy-locked'
   | 'station-automated'

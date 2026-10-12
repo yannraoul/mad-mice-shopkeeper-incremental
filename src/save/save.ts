@@ -5,7 +5,7 @@ import type { State } from '../engine/types.ts';
 
 // Saves are a versioned envelope around the plain engine State. Bump SAVE_VERSION whenever the
 // State shape changes and add a step to `migrate`, so old saves keep loading.
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 const EXPORT_PREFIX = 'CST1:';
 
 const num = z.number();
@@ -19,7 +19,7 @@ const Customer = z.object({
   ]),
 });
 const Report = z.object({
-  day: num, stage: num.default(0), forecast: z.string(), crafted: num, arrivals: num, served: num, tips: num.default(0), surplus: num.default(0), autoServed: num,
+  day: num, stage: num.default(0), forecast: z.string(), crafted: num, arrivals: num, served: num, tips: num.default(0), surplus: num.default(0), income: num.default(0), autoServed: num,
   refused: num, lost: num, contractsDone: num, contractsExpired: num, revenue: num,
 });
 const StateSchema = z.object({
@@ -28,7 +28,7 @@ const StateSchema = z.object({
   rng: num,
   nextId: num,
   money: num.min(0),
-  stage: z.object({ index: num.int().min(0), day: num.min(0), revenue: num.min(0) }),
+  stage: z.object({ index: num.int().min(0), day: num.min(0), revenue: num.min(0), misses: num.min(0).default(0) }),
   lastWeek: z.object({ stage: num, passed: z.boolean(), revenue: num, target: num }).nullable(),
   completed: z.boolean(),
   errands: rec(z.object({ status: z.enum(['active', 'done']), daysLeft: num.optional() })),
@@ -143,6 +143,20 @@ const MIGRATIONS: Record<number, (state: unknown) => unknown> = {
       ...s,
       report: withSurplus(s.report ?? {}),
       history: ((s.history ?? []) as Record<string, unknown>[]).map(withSurplus),
+    };
+  },
+  // v6 -> v7 (MMSIM-13): the stage chain. Stages track missed weeks (easy mode), days record passive income, and the
+  // game is only complete once the final quest was delivered (the old "last stage passed" flag is dropped).
+  6: (state) => {
+    if (typeof state !== 'object' || state === null) return state;
+    const s = state as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const withIncome = (r: Record<string, unknown>) => ({ income: 0, ...r });
+    return {
+      ...s,
+      stage: { misses: 0, ...(s.stage ?? {}) },
+      completed: Boolean((s.errands ?? {})['sweet-tooth-offering']?.status === 'done'),
+      report: withIncome(s.report ?? {}),
+      history: ((s.history ?? []) as Record<string, unknown>[]).map(withIncome),
     };
   },
 };

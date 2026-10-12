@@ -112,6 +112,19 @@ describe('serving a craving', () => {
   });
 });
 
+describe('reputation', () => {
+  it('raises what customers pay and so the tip, by a percent per level', () => {
+    const base = counter({ 'candy-cane:fine': 2 }, cust({ type: 'faithful', want: { kind: 'candy', candy: 'candy-cane' }, budget: 6 }));
+    const noRep = serveChoices(c, base, base.queue[0]!)[0]!;
+    const rich = structuredClone(base);
+    rich.nodes.reputation = 5; // 5 levels of +4%
+    const withRep = serveChoices(c, rich, rich.queue[0]!)[0]!;
+    expect(noRep.price).toBe(6); // Fine costs 8, the budget is 6
+    expect(withRep.price).toBe(8); // 6 coins +30%, rounded up
+    expect(withRep.total).toBeGreaterThan(noRep.total);
+  });
+});
+
 describe('who asks for what', () => {
   it('travelers and bees crave ingredients, faithful ask for a candy, merchants for something rich', () => {
     const seen = new Set<string>();

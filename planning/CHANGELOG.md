@@ -25,3 +25,4 @@ lives in its own `bugs/MMSIB-y.md` file; this file is just the index.
 - [MMSIB-10](bugs/MMSIB-10.md) — Playtest batch 1: action placement, collapsed rival pip, empty evening rail, unclear errors
 - [MMSIB-11](bugs/MMSIB-11.md) — Recipe cost ignored the chosen quality; shelf pips moved mid-day; bar and Cancel placement
 - [MMSIB-12](bugs/MMSIB-12.md) — Playtest batch 2: dead honey upgrade, contract button, wording, alternates too early
+- [MMSIB-13](bugs/MMSIB-13.md) — Playtest 2 follow-up: base supply 2, alternates sold, contracts pay for quality, reputation

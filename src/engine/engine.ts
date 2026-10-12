@@ -8,6 +8,8 @@ import {
   isIngredientUnlocked,
   presentCustomerTypes,
   currentStage,
+  openPlaces,
+  stageTarget,
   isQualityUnlocked,
   modifier,
   rivalPenalty,
@@ -44,7 +46,7 @@ export function newGame(c: Content, opts: NewGameOptions): State {
     rng: opts.seed | 0,
     nextId: 1,
     money: c.settings.startMoney,
-    stage: { index: 0, day: 0, revenue: 0 },
+    stage: { index: 0, day: 0, revenue: 0, misses: 0 },
     lastWeek: null,
     completed: false,
     errands: {},
@@ -136,18 +138,22 @@ function fulfill(c: Content, s: State, contractId: number, ev: GameEvent[]): Fai
   let need = ct.qty;
   const available = stockedAtLeast(c, s, ct.candy, ct.quality);
   if (available.reduce((n, q) => n + s.stock[stockKey(ct.candy, q.id)]!, 0) < need) return fail('not-enough-stock', {}, 'not enough stock');
+  let handed = 0; // value of what is handed over, at each quality's own price
   for (const q of available) {
     const key = stockKey(ct.candy, q.id);
     const take = Math.min(need, s.stock[key]!);
     s.stock[key]! -= take;
+    handed += take * priceOf(c, ct.candy, q.id);
     need -= take;
     if (need === 0) break;
   }
   s.contracts.splice(idx, 1);
-  s.money += ct.reward;
-  s.report.revenue += ct.reward;
+  // The posted reward is a minimum: handing over a better quality than asked pays for what was handed over.
+  const reward = Math.max(ct.reward, Math.round(handed * c.settings.contractMult));
+  s.money += reward;
+  s.report.revenue += reward;
   s.report.contractsDone += 1;
-  ev.push({ type: 'contractDone', contract: ct.id, reward: ct.reward });
+  ev.push({ type: 'contractDone', contract: ct.id, reward });
   return null;
 }
 
@@ -170,7 +176,7 @@ function serve(c: Content, s: State, customerId: number, candy: string, quality:
 
 /** Take one candy from stock, collect the price and the tip, and report it. The caller removes the customer. */
 function sell(c: Content, s: State, cu: Customer, candy: string, quality: string, auto: boolean, ev: GameEvent[]) {
-  const price = salePrice(c, cu, candy, quality);
+  const price = salePrice(c, s, cu, candy, quality);
   const h = hearts(c, cu, candy, quality);
   const tip = tipFor(c, price, h);
   s.stock[stockKey(candy, quality)]! -= 1;
@@ -249,6 +255,7 @@ function buy(c: Content, s: State, nodeId: string, ev: GameEvent[]): Fail | null
   if (!node) return fail('unknown-node', {}, `unknown node "${nodeId}"`);
   const level = s.nodes[nodeId] ?? 0;
   if (level >= node.costs.length) return fail('node-maxed', {}, `"${nodeId}" is at its maximum level`);
+  if (node.minStage > s.stage.index) return fail('stage-locked', { stage: String(node.minStage + 1) }, `"${nodeId}" opens at stage ${node.minStage + 1}`);
   const missing = node.requires.find((r) => (s.nodes[r] ?? 0) < 1);
   if (missing) return fail('node-locked', { node: missing }, `"${nodeId}" requires "${missing}"`);
   const needed = node.needs.find((u) => !s.unlocks.includes(u));
@@ -299,15 +306,17 @@ function closeDay(c: Content, s: State, ev: GameEvent[]) {
   s.stage.revenue += s.report.revenue;
   s.stage.day += 1;
   if (s.stage.day < stage.days) return;
-  const passed = s.stage.revenue >= stage.target;
-  const result = { stage: s.stage.index, passed, revenue: s.stage.revenue, target: stage.target };
+  const target = stageTarget(c, s);
+  const passed = s.stage.revenue >= target;
+  const result = { stage: s.stage.index, passed, revenue: s.stage.revenue, target };
   s.lastWeek = result;
   ev.push({ type: 'weekEnded', ...result });
-  // No fail state: a missed week simply repeats the same stage; everything bought is kept.
+  // No fail state: a missed week repeats the same stage with a slightly lower target (easy mode); everything bought is kept.
+  // Passing opens the next stage; the last stage just goes on week after week until the final quest is delivered.
   if (passed) {
     if (s.stage.index + 1 < c.stages.length) s.stage.index += 1;
-    else s.completed = true;
-  }
+    s.stage.misses = 0;
+  } else s.stage.misses += 1;
   s.stage.day = 0;
   s.stage.revenue = 0;
 }
@@ -375,6 +384,7 @@ function takeStock(c: Content, s: State, candy: string, minQuality: string, qty:
 function completeErrand(c: Content, s: State, id: string, ev: GameEvent[]) {
   const e = c.errands.find((x) => x.id === id)!;
   s.errands[id] = { status: 'done' };
+  if (e.final) s.completed = true;
   applyEffects(c, s, e.reward);
   ev.push({ type: 'errandDone', errand: id });
 }
@@ -443,11 +453,20 @@ function endPhase(c: Content, s: State, ev: GameEvent[]): Fail | null {
   return null;
 }
 
-/** When the shop closes, unused base ingredients are sold off at a reduced value (alternates are kept). */
+/** Every open place on the map pays its income each morning. */
+function payIncome(c: Content, s: State, ev: GameEvent[]) {
+  const coins = openPlaces(c, s).reduce((n, p) => n + p.income, 0);
+  if (coins <= 0) return;
+  s.money += coins;
+  s.report.revenue += coins;
+  s.report.income += coins;
+  ev.push({ type: 'incomePaid', coins });
+}
+
+/** When the shop closes, every unused ingredient is sold off at its surplus value (the rare alternates fetch more). */
 function sellSurplus(c: Content, s: State, ev: GameEvent[]) {
   let coins = 0;
   for (const i of c.ingredients) {
-    if (i.alternateOf) continue;
     const left = s.supply[i.id] ?? 0;
     if (left <= 0 || i.surplusValue <= 0) continue;
     coins += Math.round(left * i.surplusValue);
@@ -470,6 +489,7 @@ function emptyReport(day: number, stage: number, forecast: string): DayReport {
     served: 0,
     tips: 0,
     surplus: 0,
+    income: 0,
     autoServed: 0,
     refused: 0,
     lost: 0,
@@ -485,10 +505,8 @@ function startDay(c: Content, s: State, ev: GameEvent[]) {
   s.forecast = pick(s, c.forecasts).id;
   s.report = emptyReport(s.day, s.stage.index, s.forecast);
   progressMissions(c, s, ev);
-  const carried = Object.fromEntries(c.ingredients.filter((i) => i.alternateOf).map((i) => [i.id, s.supply[i.id] ?? 0]));
+  payIncome(c, s, ev);
   s.supply = deliverSupply(c, s);
-  // Rare alternates are not wasted: whatever was not used yesterday is still on the shelf.
-  for (const [id, n] of Object.entries(carried)) if (n > 0) s.supply[id] = (s.supply[id] ?? 0) + n;
   s.supplyToday = { ...s.supply };
   for (const st of s.stations) st.batchesLeft = c.stations.find((x) => x.id === st.type)!.batchesPerDay;
   runAutoStations(c, s, ev);

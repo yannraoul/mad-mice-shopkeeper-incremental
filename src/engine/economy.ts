@@ -46,6 +46,16 @@ export const presentCustomerTypes = (c: Content, s: Pick<State, 'unlocks'>) =>
 
 export const currentStage = (c: Content, s: Pick<State, 'stage'>) => c.stages[s.stage.index]!;
 
+/** This week's target: easy mode lowers it a little after each missed week of the same stage. */
+export function stageTarget(c: Content, s: Pick<State, 'stage'>): number {
+  const relief = Math.min(c.settings.retryReliefMax, s.stage.misses * c.settings.retryRelief);
+  return Math.round(currentStage(c, s).target * (1 - relief));
+}
+
+/** Places on the map that are open now: their unlock is owned and their stage reached (everything is open once the game is complete). */
+export const openPlaces = (c: Content, s: Pick<State, 'unlocks' | 'stage' | 'completed'>) =>
+  c.places.filter((p) => (p.unlock === undefined || s.unlocks.includes(p.unlock)) && (s.stage.index >= p.minStage || s.completed));
+
 /** Units of `ingredient` the rival hive steals this morning (after relief from errands). */
 export function rivalPenalty(c: Content, s: Pick<State, 'stage' | 'nodes' | 'errands'>, ingredient: string): number {
   const rival = currentStage(c, s).rival;
@@ -106,9 +116,18 @@ export function satisfies(c: Content, cu: Pick<Customer, 'want' | 'minQuality'>,
 export const canAfford = (c: Content, cu: Pick<Customer, 'minQuality' | 'budget'>, candy: string): boolean =>
   priceOf(c, candy, cu.minQuality) <= cu.budget;
 
-/** What a customer pays for `candy` at `quality`: its price, but never more than their budget (a tip comes on top). */
-export const salePrice = (c: Content, cu: Pick<Customer, 'budget'>, candy: string, quality: string): number =>
-  Math.min(priceOf(c, candy, quality), cu.budget);
+/** What a customer pays for `candy` at `quality`: its price, but never more than their budget (a tip comes on top), plus the shop's reputation bonus. */
+export const salePrice = (
+  c: Content,
+  s: Pick<State, 'nodes' | 'errands'>,
+  cu: Pick<Customer, 'budget'>,
+  candy: string,
+  quality: string,
+): number => {
+  const base = Math.min(priceOf(c, candy, quality), cu.budget);
+  // Rounded up, so that on cheap candies one level of reputation is worth at least a coin.
+  return Math.ceil(base * (1 + modifier(c, s, 'priceBonus') / 100) - 1e-9);
+};
 
 /**
  * How happy this candy makes the customer, 1 to 3 hearts. A specific candy: one heart at the minimum quality,
@@ -150,13 +169,13 @@ export interface ServeChoice {
 }
 
 /** Every stocked candy and quality that would serve this customer, most rewarding first (cheaper first on ties). */
-export function serveChoices(c: Content, s: Pick<State, 'stock'>, cu: Customer): ServeChoice[] {
+export function serveChoices(c: Content, s: Pick<State, 'stock' | 'nodes' | 'errands'>, cu: Customer): ServeChoice[] {
   const out: ServeChoice[] = [];
   for (const [key, qty] of Object.entries(s.stock)) {
     if (qty < 1) continue;
     const [candy, quality] = key.split(':') as [string, string];
     if (!satisfies(c, cu, candy, quality) || !canAfford(c, cu, candy)) continue;
-    const price = salePrice(c, cu, candy, quality);
+    const price = salePrice(c, s, cu, candy, quality);
     const h = hearts(c, cu, candy, quality);
     const tip = tipFor(c, price, h);
     out.push({ candy, quality, price, hearts: h, tip, total: price + tip });
