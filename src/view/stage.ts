@@ -15,6 +15,8 @@ export interface StageView {
   pct: number;
   /** "+1 more goal(s)" when several quests are open at once. */
   more: string | null;
+  /** Every open quest with its goals and reward, for the expandable list. */
+  open: QuestRow[];
   /** One pip per day of the week; `rival` marks the day the rival hive starts stealing. */
   pips: { state: 'done' | 'current' | 'todo'; rival: boolean }[];
   /** Short form of the rival warning for a compact chip; the full text is `warning` + `hints`. */
@@ -27,6 +29,29 @@ export interface StageView {
   newThings: string | null;
   /** Final quest delivered: the optional ending text (from a pack) or a generic line. */
   complete: string | null;
+}
+
+export interface QuestRow {
+  id: string;
+  name: string;
+  desc: string;
+  goals: { text: string; pct: number; done: boolean }[];
+  /** "Reward: 120 coins · +50 more coins if done within 7 days of opening" (empty when there is none). */
+  reward: string;
+}
+
+function questRow(c: Content, s: State, t: Translate, q: Content['quests'][number]): QuestRow {
+  const goals = q.goals.map((g) => {
+    const p = goalProgress(c, s, g);
+    const text =
+      g.type === 'earn' ? t('quest.earned', { n: p.have, target: p.need })
+      : g.type === 'own' ? t('quest.goal.own', { node: t(`node.${g.node}`) })
+      : g.type === 'errand' ? t('quest.goal.errand', { errand: t(c.errands.find((e) => e.id === g.errand)!.nameKey) })
+      : t('quest.goal.day', { day: g.day });
+    return { text, pct: Math.round(Math.min(1, p.have / p.need) * 100), done: p.have >= p.need };
+  });
+  const reward = [q.coins > 0 ? t('quest.reward', { n: q.coins }) : '', q.bonus ? t('quest.bonus', { n: q.bonus.coins, days: q.bonus.days }) : ''].filter(Boolean).join(' · ');
+  return { id: q.id, name: t(q.nameKey), desc: t(q.descKey), goals, reward };
 }
 
 export function buildStageView(c: Content, s: State, t: Translate): StageView {
@@ -96,6 +121,7 @@ export function buildStageView(c: Content, s: State, t: Translate): StageView {
     earnedText: earnProgress ? t('quest.earned', { n: earnProgress.have, target: earnProgress.need }) : '',
     pct,
     more: open.length > 1 ? t('quest.more', { n: open.length - 1 }) : null,
+    open: open.map((q) => questRow(c, s, t, q)),
     pips: Array.from({ length: DAYS_PER_WEEK }, (_, i) => ({
       state: i + 1 < today ? 'done' : i + 1 === today ? 'current' : 'todo',
       rival: rivalDay === i + 1,

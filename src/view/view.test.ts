@@ -204,7 +204,7 @@ describe('stage view', () => {
   it('shows the open quest and a heads-up before the rival starts', () => {
     const v = buildStageView(c, stage2(), en);
     expect(v.name).toBe('Gathering pilgrims');
-    expect(v.earnedText).toBe('0 / 760 coins earned');
+    expect(v.earnedText).toBe('0 / 860 coins earned');
     expect(v.pct).toBe(0);
     expect(v.warning).toBe('A rival hive will start stealing 1 honey each morning from day 3 of the week.');
     expect(v.hints).toEqual(['Errands can stop this: buy the Errands board (Temple branch).']);
@@ -374,5 +374,31 @@ describe('menu', () => {
       ok: false,
       text: "Impossible de charger cette sauvegarde : ce n'est pas une sauvegarde.",
     });
+  });
+});
+
+describe('map for sale and the open goals list (MMSIM-20)', () => {
+  it('a reachable place for sale shows its price and a buy button that needs the evening and the coins', () => {
+    const s = newGame(c, { seed: 1, unlocks: ['map'] });
+    reachQuests(c, s, 7);
+    const sale = c.places.find((p) => p.cost > 0)!;
+    const place = (state: typeof s) => buildMapView(c, state, en)!.places.find((p) => p.id === sale.id)!;
+    expect(place(s).buy).toMatchObject({ label: `Open for ${sale.cost} coins`, enabled: false, action: { type: 'buyPlace', place: sale.id } }); // morning
+    const evening = run(s, end, end);
+    evening.money = sale.cost;
+    expect(place(evening).buy!.enabled).toBe(true);
+    evening.places.push(sale.id);
+    expect(place(evening)).toMatchObject({ open: true, buy: null });
+  });
+  it('lists every open quest with its goals and reward', () => {
+    const s = newGame(c, { seed: 1 });
+    reachQuests(c, s, 1);
+    const open = buildStageView(c, s, en).open;
+    const q2 = open.find((q) => q.id === 'q2')!;
+    expect(q2.goals[0]!.text).toBe('0 / 860 coins earned');
+    expect(q2.reward).toMatch(/Reward: \d+ coins|more coins/);
+    const queen = open.find((q) => q.id === 'queens-thanks')!;
+    expect(queen).toMatchObject({ name: "The queen's thanks", reward: 'Reward: 120 coins' });
+    expect(queen.goals[0]).toMatchObject({ text: 'Finish: The queen is sick', done: false });
   });
 });

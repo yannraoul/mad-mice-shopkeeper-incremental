@@ -173,7 +173,10 @@ export function validateRefs(c: Content): string[] {
   for (const q of c.quests) {
     if (q.rival && !ingredients.has(q.rival.ingredient)) errors.push(`quests/${q.id}: unknown ingredient "${q.rival.ingredient}"`);
     for (const r of q.requires) if (!questIds.has(r)) errors.push(`quests/${q.id}: unknown required quest "${r}"`);
-    for (const g of q.goals) if (g.type === 'own' && !c.skillNodes.some((n) => n.id === g.node)) errors.push(`quests/${q.id}: unknown upgrade "${g.node}"`);
+    for (const g of q.goals) {
+      if (g.type === 'own' && !c.skillNodes.some((n) => n.id === g.node)) errors.push(`quests/${q.id}: unknown upgrade "${g.node}"`);
+      if (g.type === 'errand' && !c.errands.some((e) => e.id === g.errand)) errors.push(`quests/${q.id}: unknown errand "${g.errand}"`);
+    }
   }
   for (const [table, rows] of [['skillNodes', c.skillNodes], ['errands', c.errands], ['places', c.places]] as const)
     for (const r of rows as { id: string; quest?: string }[])

@@ -51,7 +51,7 @@ describe('quest chain', () => {
     s1.money = 99;
     s1.report.revenue = earn(first).amount;
     const r = step(c, s1, { type: 'buy', node: 'counter-space' });
-    expect(r.ok && r.events.filter((e) => e.type === 'questDone')).toEqual([{ type: 'questDone', quest: first.id }]);
+    expect(r.ok && r.events.filter((e) => e.type === 'questDone')).toEqual([{ type: 'questDone', quest: first.id, coins: first.coins }]);
   });
   it('the running total counts the finished days and today, and nothing resets', () => {
     const s = days(newGame(c, { seed: 1 }), 3, 100);
@@ -75,8 +75,8 @@ describe('quest chain', () => {
     const cx = {
       ...c,
       quests: [
-        { id: 'a', nameKey: 'quest.q1', requires: [], goals: [{ type: 'own' as const, node: 'oven', level: 1 }, { type: 'day' as const, day: 2 }], reward: [{ type: 'unlock' as const, id: 'sunflower' }] },
-        { id: 'b', nameKey: 'quest.q2', requires: ['a'], goals: [{ type: 'day' as const, day: 3 }], reward: [] },
+        { id: 'a', nameKey: 'quest.q1', descKey: 'quest.q1.desc', coins: 0, requires: [], goals: [{ type: 'own' as const, node: 'oven', level: 1 }, { type: 'day' as const, day: 2 }], reward: [{ type: 'unlock' as const, id: 'sunflower' }] },
+        { id: 'b', nameKey: 'quest.q2', descKey: 'quest.q2.desc', coins: 0, requires: ['a'], goals: [{ type: 'day' as const, day: 3 }], reward: [] },
       ],
     };
     let s = newGame(cx, { seed: 1 });
@@ -102,7 +102,7 @@ describe('quest chain', () => {
   });
   it('delivering the final quest completes the game', () => {
     const final = c.errands.find((e) => e.final)!;
-    expect(final.quest).toBe(c.quests[c.quests.length - 1]!.id);
+    expect(final.quest).toBe('q8');
     let s = newGame(c, { seed: 1, unlocks: final.requires });
     reachQuests(c, s, c.quests.length);
     s.stock['sweet-tooth:perfect'] = 3;
@@ -244,8 +244,9 @@ describe('errands', () => {
       let s = run(g, craft(), end);
       const bee = { id: 9999, type: 'bee', want: { kind: 'ingredient', ingredient: 'honey' }, minQuality: 'plain', patience: 5, budget: 10 } as const;
       s.queue = [bee];
+      const before = s.money;
       s = run(s, { type: 'serve', customer: 9999, candy: 'candy-cane', quality: 'plain' });
-      expect(s.money).toBe(5);
+      expect(s.money - before).toBe(5);
     });
   });
   it('delivery takes the stock and pays a permanent reward from the next morning', () => {
@@ -296,5 +297,53 @@ describe('errands', () => {
       expect(s.errands['rival-hive']?.status).toBe('done');
       expect(s.supply.honey).toBe(3); // rival would take 2 in stage 2
     });
+  });
+});
+
+describe('quest rewards, errand goals and places for sale (MMSIM-20)', () => {
+  it('a quest pays its coins, plus its bonus when done soon after it opened', () => {
+    const q2 = c.quests.find((q) => q.id === 'q2')!;
+    expect(q2.bonus).toBeDefined();
+    const paidFor = (day: number) => {
+      const s = newGame(c, { seed: 1 });
+      s.quests.q1 = 1;
+      s.day = day;
+      s.revenueTotal = (q2.goals[0] as { amount: number }).amount; // only the second quest is within reach
+      const r = step(c, s, { type: 'endPhase' });
+      if (!r.ok) throw new Error(r.error);
+      return (r.events.find((e) => e.type === 'questDone' && e.quest === 'q2') as { coins: number }).coins;
+    };
+    expect(paidFor(3)).toBe(q2.coins + q2.bonus!.coins);
+    expect(paidFor(1 + q2.bonus!.days + 5)).toBe(q2.coins);
+  });
+  it('an errand goal completes when the errand is done', () => {
+    const quest = c.quests.find((q) => q.id === 'queens-thanks')!;
+    let s = newGame(c, { seed: 2, unlocks: ['errandsBoard', 'oven'] });
+    reachQuests(c, s, 1);
+    expect(s.quests[quest.id]).toBeUndefined();
+    s = run(s, { type: 'acceptErrand', errand: 'queen-fever' }, { type: 'craft', station: 0, candy: 'candy-cane', quality: 'fine' }, { type: 'deliverErrand', errand: 'queen-fever' });
+    expect(s.quests[quest.id]).toBeDefined();
+    expect(s.money).toBeGreaterThanOrEqual(quest.coins);
+  });
+  const evening = (money: number, quests = 7) => {
+    const s = newGame(c, { seed: 1, unlocks: ['map'] });
+    reachQuests(c, s, quests);
+    const e = run(s, end, end);
+    e.money = money;
+    return e;
+  };
+  const paid = c.places.find((p) => p.cost > 0)!;
+  it('a place for sale is bought with coins in the evening, once its quest is done, and then pays its income', () => {
+    expect(paid.cost).toBeGreaterThan(0);
+    expect(failCode(evening(paid.cost - 1), { type: 'buyPlace', place: paid.id })).toBe('not-enough-money');
+    expect(failCode(evening(99_999, 1), { type: 'buyPlace', place: paid.id })).toBe('quest-locked');
+    expect(failCode(newGame(c, { seed: 1, unlocks: ['map'] }), { type: 'buyPlace', place: paid.id })).toBe('wrong-phase');
+    expect(failCode(evening(99_999), { type: 'buyPlace', place: 'nope' })).toBe('unknown-place');
+    expect(failCode(evening(99_999), { type: 'buyPlace', place: 'millpond' })).toBe('place-owned'); // free places are not for sale
+    const s = run(evening(paid.cost + 10), { type: 'buyPlace', place: paid.id });
+    expect(s.money).toBe(10);
+    expect(failCode(s, { type: 'buyPlace', place: paid.id })).toBe('place-owned');
+    const next = run(s, end);
+    expect(next.report.income).toBeGreaterThanOrEqual(paid.income);
   });
 });

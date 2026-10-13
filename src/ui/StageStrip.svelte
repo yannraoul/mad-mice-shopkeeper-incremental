@@ -6,13 +6,14 @@
 
   const v = $derived(buildStageView(content, game.s, t));
   let open = $state(false);
+  let goalsOpen = $state(false);
 </script>
 
 <section class="strip" aria-label={v.name}>
   <div class="main">
     <div class="line">
       <span><b>{v.name}</b> <span class="muted">· {v.dayText}</span></span>
-      <span class="mono earned">{v.earnedText}{#if v.more} · {v.more}{/if}</span>
+      <span class="mono earned">{v.earnedText}{#if v.more} · <button class="more" aria-expanded={goalsOpen} onclick={() => (goalsOpen = !goalsOpen)}>{v.more} {goalsOpen ? '▴' : '▾'}</button>{/if}</span>
     </div>
     <div class="days" aria-hidden="true">
       {#each v.pips as p, i (i)}
@@ -38,12 +39,28 @@
   {/if}
 </section>
 
+{#if goalsOpen && v.open.length > 0}
+  <ul class="goals">
+    {#each v.open as q (q.id)}
+      <li>
+        <b>{q.name}</b> <span class="muted small">{q.desc}</span>
+        {#each q.goals as g}<div class="small goal" class:done={g.done}>{g.text}</div>{/each}
+        {#if q.reward}<div class="small reward">{q.reward}</div>{/if}
+      </li>
+    {/each}
+  </ul>
+{/if}
+
 {#if v.newThings}
   <p class="week ok">{v.newThings}</p>
 {/if}
 {#if v.complete}<p class="week ok">{v.complete}</p>{/if}
 
 <style>
+  .more { background: none; border: 0; padding: 0; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; min-height: 0; }
+  .goals { list-style: none; margin: 0; padding: 10px 14px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel2); font-size: 14px; }
+  .goal.done { text-decoration: line-through; opacity: 0.6; }
+  .reward { color: var(--ok); }
   .strip { display: flex; align-items: center; gap: 16px; padding: 0 6px; }
   .main { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
   .line { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 14px; }

@@ -5,7 +5,7 @@ import type { State } from '../engine/types.ts';
 
 // Saves are a versioned envelope around the plain engine State. Bump SAVE_VERSION whenever the
 // State shape changes and add a step to `migrate`, so old saves keep loading.
-export const SAVE_VERSION = 11;
+export const SAVE_VERSION = 12;
 const EXPORT_PREFIX = 'CST1:';
 
 const num = z.number();
@@ -31,6 +31,7 @@ const StateSchema = z.object({
   money: num.min(0),
   quests: rec(num),
   revenueTotal: num.min(0).default(0),
+  places: z.array(z.string()).default([]),
   completed: z.boolean(),
   errands: rec(z.object({ status: z.enum(['active', 'done']), daysLeft: num.optional() })),
   nodes: rec(num),
@@ -190,6 +191,11 @@ const MIGRATIONS: Record<number, (state: unknown) => unknown> = {
     const history = (rest.history ?? []) as { revenue?: number }[];
     return { ...rest, quests, revenueTotal: history.reduce((n, r) => n + (r.revenue ?? 0), 0) };
   },
+  // v11 -> v12 (MMSIM-20): places bought with coins.
+  11: (state) => {
+    if (typeof state !== 'object' || state === null) return state;
+    return { places: [], ...(state as Record<string, unknown>) };
+  },
 };
 
 /** Upgrade an older envelope to the current shape (none exist yet). */
@@ -225,6 +231,7 @@ export function checkAgainstContent(c: Content, s: State): string | null {
   for (const st of s.stations) if (!has(c.stations, st.type)) return `unknown station "${st.type}"`;
   for (const n of Object.keys(s.nodes)) if (!has(c.skillNodes, n)) return `unknown upgrade "${n}"`;
   for (const q of Object.keys(s.quests)) if (!has(c.quests, q)) return `unknown quest "${q}"`;
+  for (const p of s.places) if (!has(c.places, p)) return `unknown place "${p}"`;
   for (const e of Object.keys(s.errands)) if (!has(c.errands, e)) return `unknown errand "${e}"`;
   if (!has(c.forecasts, s.forecast)) return `unknown forecast "${s.forecast}"`;
   for (const t of s.delegated) if (!has(c.customerTypes, t)) return `unknown customer type "${t}"`;

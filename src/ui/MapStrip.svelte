@@ -2,6 +2,7 @@
   import type { MapView } from '../view/map.ts';
   import { media } from './media.svelte.ts';
   import ImageSlot from './ImageSlot.svelte';
+  import { dispatch } from './game.svelte.ts';
 
   let { view }: { view: MapView | null } = $props();
 </script>
@@ -12,7 +13,8 @@
     <div class="strip"><ImageSlot id={view.art} height={media.narrow ? 72 : 96} /></div>
     <div class="places">
       {#each view.places as p (p.id)}
-        <span class="place" class:locked={!p.open}>{p.text}{#if p.income} <span class="muted small">· {p.income}</span>{/if}</span>
+        <span class="place" class:locked={!p.open && !p.buy}>{p.text}{#if p.income} <span class="muted small">· {p.income}</span>{/if}
+          {#if p.buy}<button class="btn sm" disabled={!p.buy.enabled} onclick={() => dispatch(p.buy!.action)}>{p.buy.label}</button>{/if}</span>
       {/each}
     </div>
   </section>
@@ -32,5 +34,6 @@
     align-items: center;
     font-size: 14px;
   }
+  .place { gap: 8px; }
   .place.locked { border: 1px dashed var(--line); color: var(--muted); }
 </style>

@@ -157,6 +157,8 @@ export const Goal = z.discriminatedUnion('type', [
   z.object({ type: z.literal('own'), node: id, level: z.number().int().positive().default(1) }),
   /** The calendar has reached this day. */
   z.object({ type: z.literal('day'), day: z.number().int().positive() }),
+  /** An errand finished. */
+  z.object({ type: z.literal('errand'), errand: id }),
 ]);
 /**
  * A quest of the chain: it opens once every quest in `requires` is done, completes by itself the moment all its `goals`
@@ -165,8 +167,13 @@ export const Goal = z.discriminatedUnion('type', [
 export const Quest = z.object({
   id,
   nameKey: key,
+  descKey: key,
   requires: z.array(id).default([]),
   goals: z.array(Goal).min(1),
+  /** Coins paid when the quest is done. */
+  coins: z.number().int().min(0).default(0),
+  /** More coins when it is done within `days` days of opening (the day the last quest it needs was done): a bonus, never a fail. */
+  bonus: z.object({ days: z.number().int().positive(), coins: z.number().int().positive() }).optional(),
   /** From the moment this quest is done, daily arrivals are multiplied by this (the latest done quest that has one counts). */
   arrivalsMult: z.number().positive().optional(),
   /** The rival hive that comes with the latest done quest that sets arrivals (none = no rival). */
@@ -199,6 +206,8 @@ export const Place = z.object({
   quest: id.optional(),
   unlock: z.string().optional(),
   income: z.number().int().min(0).default(0),
+  /** Coins to open it (bought on the map in the evening); 0 = open as soon as its quest is done. */
+  cost: z.number().int().min(0).default(0),
 });
 /** Evening journal line, shown when `when` matches the day's report; all conditions optional. */
 export const JournalLine = z.object({

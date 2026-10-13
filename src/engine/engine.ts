@@ -53,6 +53,7 @@ export function newGame(c: Content, opts: NewGameOptions): State {
     nextId: 1,
     money: c.settings.startMoney,
     quests: {},
+    places: [],
     revenueTotal: 0,
     completed: false,
     errands: {},
@@ -109,6 +110,8 @@ function apply(c: Content, s: State, a: Action, ev: GameEvent[]): Fail | null {
       return setAutoCandy(c, s, a.candy);
     case 'setRoutine':
       return setRoutine(c, s, a.on);
+    case 'buyPlace':
+      return buyPlace(c, s, a.place);
     case 'buy':
       return buy(c, s, a.node, ev);
     case 'acceptErrand':
@@ -327,9 +330,13 @@ function updateQuests(c: Content, s: State, ev: GameEvent[]) {
     again = false;
     for (const q of c.quests) {
       if (questDone(s, q.id) || !q.requires.every((r) => questDone(s, r)) || !q.goals.every((g) => goalMet(c, s, g))) continue;
+      // The quest opened the day the last quest it needs was done; a quick finish earns the bonus.
+      const opened = Math.max(1, ...q.requires.map((r) => s.quests[r] ?? 1));
+      const coins = q.coins + (q.bonus && s.day - opened <= q.bonus.days ? q.bonus.coins : 0);
       s.quests[q.id] = s.day;
+      s.money += coins;
       applyEffects(c, s, q.reward);
-      ev.push({ type: 'questDone', quest: q.id });
+      ev.push({ type: 'questDone', quest: q.id, coins });
       again = true;
     }
   }
@@ -463,6 +470,20 @@ function autoDeliver(c: Content, s: State, ev: GameEvent[]) {
     if (d.kind === 'contract') fulfill(c, s, d.id as number, ev);
     else deliverErrand(c, s, d.id as string, ev);
   }
+}
+
+/** Open a place on the map with coins (evening only): it pays its income every morning from then on. */
+function buyPlace(c: Content, s: State, id: string): Fail | null {
+  if (s.phase !== 'evening') return fail('wrong-phase', { phase: 'evening' }, 'places are bought in the evening');
+  const p = c.places.find((x) => x.id === id);
+  if (!p) return fail('unknown-place', {}, `unknown place "${id}"`);
+  if (p.cost === 0 || s.places.includes(id)) return fail('place-owned', {}, `"${id}" is already open`);
+  if (!questReached(s, p.quest)) return fail('quest-locked', { quest: p.quest! }, `"${id}" opens with the quest "${p.quest}"`);
+  if (p.unlock !== undefined && !s.unlocks.includes(p.unlock)) return fail('unlock-needed', { unlock: p.unlock }, `"${id}" needs "${p.unlock}" first`);
+  if (s.money < p.cost) return fail('not-enough-money', {}, `needs ${p.cost} coins`);
+  s.money -= p.cost;
+  s.places.push(id);
+  return null;
 }
 
 /** Switch the daily routine on (needs the foreman mouse and a helper for every basic step) or off. */

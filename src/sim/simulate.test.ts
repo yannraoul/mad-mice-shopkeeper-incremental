@@ -17,8 +17,9 @@ describe('simulator', () => {
   });
   it('earns more with the oven, the garden and contracts unlocked', () => {
     const total = (r: ReturnType<typeof simulate>) => r.history.reduce((n, d) => n + d.revenue, 0);
-    const base = total(simulate(c, { days: 40, seed: 2 }));
-    const rich = total(simulate(c, { days: 40, seed: 2, unlocks: ['oven', 'dark-garden', 'contractBoard'] }));
+    const seeds = [1, 2, 3, 4];
+    const base = seeds.reduce((n, seed) => n + total(simulate(c, { days: 40, seed })), 0);
+    const rich = seeds.reduce((n, seed) => n + total(simulate(c, { days: 40, seed, unlocks: ['oven', 'dark-garden', 'contractBoard'] })), 0);
     expect(rich).toBeGreaterThan(base);
   });
   it('never makes an illegal move across many seeds', () => {

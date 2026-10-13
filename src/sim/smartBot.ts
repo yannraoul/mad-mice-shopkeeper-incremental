@@ -97,6 +97,11 @@ function smartEvening(c: Content, s: State): State {
     }
     s = r.state;
   }
+  // Nothing left to buy in the tree: open the places on the map, cheapest first.
+  for (const p of [...c.places].filter((x) => x.cost > 0).sort((a, b) => a.cost - b.cost)) {
+    const r = step(c, s, { type: 'buyPlace', place: p.id });
+    if (r.ok) s = r.state;
+  }
   return s;
 }
 

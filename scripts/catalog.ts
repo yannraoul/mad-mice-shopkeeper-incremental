@@ -33,13 +33,13 @@ section('Workers', table(['Name', 'Hired by', 'Serves'], c.workers.map((w) => [t
 section('Daily forecasts (shown in the morning, never exact)', table(['Text', 'Busyness'], c.forecasts.map((f) => [t(f.nameKey), `x${f.arrivalsMult}`])));
 section('Skill tree', ['kitchen', 'shop', 'temple'].map((b) => `**${t(`branch.${b}`)}**\n\n` + table(['Upgrade', 'Levels', 'Cost per level', 'Requires', 'Effect', 'Description'],
   c.skillNodes.filter((n) => n.branch === b).map((n) => [t(n.nameKey), n.costs.length, n.costs.join(' / '), n.requires.map((r) => t(`node.${r}`)).join(', ') || '-', n.effects.map(effectText).join('; '), t(n.descKey)]))).join('\n\n'));
-section('Quests', table(['Quest', 'Needs', 'Goals', 'Customer volume once done', 'Rival hive once done'],
-  c.quests.map((q) => [t(q.nameKey), q.requires.map((r) => `\`${r}\``).join(', ') || '-', q.goals.map((g) => g.type === 'earn' ? `earn ${g.amount} coins in all` : g.type === 'own' ? `own ${g.node}` : `reach day ${g.day}`).join(', '), q.arrivalsMult ? `x${q.arrivalsMult}` : '-', q.rival ? `steals ${q.rival.amount} ${t(`ingredient.${q.rival.ingredient}`)} per morning from day ${q.rival.startsOnDay} of the week` : '-'])));
+section('Quests', table(['Quest', 'Needs', 'Goals', 'Coins (bonus)', 'Customer volume once done', 'Rival hive once done'],
+  c.quests.map((q) => [t(q.nameKey), q.requires.map((r) => `\`${r}\``).join(', ') || '-', q.goals.map((g) => g.type === 'earn' ? `earn ${g.amount} coins in all` : g.type === 'own' ? `own ${g.node}` : g.type === 'errand' ? `finish errand ${g.errand}` : `reach day ${g.day}`).join(', '), `${q.coins}${q.bonus ? ` (+${q.bonus.coins} within ${q.bonus.days} days)` : ''}`, q.arrivalsMult ? `x${q.arrivalsMult}` : '-', q.rival ? `steals ${q.rival.amount} ${t(`ingredient.${q.rival.ingredient}`)} per morning from day ${q.rival.startsOnDay} of the week` : '-'])));
 section('Errands', table(['Name', 'Kind', 'Needs', 'Opens with quest', 'Reward / effect', 'Description'],
   c.errands.map((e) => [t(e.nameKey), e.kind === 'mission' ? `mission: ${t(`worker.${e.mission!.worker}`)} away ${e.mission!.days} days` : 'deliver goods',
     [...e.requires.map((r) => `\`${r}\``), ...e.deliver.map((d) => `${d.qty} ${t(`candy.${d.candy}`)} (${t(`quality.${d.quality}`)})`)].join(', '), e.quest ?? '-',
     e.reward.map(effectText).join('; '), t(e.descKey)])));
-section('Map places', table(['Place', 'Opens with quest'], c.places.map((p) => [t(p.nameKey), p.quest ?? '-'])));
+section('Map places', table(['Place', 'Opens with quest', 'Cost', 'Income a day'], c.places.map((p) => [t(p.nameKey), p.quest ?? '-', p.cost || 'free', p.income])));
 section('Art slots (placeholders today: final pixel sizes, swappable files)', table(['Slot id', 'Size (px)', 'What it shows'],
   c.artSlots.map((a) => [`\`${a.id}\``, `${a.width} x ${a.height}`, t(a.altKey)])));
 section('Key numbers', table(['Setting', 'Value'], [

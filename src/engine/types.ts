@@ -73,6 +73,8 @@ export interface State {
   money: number;
   /** Quests done, by quest id, with the day each was completed. */
   quests: Record<string, number>;
+  /** Map places bought with coins (those with a cost). */
+  places: string[];
   /** Coins earned on the days that are over (today's are in `report.revenue`): the `earn` goals count both. */
   revenueTotal: number;
   /** True once the final quest was delivered (play can continue). */
@@ -119,6 +121,7 @@ export type Action =
   | { type: 'setStepMode'; step: string; auto: boolean }
   | { type: 'setAutoCandy'; candy: string }
   | { type: 'setRoutine'; on: boolean }
+  | { type: 'buyPlace'; place: string }
   | { type: 'delegate'; customerType: string; on: boolean }
   | { type: 'buy'; node: string }
   | { type: 'acceptErrand'; errand: string }
@@ -136,7 +139,7 @@ export type GameEvent =
   | { type: 'bought'; node: string; level: number }
   | { type: 'errandAccepted'; errand: string }
   | { type: 'errandDone'; errand: string }
-  | { type: 'questDone'; quest: string }
+  | { type: 'questDone'; quest: string; coins: number }
   | { type: 'contractDone'; contract: number; reward: number }
   | { type: 'contractExpired'; contract: number }
   | { type: 'contractPosted'; contract: number }
@@ -167,6 +170,8 @@ export type FailCode =
   | 'cannot-automate'
   | 'no-order-book'
   | 'no-routine'
+  | 'unknown-place'
+  | 'place-owned'
   | 'routine-needs-helpers'
   | 'not-enough-money'
   | 'candy-locked'

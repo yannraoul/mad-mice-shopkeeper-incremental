@@ -40,5 +40,29 @@
     "unlock": "map",
     "income": 18,
     "quest": "q7"
+  },
+  {
+    "id": "cobbled-market",
+    "nameKey": "place.cobbled-market",
+    "unlock": "map",
+    "income": 30,
+    "quest": "q5",
+    "cost": 600
+  },
+  {
+    "id": "pilgrim-hostel",
+    "nameKey": "place.pilgrim-hostel",
+    "unlock": "map",
+    "income": 80,
+    "quest": "q6",
+    "cost": 1600
+  },
+  {
+    "id": "fairground",
+    "nameKey": "place.fairground",
+    "unlock": "map",
+    "income": 190,
+    "quest": "q7",
+    "cost": 3800
   }
 ]

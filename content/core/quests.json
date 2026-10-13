@@ -14,7 +14,8 @@
       "ingredient": "honey",
       "amount": 1,
       "startsOnDay": 3
-    }
+    },
+    "descKey": "quest.q1.desc"
   },
   {
     "id": "q2",
@@ -25,7 +26,7 @@
     "goals": [
       {
         "type": "earn",
-        "amount": 760
+        "amount": 860
       }
     ],
     "arrivalsMult": 2,
@@ -33,6 +34,11 @@
       "ingredient": "honey",
       "amount": 2,
       "startsOnDay": 2
+    },
+    "descKey": "quest.q2.desc",
+    "bonus": {
+      "days": 7,
+      "coins": 50
     }
   },
   {
@@ -44,10 +50,15 @@
     "goals": [
       {
         "type": "earn",
-        "amount": 1910
+        "amount": 2450
       }
     ],
-    "arrivalsMult": 2.4
+    "arrivalsMult": 2.4,
+    "descKey": "quest.q3.desc",
+    "bonus": {
+      "days": 7,
+      "coins": 100
+    }
   },
   {
     "id": "q4",
@@ -58,10 +69,15 @@
     "goals": [
       {
         "type": "earn",
-        "amount": 3810
+        "amount": 5200
       }
     ],
-    "arrivalsMult": 2.8
+    "arrivalsMult": 2.8,
+    "descKey": "quest.q4.desc",
+    "bonus": {
+      "days": 7,
+      "coins": 150
+    }
   },
   {
     "id": "q5",
@@ -72,10 +88,15 @@
     "goals": [
       {
         "type": "earn",
-        "amount": 6610
+        "amount": 8800
       }
     ],
-    "arrivalsMult": 3
+    "arrivalsMult": 3,
+    "descKey": "quest.q5.desc",
+    "bonus": {
+      "days": 7,
+      "coins": 250
+    }
   },
   {
     "id": "q6",
@@ -86,10 +107,15 @@
     "goals": [
       {
         "type": "earn",
-        "amount": 10110
+        "amount": 12800
       }
     ],
-    "arrivalsMult": 3
+    "arrivalsMult": 3,
+    "descKey": "quest.q6.desc",
+    "bonus": {
+      "days": 7,
+      "coins": 350
+    }
   },
   {
     "id": "q7",
@@ -100,10 +126,15 @@
     "goals": [
       {
         "type": "earn",
-        "amount": 14110
+        "amount": 18000
       }
     ],
-    "arrivalsMult": 3
+    "arrivalsMult": 3,
+    "descKey": "quest.q7.desc",
+    "bonus": {
+      "days": 7,
+      "coins": 450
+    }
   },
   {
     "id": "q8",
@@ -114,9 +145,212 @@
     "goals": [
       {
         "type": "earn",
-        "amount": 18410
+        "amount": 25000
       }
     ],
-    "arrivalsMult": 3
+    "arrivalsMult": 3,
+    "descKey": "quest.q8.desc",
+    "bonus": {
+      "days": 7,
+      "coins": 600
+    }
+  },
+  {
+    "id": "lend-a-paw",
+    "nameKey": "quest.lend-a-paw",
+    "descKey": "quest.lend-a-paw.desc",
+    "requires": [
+      "q1"
+    ],
+    "goals": [
+      {
+        "type": "own",
+        "node": "porter-mouse",
+        "level": 1
+      }
+    ],
+    "coins": 60
+  },
+  {
+    "id": "queens-thanks",
+    "nameKey": "quest.queens-thanks",
+    "descKey": "quest.queens-thanks.desc",
+    "requires": [
+      "q1"
+    ],
+    "goals": [
+      {
+        "type": "errand",
+        "errand": "queen-fever"
+      }
+    ],
+    "coins": 120
+  },
+  {
+    "id": "hive-peace",
+    "nameKey": "quest.hive-peace",
+    "descKey": "quest.hive-peace.desc",
+    "requires": [
+      "q1"
+    ],
+    "goals": [
+      {
+        "type": "errand",
+        "errand": "rival-hive"
+      }
+    ],
+    "coins": 80
+  },
+  {
+    "id": "pilgrims-feast",
+    "nameKey": "quest.pilgrims-feast",
+    "descKey": "quest.pilgrims-feast.desc",
+    "requires": [
+      "q2"
+    ],
+    "goals": [
+      {
+        "type": "errand",
+        "errand": "pilgrim-feast"
+      }
+    ],
+    "coins": 200
+  },
+  {
+    "id": "scarecrow-watch",
+    "nameKey": "quest.scarecrow-watch",
+    "descKey": "quest.scarecrow-watch.desc",
+    "requires": [
+      "q2"
+    ],
+    "goals": [
+      {
+        "type": "errand",
+        "errand": "scarecrow-mice"
+      }
+    ],
+    "coins": 150
+  },
+  {
+    "id": "milk-and-honey",
+    "nameKey": "quest.milk-and-honey",
+    "descKey": "quest.milk-and-honey.desc",
+    "requires": [
+      "q3"
+    ],
+    "goals": [
+      {
+        "type": "errand",
+        "errand": "dairy-cart"
+      }
+    ],
+    "coins": 250
+  },
+  {
+    "id": "pulled-excellence",
+    "nameKey": "quest.pulled-excellence",
+    "descKey": "quest.pulled-excellence.desc",
+    "requires": [
+      "q3"
+    ],
+    "goals": [
+      {
+        "type": "own",
+        "node": "pulling-machine",
+        "level": 1
+      }
+    ],
+    "coins": 200
+  },
+  {
+    "id": "foreman-hired",
+    "nameKey": "quest.foreman-hired",
+    "descKey": "quest.foreman-hired.desc",
+    "requires": [
+      "q3"
+    ],
+    "goals": [
+      {
+        "type": "own",
+        "node": "foreman-mouse",
+        "level": 1
+      }
+    ],
+    "coins": 800
+  },
+  {
+    "id": "bramble-way",
+    "nameKey": "quest.bramble-way",
+    "descKey": "quest.bramble-way.desc",
+    "requires": [
+      "q4"
+    ],
+    "goals": [
+      {
+        "type": "errand",
+        "errand": "bramble-thicket"
+      }
+    ],
+    "coins": 300
+  },
+  {
+    "id": "magic-stirs",
+    "nameKey": "quest.magic-stirs",
+    "descKey": "quest.magic-stirs.desc",
+    "requires": [
+      "q4"
+    ],
+    "goals": [
+      {
+        "type": "errand",
+        "errand": "magic-cauldron"
+      }
+    ],
+    "coins": 400
+  },
+  {
+    "id": "hive-gratitude",
+    "nameKey": "quest.hive-gratitude",
+    "descKey": "quest.hive-gratitude.desc",
+    "requires": [
+      "q5"
+    ],
+    "goals": [
+      {
+        "type": "errand",
+        "errand": "royal-gift"
+      }
+    ],
+    "coins": 500
+  },
+  {
+    "id": "stumpsville-road",
+    "nameKey": "quest.stumpsville-road",
+    "descKey": "quest.stumpsville-road.desc",
+    "requires": [
+      "q5"
+    ],
+    "goals": [
+      {
+        "type": "errand",
+        "errand": "stumpsville-trade"
+      }
+    ],
+    "coins": 500
+  },
+  {
+    "id": "cursed-harvest",
+    "nameKey": "quest.cursed-harvest",
+    "descKey": "quest.cursed-harvest.desc",
+    "requires": [
+      "q6"
+    ],
+    "goals": [
+      {
+        "type": "errand",
+        "errand": "cursed-bramble"
+      }
+    ],
+    "coins": 650
   }
 ]

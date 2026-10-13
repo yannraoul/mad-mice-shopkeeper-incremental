@@ -96,7 +96,7 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | Upgrade | Levels | Cost per level | Requires | Effect | Description |
 | --- | --- | --- | --- | --- | --- |
 | Honey yield | 5 | 15 / 40 / 100 / 250 / 550 | - | +1 supply:honey | More honey delivered each morning. |
-| Bigger cauldrons | 3 | 40 / 150 / 450 | - | +1 capacity | Each batch makes more candies. |
+| Bigger cauldrons | 5 | 40 / 150 / 450 / 1000 / 2400 | - | +1 capacity | Each batch makes more candies. |
 | Second cauldron | 1 | 250 | Honey yield | adds station Second cauldron | A cauldron that makes Plain honey drops by itself every morning, using the day's honey. |
 | Oven | 1 | 60 | - | unlocks `oven` | Unlocks Fine quality. |
 | Pulling machine | 1 | 250 | Oven | unlocks `pulling-machine` | Unlocks Excellent quality: more ingredients, a pulling step, a better price. |
@@ -120,11 +120,11 @@ tables for what grants them. Part of the design brief: see `README.md`.
 
 | Upgrade | Levels | Cost per level | Requires | Effect | Description |
 | --- | --- | --- | --- | --- | --- |
-| Counter space | 3 | 30 / 120 / 400 | - | +1 counterSpace | The shop can welcome more customers each day. |
-| Patience | 3 | 30 / 120 / 400 | - | +1 patience | Customers wait longer. |
+| Counter space | 6 | 30 / 120 / 400 / 1000 / 2200 / 4500 | - | +1 counterSpace | The shop can welcome more customers each day. |
+| Patience | 5 | 30 / 120 / 400 / 900 / 2000 | - | +1 patience | Customers wait longer. |
 | Hire a clerk | 1 | 100 | - | unlocks `clerk` | Serves Faithful customers for you. |
 | Contract board | 1 | 120 | - | unlocks `contractBoard` | Merchants post orders with a quantity and a deadline. |
-| Reputation | 5 | 120 / 300 / 700 / 1500 / 3000 | - | +6 priceBonus | Pilgrims talk: every sale brings 6% more, rounded up (at least a coin more on cheap candies), per level. |
+| Reputation | 7 | 120 / 300 / 700 / 1500 / 3000 / 5500 / 9000 | - | +6 priceBonus | Pilgrims talk: every sale brings 6% more, rounded up (at least a coin more on cheap candies), per level. |
 | Foreman mouse | 1 | 600 | Hire a clerk, Porter mouse, Stirrer mouse, Sculptor mouse | unlocks `routine` | A mouse that runs the day: with your helpers it makes candy, serves the counter and waits for you in the evening. A switch lets you take over at any moment. |
 
 **Temple / Hive**
@@ -138,16 +138,29 @@ tables for what grants them. Part of the design brief: see `README.md`.
 
 ### Quests
 
-| Quest | Needs | Goals | Customer volume once done | Rival hive once done |
-| --- | --- | --- | --- | --- |
-| The first steps | - | earn 240 coins in all | x1.5 | steals 1 Honey per morning from day 3 of the week |
-| Gathering pilgrims | `q1` | earn 760 coins in all | x2 | steals 2 Honey per morning from day 2 of the week |
-| A name on the road | `q2` | earn 1910 coins in all | x2.4 | - |
-| The pilgrims' table | `q3` | earn 3810 coins in all | x2.8 | - |
-| Whispers of the cauldron | `q4` | earn 6610 coins in all | x3 | - |
-| The hive's blessing | `q5` | earn 10110 coins in all | x3 | - |
-| Crowds at the door | `q6` | earn 14110 coins in all | x3 | - |
-| The long table | `q7` | earn 18410 coins in all | x3 | - |
+| Quest | Needs | Goals | Coins (bonus) | Customer volume once done | Rival hive once done |
+| --- | --- | --- | --- | --- | --- |
+| The first steps | - | earn 240 coins in all | 0 | x1.5 | steals 1 Honey per morning from day 3 of the week |
+| Gathering pilgrims | `q1` | earn 860 coins in all | 0 (+50 within 7 days) | x2 | steals 2 Honey per morning from day 2 of the week |
+| A name on the road | `q2` | earn 2450 coins in all | 0 (+100 within 7 days) | x2.4 | - |
+| The pilgrims' table | `q3` | earn 5200 coins in all | 0 (+150 within 7 days) | x2.8 | - |
+| Whispers of the cauldron | `q4` | earn 8800 coins in all | 0 (+250 within 7 days) | x3 | - |
+| The hive's blessing | `q5` | earn 12800 coins in all | 0 (+350 within 7 days) | x3 | - |
+| Crowds at the door | `q6` | earn 18000 coins in all | 0 (+450 within 7 days) | x3 | - |
+| The long table | `q7` | earn 25000 coins in all | 0 (+600 within 7 days) | x3 | - |
+| A helping paw | `q1` | own porter-mouse | 60 | - | - |
+| The queen's thanks | `q1` | finish errand queen-fever | 120 | - | - |
+| Peace with the hive | `q1` | finish errand rival-hive | 80 | - | - |
+| The pilgrims' feast | `q2` | finish errand pilgrim-feast | 200 | - | - |
+| The scarecrow watch | `q2` | finish errand scarecrow-mice | 150 | - | - |
+| Milk and honey | `q3` | finish errand dairy-cart | 250 | - | - |
+| Pulled to excellence | `q3` | own pulling-machine | 200 | - | - |
+| The shop runs itself | `q3` | own foreman-mouse | 800 | - | - |
+| The bramble way | `q4` | finish errand bramble-thicket | 300 | - | - |
+| The cauldron stirs | `q4` | finish errand magic-cauldron | 400 | - | - |
+| The hive's gratitude | `q5` | finish errand royal-gift | 500 | - | - |
+| The road to Stumpsville | `q5` | finish errand stumpsville-trade | 500 | - | - |
+| The cursed harvest | `q6` | finish errand cursed-bramble | 650 | - | - |
 
 ### Errands
 
@@ -167,14 +180,17 @@ tables for what grants them. Part of the design brief: see `README.md`.
 
 ### Map places
 
-| Place | Opens with quest |
-| --- | --- |
-| Millpond | q2 |
-| Old orchard | q3 |
-| Sunflower hollow | q4 |
-| Stumpsville road | q5 |
-| Market stall | q6 |
-| Roadside inn | q7 |
+| Place | Opens with quest | Cost | Income a day |
+| --- | --- | --- | --- |
+| Millpond | q2 | free | 3 |
+| Old orchard | q3 | free | 5 |
+| Sunflower hollow | q4 | free | 8 |
+| Stumpsville road | q5 | free | 10 |
+| Market stall | q6 | free | 12 |
+| Roadside inn | q7 | free | 18 |
+| Cobbled market | q5 | 600 | 30 |
+| Pilgrim hostel | q6 | 1600 | 80 |
+| Fairground | q7 | 3800 | 190 |
 
 ### Art slots (placeholders today: final pixel sizes, swappable files)
 

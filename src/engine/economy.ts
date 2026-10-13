@@ -63,12 +63,13 @@ export const arrivalsMult = (c: Content, s: Pick<State, 'quests'>) => shopQuest(
 
 type GoalOf = Content['quests'][number]['goals'][number];
 /** How far a goal is: `have` out of `need`. */
-export function goalProgress(c: Content, s: Pick<State, 'revenueTotal' | 'report' | 'nodes' | 'day'>, g: GoalOf): { have: number; need: number } {
+export function goalProgress(c: Content, s: Pick<State, 'revenueTotal' | 'report' | 'nodes' | 'day' | 'errands'>, g: GoalOf): { have: number; need: number } {
   if (g.type === 'earn') return { have: Math.min(g.amount, earnedTotal(s)), need: g.amount };
   if (g.type === 'own') return { have: Math.min(g.level, s.nodes[g.node] ?? 0), need: g.level };
+  if (g.type === 'errand') return { have: s.errands?.[g.errand]?.status === 'done' ? 1 : 0, need: 1 };
   return { have: Math.min(g.day, s.day), need: g.day };
 }
-export const goalMet = (c: Content, s: Pick<State, 'revenueTotal' | 'report' | 'nodes' | 'day'>, g: GoalOf) => {
+export const goalMet = (c: Content, s: Pick<State, 'revenueTotal' | 'report' | 'nodes' | 'day' | 'errands'>, g: GoalOf) => {
   const p = goalProgress(c, s, g);
   return p.have >= p.need;
 };
@@ -76,9 +77,11 @@ export const goalMet = (c: Content, s: Pick<State, 'revenueTotal' | 'report' | '
 export const openQuests = (c: Content, s: Pick<State, 'quests'>) =>
   c.quests.filter((q) => !questDone(s, q.id) && q.requires.every((r) => questDone(s, r)));
 
-/** Places on the map that are open now: their unlock is owned and their quest done (everything is open once the game is complete). */
-export const openPlaces = (c: Content, s: Pick<State, 'unlocks' | 'quests' | 'completed'>) =>
-  c.places.filter((p) => (p.unlock === undefined || s.unlocks.includes(p.unlock)) && (questReached(s, p.quest) || s.completed));
+/** Places on the map that are open now: free ones once their quest is done (all of them once the game is complete), the others once bought. */
+export const openPlaces = (c: Content, s: Pick<State, 'unlocks' | 'quests' | 'completed' | 'places'>) =>
+  c.places.filter(
+    (p) => (p.unlock === undefined || s.unlocks.includes(p.unlock)) && (p.cost > 0 ? s.places.includes(p.id) : questReached(s, p.quest) || s.completed),
+  );
 
 /** Units of `ingredient` the rival hive steals this morning (after relief from errands). */
 export function rivalPenalty(c: Content, s: Pick<State, 'quests' | 'day' | 'nodes' | 'errands'>, ingredient: string): number {
