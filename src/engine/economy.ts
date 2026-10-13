@@ -183,6 +183,16 @@ export function serveChoices(c: Content, s: Pick<State, 'stock' | 'nodes' | 'err
   return out.sort((a, b) => b.total - a.total || a.price - b.price);
 }
 
+/** Does a helper do this crafting step for the player (it is unlocked and the player has not taken it back)? */
+export function isStepAutomated(c: Content, s: Pick<State, 'unlocks' | 'handSteps'>, stepId: string): boolean {
+  const row = c.craftSteps.find((x) => x.id === stepId);
+  return !!row?.automatedBy && s.unlocks.includes(row.automatedBy) && !s.handSteps.includes(stepId);
+}
+
+/** Crafting steps a helper could do for the player right now (unlocked, whether or not switched on). */
+export const automatableSteps = (c: Content, s: Pick<State, 'unlocks'>) =>
+  c.craftSteps.filter((x) => x.automatedBy && s.unlocks.includes(x.automatedBy));
+
 /**
  * Total ingredients one batch of candy at this quality consumes. Fine and the like add units listed in
  * the candy's `extra`; an `alternates` quality (Perfect) keeps the plain quantities but every ingredient

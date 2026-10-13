@@ -1,0 +1,37 @@
+[
+  {
+    "id": "fill",
+    "owner": "mouse",
+    "helperKey": "helper.fill",
+    "automatedBy": "auto-fill"
+  },
+  {
+    "id": "stir",
+    "owner": "mouse",
+    "helperKey": "helper.stir",
+    "automatedBy": "auto-stir"
+  },
+  {
+    "id": "oven",
+    "owner": "machine",
+    "helperKey": "helper.oven",
+    "automatedBy": "auto-oven"
+  },
+  {
+    "id": "pull",
+    "owner": "machine",
+    "helperKey": "helper.pull",
+    "automatedBy": "auto-pull"
+  },
+  {
+    "id": "magic",
+    "owner": "machine",
+    "helperKey": "helper.magic"
+  },
+  {
+    "id": "form",
+    "owner": "mouse",
+    "helperKey": "helper.form",
+    "automatedBy": "auto-form"
+  }
+]

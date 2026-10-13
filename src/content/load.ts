@@ -150,6 +150,13 @@ export function validateRefs(c: Content): string[] {
       if (!c.candies.some((x) => x.id === st.auto!.candy)) errors.push(`stations/${st.id}: unknown auto candy`);
       if (!qualities.has(st.auto.quality)) errors.push(`stations/${st.id}: unknown auto quality`);
     }
+  // Every crafting step the game can ask for has a row, and every helper's unlock is granted by an upgrade.
+  const stepIds = new Set(c.craftSteps.map((x) => x.id));
+  for (const id of ['fill', 'stir', 'form', ...c.qualities.flatMap((q) => q.extraSteps.map((x) => x.id))])
+    if (!stepIds.has(id)) errors.push(`craftSteps: missing a row for the step "${id}"`);
+  const upgradeUnlocks = new Set(c.skillNodes.flatMap((n) => n.effects.filter((e) => e.type === 'unlock').map((e) => (e as { id: string }).id)));
+  for (const st of c.craftSteps)
+    if (st.automatedBy && !upgradeUnlocks.has(st.automatedBy)) errors.push(`craftSteps/${st.id}: no upgrade grants "${st.automatedBy}"`);
   if (c.stages.length === 0) errors.push('stages: at least one stage is required');
   for (const st of c.stages)
     if (st.rival && !ingredients.has(st.rival.ingredient)) errors.push(`stages/${st.id}: unknown ingredient "${st.rival.ingredient}"`);

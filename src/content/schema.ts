@@ -47,6 +47,19 @@ export const Candy = z.object({
   /** Optional additional gate (absent = none beyond the ingredients). */
   unlock: z.string().optional(),
 });
+/**
+ * A step of hand-crafting (fill, stir, bake, pull, whisper, shape). When `automatedBy` is owned, somebody (a hired mouse or a
+ * machine) can do it instead of the player, who can still choose to do it by hand.
+ */
+export const CraftStep = z.object({
+  id,
+  /** A mouse does the hand work, a machine the rest (flavour for now, art and animation later). */
+  owner: z.enum(['mouse', 'machine']),
+  /** The helper's name ("Porter mouse"). */
+  helperKey: key,
+  /** Unlock id that lets the player automate this step; absent = always by hand. */
+  automatedBy: z.string().optional(),
+});
 /** Stations are instances of a type (n cauldrons), never singletons. */
 export const Station = z.object({
   id,
@@ -230,6 +243,7 @@ export const tables = {
   ingredients: Ingredient,
   candies: Candy,
   stations: Station,
+  craftSteps: CraftStep,
   customerTypes: CustomerType,
   forecasts: Forecast,
   workers: Worker,

@@ -1,4 +1,6 @@
-# Crafting rework (design, not built yet)
+# Crafting rework (slices 0 to 2 built; 3 to 5 still design)
+
+Built: slice 0 as MMSIB-14, slices 1 and 2 as MMSIM-15 (`planning/features/MMSIM-15.md`). The Auto / Play toggle is for now helper / by hand; the played versions come with the minigames.
 
 Status: direction agreed after playtest 2 and the review answers below; numbers and the minigame rewards are drafts. The
 rework does not change the economy by itself: it changes how much hand work a batch costs and what that work is.

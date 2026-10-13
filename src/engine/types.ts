@@ -102,6 +102,8 @@ export interface State {
   pending: Customer[];
   /** Customer types handed over to a worker (see `delegate`). */
   delegated: string[];
+  /** Crafting steps the player does by hand although a helper could (the others are automated once unlocked). */
+  handSteps: string[];
   /** Batches crafted by hand per candy id; workers can sell a recipe once enough exist. */
   batchesMade: Record<string, number>;
   /** Customers at the counter (bounded by settings.counterSpace). */
@@ -116,6 +118,7 @@ export type Action =
   | { type: 'fulfill'; contract: number }
   | { type: 'serve'; customer: number; candy: string; quality: string }
   | { type: 'refuse'; customer: number }
+  | { type: 'setStepMode'; step: string; auto: boolean }
   | { type: 'delegate'; customerType: string; on: boolean }
   | { type: 'buy'; node: string }
   | { type: 'acceptErrand'; errand: string }
@@ -161,6 +164,7 @@ export type FailCode =
   | 'node-locked'
   | 'unlock-needed'
   | 'stage-locked'
+  | 'cannot-automate'
   | 'not-enough-money'
   | 'candy-locked'
   | 'station-automated'

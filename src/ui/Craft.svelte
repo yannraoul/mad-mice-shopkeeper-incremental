@@ -122,6 +122,14 @@
             </button>
           {/each}
         </div>
+        {#if f.helpers.length > 0}
+          <div class="helpers" role="group" aria-label={f.helpersTitle}>
+            <span class="overline">{f.helpersTitle}</span>
+            {#each f.helpers as h (h.step)}
+              <button class="chip helper" class:on={h.on} aria-pressed={h.on} onclick={() => send({ type: 'setStepMode', step: h.step, auto: !h.on })}>{h.label}</button>
+            {/each}
+          </div>
+        {/if}
         <div class="controls">
           <div class="seg" role="radiogroup" aria-label={f.qualityLabel}>
             {#each f.qualityOptions as q (q.value)}
@@ -149,13 +157,14 @@
         {#each b.track as st (st.id)}
           <li class:current={st.state === 'current'} class:done={st.state === 'done'} class:dimmed={st.dimmed} aria-current={st.state === 'current' ? 'step' : undefined}>
             <span class="dotn" aria-hidden="true">{st.n}</span>
-            <span class="lab"><b>{st.label}</b><span class="muted small">{st.note}</span></span>
+            <span class="lab"><b>{st.label}</b><span class="muted small" class:autonote={st.auto}>{st.note}</span></span>
           </li>
         {/each}
       </ol>
       <!-- Cancel on the left; the one possible next move always on the right, and always active. -->
       <div class="actions">
         <button class="btn3 cancel" onclick={() => send({ type: 'cancel' })}>{b.cancelLabel}</button>
+        {#if b.canFillAll}<button class="btn3 fillall" onclick={() => send({ type: 'fillAll' })}>{b.fillAllLabel}</button>{/if}
         {#if next}
           <button class="btn big next" onclick={() => send({ type: 'step', id: next.id })}>{b.hint}<span aria-hidden="true">→</span></button>
         {:else}
@@ -324,6 +333,11 @@
   .hint { font: 700 16px/1.3 var(--body); text-align: right; margin-left: auto; }
   .next { margin-left: auto; }
   .cancel { border-color: var(--ink); margin-right: auto; flex: none; }
+  .fillall { flex: none; }
+  .autonote { color: var(--ok); }
+  .helpers { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+  .chip.helper { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel2); color: var(--muted); font: 600 13px/1.2 var(--body); }
+  .chip.helper.on { background: color-mix(in srgb, var(--ok) 18%, var(--panel2)); border-color: var(--ok); color: var(--ink); }
   .made { color: var(--ok); font-size: 14px; }
 
   /* Phone: shelf as a 2-column grid, recipes as a list with a radio, steps in columns. */

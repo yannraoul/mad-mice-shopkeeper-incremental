@@ -5,7 +5,7 @@ import type { State } from '../engine/types.ts';
 
 // Saves are a versioned envelope around the plain engine State. Bump SAVE_VERSION whenever the
 // State shape changes and add a step to `migrate`, so old saves keep loading.
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;
 const EXPORT_PREFIX = 'CST1:';
 
 const num = z.number();
@@ -43,6 +43,7 @@ const StateSchema = z.object({
     z.object({ id: num, candy: z.string(), quality: z.string(), qty: num, deadlineDay: num, reward: num }),
   ),
   delegated: z.array(z.string()),
+  handSteps: z.array(z.string()).default([]),
   batchesMade: rec(num),
   pending: z.array(Customer),
   queue: z.array(Customer),
@@ -158,6 +159,11 @@ const MIGRATIONS: Record<number, (state: unknown) => unknown> = {
       report: withIncome(s.report ?? {}),
       history: ((s.history ?? []) as Record<string, unknown>[]).map(withIncome),
     };
+  },
+  // v7 -> v8 (MMSIM-15): the player's choice of crafting steps to do by hand although a helper could.
+  7: (state) => {
+    if (typeof state !== 'object' || state === null) return state;
+    return { handSteps: [], ...(state as Record<string, unknown>) };
   },
 };
 

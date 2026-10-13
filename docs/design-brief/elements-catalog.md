@@ -46,6 +46,17 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | 2 | Excellent | x2.2 | plain recipe plus the candy extra units | Bake in the oven, Pull on the machine | pulling-machine |
 | 3 | Perfect | x3.5 | plain recipe, every ingredient replaced by its alternate | Whisper to the cauldron | magic-cauldron |
 
+### Crafting steps and their helpers
+
+| Step | Helper | Kind | Automated by upgrade unlock |
+| --- | --- | --- | --- |
+| fill | Porter mouse | mouse | `auto-fill` |
+| stir | Stirrer mouse | mouse | `auto-stir` |
+| oven | Oven timer | machine | `auto-oven` |
+| pull | Pulling motor | machine | `auto-pull` |
+| magic | The cauldron | machine | always by hand |
+| form | Sculptor mouse | mouse | `auto-form` |
+
 ### Stations
 
 | Name | Candies per batch | Batches per day | Behaviour |
@@ -94,6 +105,11 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | More sunflower seeds | 4 | 40 / 100 / 220 / 450 | Sunflower patch | +1 supply:sunflower-seed | One more sunflower seed every morning. |
 | More milk | 4 | 60 / 140 / 300 / 600 | - | +1 supply:milk | One more jug of milk every morning. |
 | More blueberries | 4 | 80 / 180 / 380 / 750 | - | +1 supply:blueberry | One more handful of blueberries every morning. |
+| Porter mouse | 1 | 90 | - | unlocks `auto-fill` | A mouse that carries every ingredient into the cauldron for you. You can still fill by hand. |
+| Stirrer mouse | 1 | 160 | - | unlocks `auto-stir` | A mouse that stirs for you. You can still stir by hand. |
+| Sculptor mouse | 1 | 260 | - | unlocks `auto-form` | A mouse that shapes the candies for you. You can still shape by hand. |
+| Oven timer | 1 | 220 | Oven | unlocks `auto-oven` | The oven bakes on its own and takes the tray out at the right moment. You can still bake by hand. |
+| Pulling motor | 1 | 420 | Pulling machine | unlocks `auto-pull` | A motor for the pulling machine. You can still pull by hand. |
 
 **Shop**
 

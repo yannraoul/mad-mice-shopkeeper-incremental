@@ -371,5 +371,91 @@
         "add": 1
       }
     ]
+  },
+  {
+    "id": "porter-mouse",
+    "branch": "kitchen",
+    "nameKey": "node.porter-mouse",
+    "descKey": "node.porter-mouse.desc",
+    "costs": [
+      90
+    ],
+    "minStage": 1,
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "auto-fill"
+      }
+    ]
+  },
+  {
+    "id": "stirrer-mouse",
+    "branch": "kitchen",
+    "nameKey": "node.stirrer-mouse",
+    "descKey": "node.stirrer-mouse.desc",
+    "costs": [
+      160
+    ],
+    "minStage": 2,
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "auto-stir"
+      }
+    ]
+  },
+  {
+    "id": "sculptor-mouse",
+    "branch": "kitchen",
+    "nameKey": "node.sculptor-mouse",
+    "descKey": "node.sculptor-mouse.desc",
+    "costs": [
+      260
+    ],
+    "minStage": 3,
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "auto-form"
+      }
+    ]
+  },
+  {
+    "id": "oven-timer",
+    "branch": "kitchen",
+    "nameKey": "node.oven-timer",
+    "descKey": "node.oven-timer.desc",
+    "costs": [
+      220
+    ],
+    "minStage": 3,
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "auto-oven"
+      }
+    ],
+    "requires": [
+      "oven"
+    ]
+  },
+  {
+    "id": "pulling-motor",
+    "branch": "kitchen",
+    "nameKey": "node.pulling-motor",
+    "descKey": "node.pulling-motor.desc",
+    "costs": [
+      420
+    ],
+    "minStage": 4,
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "auto-pull"
+      }
+    ],
+    "requires": [
+      "pulling-machine"
+    ]
   }
 ]

@@ -59,6 +59,7 @@ export function newGame(c: Content, opts: NewGameOptions): State {
     forecast: '',
     contracts: [],
     delegated: [],
+    handSteps: [],
     batchesMade: {},
     pending: [],
     queue: [],
@@ -92,6 +93,8 @@ function apply(c: Content, s: State, a: Action, ev: GameEvent[]): Fail | null {
       return refuse(c, s, a.customer, ev);
     case 'delegate':
       return delegate(c, s, a.customerType, a.on, ev);
+    case 'setStepMode':
+      return setStepMode(c, s, a.step, a.auto);
     case 'buy':
       return buy(c, s, a.node, ev);
     case 'acceptErrand':
@@ -416,6 +419,15 @@ function runAutoStations(c: Content, s: State, ev: GameEvent[]) {
       ev.push({ type: 'crafted', candy, quality, qty });
     }
   }
+}
+
+/** Take a crafting step back by hand, or hand it to its helper again (only once the helper is hired). */
+function setStepMode(c: Content, s: State, stepId: string, auto: boolean): Fail | null {
+  const row = c.craftSteps.find((x) => x.id === stepId);
+  if (!row?.automatedBy || !s.unlocks.includes(row.automatedBy)) return fail('cannot-automate', {}, `step "${stepId}" has no helper yet`);
+  s.handSteps = s.handSteps.filter((x) => x !== stepId);
+  if (!auto) s.handSteps.push(stepId);
+  return null;
 }
 
 function delegate(c: Content, s: State, customerType: string, on: boolean, ev: GameEvent[]): Fail | null {

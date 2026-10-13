@@ -128,7 +128,7 @@ describe('serve view', () => {
     expect(buildStageView(c, s, en).newThings).toBeNull(); // stage 1 opens nothing
     s.stage.index = 1;
     const v = buildStageView(c, s, en);
-    expect(v.newThings).toBe('New this stage: Sunflower patch, Contract board, Errands board, The queen is sick, A splinter hive.');
+    expect(v.newThings).toBe('New this stage: Sunflower patch, Contract board, Errands board, Porter mouse, The queen is sick, A splinter hive.');
     s.stage.day = 3;
     expect(buildStageView(c, s, en).newThings).toBeNull(); // only on the first day
     s.stage.day = 0;

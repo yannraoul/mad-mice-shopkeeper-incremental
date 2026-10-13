@@ -1,11 +1,13 @@
 import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
-import { unlockedCandies, unlockedIngredients, unlockedQualities, batchSize, batchCost, priceOf, isQualityUnlocked } from '../engine/economy.ts';
+import { automatableSteps, isStepAutomated, unlockedCandies, unlockedIngredients, unlockedQualities, batchSize, batchCost, priceOf, isQualityUnlocked } from '../engine/economy.ts';
 import {
   add,
   doStep,
+  fillAll,
   isComplete,
   nextStep,
+  placementDone,
   remaining,
   startSession,
   type CraftSession,
@@ -34,6 +36,8 @@ export type CraftEvent =
   | { type: 'select'; field: 'candy' | 'quality'; value: string }
   | { type: 'start' }
   | { type: 'tapShelf'; ingredient: string }
+  | { type: 'fillAll' }
+  | { type: 'setStepMode'; step: string; auto: boolean }
   | { type: 'step'; id: string }
   | { type: 'cancel' };
 
@@ -44,6 +48,14 @@ export const initialCraftUi = (c: Content): CraftUi => ({
   session: null,
   note: null,
 });
+
+/** Carry on with a session; if nothing is left to do by hand the batch is crafted through `dispatch`. */
+function finish(ui: CraftUi, session: CraftSession, dispatch: (a: Action) => boolean): CraftUi {
+  if (!isComplete(session)) return { ...ui, session };
+  const { station, candy, quality } = session;
+  const ok = dispatch({ type: 'craft', station, candy, quality });
+  return { ...ui, session: null, note: ok ? { station, candy, quality } : ui.note };
+}
 
 /** Apply one UI event. Finishing the last step crafts the batch through `dispatch`. */
 export function craftReduce(
@@ -58,18 +70,17 @@ export function craftReduce(
       return { ...ui, [ev.field]: ev.value };
     case 'start': {
       const r = startSession(c, s, ui.station, ui.candy, ui.quality);
-      return 'error' in r ? ui : { ...ui, note: null, session: r };
+      return 'error' in r ? ui : finish({ ...ui, note: null }, r, dispatch);
     }
     case 'tapShelf':
-      return ui.session ? { ...ui, session: add(ui.session, ev.ingredient) } : ui;
-    case 'step': {
-      if (!ui.session) return ui;
-      const next = doStep(ui.session, ev.id);
-      if (!isComplete(next)) return { ...ui, session: next };
-      const { station, candy, quality } = next;
-      const ok = dispatch({ type: 'craft', station, candy, quality });
-      return { ...ui, session: null, note: ok ? { station, candy, quality } : ui.note };
-    }
+      return ui.session ? finish(ui, add(ui.session, ev.ingredient), dispatch) : ui;
+    case 'fillAll':
+      return ui.session ? finish(ui, fillAll(ui.session), dispatch) : ui;
+    case 'step':
+      return ui.session ? finish(ui, doStep(ui.session, ev.id), dispatch) : ui;
+    case 'setStepMode':
+      dispatch({ type: 'setStepMode', step: ev.step, auto: ev.auto });
+      return ui;
     case 'cancel':
       return { ...ui, session: null };
   }
@@ -99,6 +110,9 @@ export interface CraftIdleView {
   /** All qualities as a segmented control; locked ones are listed but not `enabled`. */
   qualityOptions: { value: string; label: string; note: string; selected: boolean; enabled: boolean }[];
   start: { label: string; enabled: boolean };
+  /** Helpers hired for crafting steps: each can be left to do its step or taken back (remembered). */
+  helpersTitle: string;
+  helpers: { step: string; label: string; on: boolean; owner: 'mouse' | 'machine'; action: Action }[];
   /** Why the batch cannot be started, translated. */
   blocked: string | null;
   batchesLeft: string;
@@ -145,7 +159,7 @@ export interface CraftScene {
 
 export interface CraftBenchView {
   /** Fill / Stir / Bake / Shape, the whole path of a batch; steps this quality skips are `dimmed`. */
-  track: { id: string; n: number; label: string; note: string; state: 'done' | 'current' | 'todo'; dimmed: boolean }[];
+  track: { id: string; n: number; label: string; note: string; state: 'done' | 'current' | 'todo'; dimmed: boolean; auto: boolean }[];
   shelfTitle: string;
   shelf: { ingredient: string; art: string; name: string; supply: string; enabled: boolean }[];
   stationTitle: string;
@@ -153,6 +167,9 @@ export interface CraftBenchView {
   stationArt: string;
   /** What is in the station so far, per ingredient: "Honey: 1 / 2". */
   contents: { ingredient: string; placed: number; need: number; text: string }[];
+  /** True while ingredients are still to go in: a button puts them all in at once. */
+  canFillAll: boolean;
+  fillAllLabel: string;
   hint: string;
   steps: { id: string; label: string; done: boolean; enabled: boolean; primary: boolean }[];
   cancelLabel: string;
@@ -183,16 +200,19 @@ function buildTrack(
   const single = Object.keys(session.need).length === 1 ? ` ${t(`ingredient.${Object.keys(session.need)[0]}`)}` : '';
   const extras = [...new Set(c.qualities.flatMap((q) => q.extraSteps.map((x) => x.id)))];
   const filled = placed >= need;
+  const helperName = (id: string) => t('craft.auto', { helper: t(c.craftSteps.find((x) => x.id === id)!.helperKey) });
   const noteFor = (id: string) =>
     id === 'stir' ? t('craft.note.stir') : id === 'form' ? t('craft.note.form', { size }) : t(`craft.note.${id}`);
   const rest = ['stir', ...extras, 'form'].map((id, i) => {
     const at = session.steps.indexOf(id);
     const skipped = at < 0;
+    const auto = !skipped && session.auto.includes(id);
     return {
       id,
       n: i + 2,
       label: t(`track.${id}`),
-      note: noteFor(id),
+      note: auto ? helperName(id) : noteFor(id),
+      auto,
       state: skipped ? ('todo' as const) : at < session.done ? ('done' as const) : id === upcoming ? ('current' as const) : ('todo' as const),
       dimmed: skipped,
     };
@@ -202,7 +222,8 @@ function buildTrack(
       id: 'fill',
       n: 1,
       label: t('track.fill'),
-      note: `${placed} / ${need}${single}`,
+      note: session.auto.includes('fill') ? helperName('fill') : `${placed} / ${need}${single}`,
+      auto: session.auto.includes('fill'),
       state: filled ? 'done' : 'current',
       dimmed: false,
     },
@@ -307,6 +328,8 @@ function buildCraftBase(c: Content, s: State, ui: CraftUi, t: Translate): Omit<C
           const placed = session.placed[ingredient] ?? 0;
           return { ingredient, placed, need, text: `${t(`ingredient.${ingredient}`)}: ${placed} / ${need}` };
         }),
+        canFillAll: !placementDone(session),
+        fillAllLabel: t('craft.fillAll'),
         hint: upcoming ? t('craft.hint.step', { step: stepName(upcoming) }) : t('craft.hint.pick'),
         steps: session.steps.map((id, i) => ({
           id,
@@ -376,7 +399,19 @@ function buildCraftBase(c: Content, s: State, ui: CraftUi, t: Translate): Omit<C
           selected: q.id === ui.quality,
           enabled: isQualityUnlocked(c, s, q.id),
         })),
-      start: { label: t('craft.start'), enabled: !blocked },
+      start: { label: ui.note ? t('craft.again') : t('craft.start'), enabled: !blocked },
+      helpersTitle: t('craft.helpers'),
+      helpers: automatableSteps(c, s).map((row) => {
+        const on = isStepAutomated(c, s, row.id);
+        const helper = t(row.helperKey);
+        return {
+          step: row.id,
+          label: t(on ? 'craft.helperOn' : 'craft.helperOff', { helper }),
+          on,
+          owner: row.owner,
+          action: { type: 'setStepMode', step: row.id, auto: !on },
+        };
+      }),
       blocked: blocked ? t('craft.cannot', { error: describeFail(t, blocked.code, blocked.params) }) : null,
       batchesLeft: t('craft.batchesLeft', { n: s.stations[ui.station]?.batchesLeft ?? 0 }),
       suppliesTitle: t('craft.suppliesToday'),
