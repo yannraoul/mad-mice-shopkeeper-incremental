@@ -12,3 +12,4 @@ docs (`ROADMAP.md` / `CHANGELOG.md` / `BACKLOG.md`) relate.
   entries.)
 - **Recipes, ingredients and qualities v2** (planned MMSIM-11, then cravings MMSIM-12, stage chain MMSIM-13, content fill MMSIM-14) — designed in `docs/recipes-and-ingredients-v2.md`, `docs/customer-cravings-v2.md` and `docs/stages-and-progression-v2.md`; waiting for review of the open questions at the end of each.
 - **Four-branch tree** (production, kitchen, shop, temple) — to follow the ingredient nodes of MMSIM-11.
+- **Crafting rework** — designed in `docs/crafting-rework-v2.md`. Order agreed: tap-to-add quick fix, then MMSIM-14 content fill (all main ingredients), then MMSIM-15 to 17 (Fill all and Make another batch, steps as content with auto/play toggles and mice and machines, the Second cauldron's order book and delivery mouse, minigames with rewards and risks).
