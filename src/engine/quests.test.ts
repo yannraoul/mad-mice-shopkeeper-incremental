@@ -3,7 +3,7 @@ import { loadContent } from '../content/load.ts';
 import { readContentFiles } from '../../scripts/lib/readContent.ts';
 import { newGame, step } from './engine.ts';
 import { journalKey } from './journal.ts';
-import { stageTarget } from './economy.ts';
+import { reachQuests } from './testkit.ts';
 import type { Action, GameEvent, State } from './types.ts';
 
 const c = loadContent(readContentFiles(false));
@@ -35,109 +35,121 @@ const days = (s: State, n: number, revenue: number, events: GameEvent[] = []) =>
   return s;
 };
 
-describe('weekly stages', () => {
-  it('start at stage 1, day 0', () => {
-    expect(newGame(c, { seed: 1 }).stage).toEqual({ index: 0, day: 0, revenue: 0, misses: 0 });
+describe('quest chain', () => {
+  const first = c.quests[0]!;
+  const earn = (q: typeof first) => q.goals.find((g) => g.type === 'earn') as { amount: number };
+  it('starts with nothing done and nothing earned', () => {
+    const s = newGame(c, { seed: 1 });
+    expect(s.quests).toEqual({});
+    expect(s.revenueTotal).toBe(0);
   });
-  it('count days and revenue toward the week', () => {
-    const s = days(newGame(c, { seed: 1 }), 3, 40);
-    expect(s.stage).toEqual({ index: 0, day: 3, revenue: 120, misses: 0 });
-    expect(s.lastWeek).toBeNull();
+  it('a quest completes by itself the moment its coins are earned, with no deadline', () => {
+    const s0 = run(newGame(c, { seed: 1 }), end, end);
+    s0.report.revenue = earn(first).amount - 1;
+    expect(run(s0, end).quests).toEqual({}); // one coin short: nothing happens, nothing is lost
+    const s1 = structuredClone(s0);
+    s1.money = 99;
+    s1.report.revenue = earn(first).amount;
+    const r = step(c, s1, { type: 'buy', node: 'counter-space' });
+    expect(r.ok && r.events.filter((e) => e.type === 'questDone')).toEqual([{ type: 'questDone', quest: first.id }]);
   });
-  it('reaching the target opens the next stage and reports the week', () => {
-    const events: GameEvent[] = [];
-    const perDay = Math.ceil(c.stages[0]!.target / 7) + 1;
-    const s = days(newGame(c, { seed: 1 }), 7, perDay, events);
-    expect(s.stage).toEqual({ index: 1, day: 0, revenue: 0, misses: 0 });
-    expect(s.lastWeek).toEqual({ stage: 0, passed: true, revenue: perDay * 7, target: c.stages[0]!.target });
-    expect(events.filter((e) => e.type === 'weekEnded')).toHaveLength(1);
+  it('the running total counts the finished days and today, and nothing resets', () => {
+    const s = days(newGame(c, { seed: 1 }), 3, 100);
+    expect(s.revenueTotal).toBe(300);
+    expect(s.quests[first.id]).toBeDefined();
+    expect(s.quests[c.quests[1]!.id]).toBeUndefined(); // the second quest wants more
   });
-  it('missing the target repeats the week and keeps everything (no fail state)', () => {
-    const s0 = newGame(c, { seed: 1, unlocks: ['clerk'] });
-    s0.nodes.oven = 1;
-    s0.stock['candy-cane:plain'] = 5;
-    const s = days(s0, 7, 10); // 70 is far below any stage target
-    expect(s.stage).toEqual({ index: 0, day: 0, revenue: 0, misses: 1 });
-    expect(s.lastWeek).toMatchObject({ stage: 0, passed: false, revenue: 70 });
-    expect(s.nodes.oven).toBe(1);
-    expect(s.unlocks).toContain('clerk');
-    expect(s.stock['candy-cane:plain']).toBe(5);
-    expect(s.day).toBe(8);
+  it('a quest opens only once the quests it needs are done, and a big day can finish several', () => {
+    const s = newGame(c, { seed: 1 });
+    s.revenueTotal = earn(c.quests[1]!).amount + 1;
+    const done = run(s, end);
+    expect(Object.keys(done.quests)).toEqual([c.quests[0]!.id, c.quests[1]!.id]);
+    expect(done.quests[c.quests[2]!.id]).toBeUndefined();
   });
-  it('passing the last stage does not end the game: weeks go on until the final quest is delivered', () => {
-    const last = c.stages.length - 1;
+  it('a missed stretch costs nothing: empty days only delay the next quest', () => {
+    const s = days(newGame(c, { seed: 1, unlocks: ['clerk'] }), 14, 0);
+    expect(s.quests).toEqual({});
+    expect(s.day).toBe(15);
+  });
+  it('own and day goals, and rewards, work too', () => {
+    const cx = {
+      ...c,
+      quests: [
+        { id: 'a', nameKey: 'quest.q1', requires: [], goals: [{ type: 'own' as const, node: 'oven', level: 1 }, { type: 'day' as const, day: 2 }], reward: [{ type: 'unlock' as const, id: 'sunflower' }] },
+        { id: 'b', nameKey: 'quest.q2', requires: ['a'], goals: [{ type: 'day' as const, day: 3 }], reward: [] },
+      ],
+    };
+    let s = newGame(cx, { seed: 1 });
+    s.money = 999;
+    const go = (a: Action) => {
+      const r = step(cx, s, a);
+      if (!r.ok) throw new Error(r.error);
+      s = r.state;
+    };
+    go(end); go(end); // evening of day 1
+    go({ type: 'buy', node: 'oven' });
+    expect(s.quests).toEqual({}); // the oven is owned but day 2 has not come
+    go(end); // day 2 morning
+    expect(Object.keys(s.quests)).toEqual(['a']);
+    expect(s.unlocks).toContain('sunflower');
+  });
+  it('passing the last quest does not end the game: days go on until the final quest is delivered', () => {
     const s0 = newGame(c, { seed: 1 });
-    s0.stage.index = last;
-    const s = days(s0, c.stages[last]!.days, 10_000);
+    reachQuests(c, s0, c.quests.length);
+    const s = days(s0, 7, 10_000);
     expect(s.completed).toBe(false);
-    expect(s.stage.index).toBe(last);
     expect(failCode(s, end)).toBeNull();
   });
   it('delivering the final quest completes the game', () => {
     const final = c.errands.find((e) => e.final)!;
-    expect(final.minStage).toBe(c.stages.length - 1);
+    expect(final.quest).toBe(c.quests[c.quests.length - 1]!.id);
     let s = newGame(c, { seed: 1, unlocks: final.requires });
-    s.stage.index = final.minStage;
+    reachQuests(c, s, c.quests.length);
     s.stock['sweet-tooth:perfect'] = 3;
     s = run(s, { type: 'acceptErrand', errand: final.id }, { type: 'deliverErrand', errand: final.id });
     expect(s.completed).toBe(true);
   });
-  it('easy mode: each missed week lowers the repeated stage target a little, up to a cap, and passing resets it', () => {
-    const target = c.stages[1]!.target;
-    const s0 = newGame(c, { seed: 1 });
-    s0.stage.index = 1;
-    expect(stageTarget(c, s0)).toBe(target);
-    const one = days(s0, 7, 0);
-    expect(one.stage).toMatchObject({ index: 1, misses: 1 });
-    expect(stageTarget(c, one)).toBe(Math.round(target * (1 - c.settings.retryRelief)));
-    let s = one;
-    for (let i = 0; i < 6; i++) s = days(s, 7, 0);
-    expect(stageTarget(c, s)).toBe(Math.round(target * (1 - c.settings.retryReliefMax)));
-    // a week that reaches the lowered target passes, and the next stage starts with no relief
-    const lowered = stageTarget(c, one);
-    const passed = days(one, 7, Math.ceil(lowered / 7) + 1);
-    expect(passed.stage).toMatchObject({ index: 2, misses: 0 });
-    expect(passed.lastWeek).toMatchObject({ passed: true, target: lowered });
-  });
   it('places on the map pay their income every morning once open', () => {
     const open = (map: boolean) => {
       const s = newGame(c, { seed: 1, unlocks: map ? ['map'] : [] });
-      s.stage.index = 3;
+      reachQuests(c, s, 3);
       return s;
     };
-    const income = c.places.filter((p) => p.minStage <= 3).reduce((n, p) => n + p.income, 0);
+    const income = c.places.filter((p) => p.quest === undefined || ['q1', 'q2', 'q3'].includes(p.quest)).reduce((n, p) => n + p.income, 0);
     expect(income).toBeGreaterThan(0);
-    const s0 = open(true);
-    const s1 = run(s0, end, end, end);
+    const s1 = run(open(true), end, end, end);
     expect(s1.report.income).toBe(income);
     expect(s1.report.revenue).toBeGreaterThanOrEqual(income);
     expect(run(open(false), end, end, end).report.income).toBe(0); // no map, no places
   });
-  it('later stages bring more customers', () => {
-    const arrivals = (stage: number) => {
+  it('later quests bring more customers', () => {
+    const arrivals = (n: number) => {
       let total = 0;
       for (let seed = 1; seed <= 30; seed++) {
         const s0 = newGame(c, { seed });
-        s0.stage.index = stage;
+        reachQuests(c, s0, n);
         total += run(s0, end).report.arrivals;
       }
       return total;
     };
     expect(arrivals(2)).toBeGreaterThan(arrivals(0) * 1.3);
   });
-  it('shows the result of the week in the journal right after it closes', () => {
-    const passed = days(newGame(c, { seed: 1 }), 7, Math.ceil(c.stages[0]!.target / 7) + 1);
-    expect(journalKey(c, passed)).toBe('journal.week-passed');
-    const missed = days(newGame(c, { seed: 1 }), 7, 10);
-    expect(journalKey(c, missed)).toBe('journal.week-missed');
-    expect(journalKey(c, day(missed, 30))).not.toMatch(/week-/);
+  it('a quest done today is the news in the journal', () => {
+    const s0 = run(newGame(c, { seed: 1 }), end, end);
+    s0.day = 5;
+    s0.money = 99;
+    s0.report.revenue = earn(first).amount;
+    const s = run(s0, { type: 'buy', node: 'counter-space' });
+    const onlyQuestLine = { ...c, journal: c.journal.filter((j) => j.when.questToday !== undefined) };
+    expect(journalKey(onlyQuestLine, s)).toBe('journal.quest-done');
+    expect(journalKey(onlyQuestLine, day(newGame(c, { seed: 1 }), 30))).toBeNull();
   });
 });
 
 describe('rival hive', () => {
   const stageN = (index: number): State => {
     const s = newGame(c, { seed: 1 });
-    s.stage.index = index;
+    reachQuests(c, s, index);
     s.nodes['honey-yield'] = 1; // 3 honey a day: the rival hive never cuts below 2
     return s;
   };
@@ -146,17 +158,17 @@ describe('rival hive', () => {
     for (let i = 1; i < d; i++) s = run(s, end, end, end);
     return s.supply.honey;
   };
-  it('does not exist in stage 1', () => {
+  it('does not exist before the first quest', () => {
     expect(run(newGame(c, { seed: 1 }), end, end, end).supply.honey).toBe(2);
   });
   it('gives a grace period: no theft before startsOnDay, then it steals', () => {
-    const { startsOnDay, amount } = c.stages[1]!.rival!;
+    const { startsOnDay, amount } = c.quests[0]!.rival!;
     expect(startsOnDay).toBeGreaterThan(1);
     expect(honeyOnDay(stageN(1), startsOnDay - 1)).toBe(3);
     expect(honeyOnDay(stageN(1), startsOnDay)).toBe(3 - amount);
   });
   it('never takes supply below the floor', () => {
-    const supply = honeyOnDay(stageN(2), c.stages[2]!.rival!.startsOnDay + 1);
+    const supply = honeyOnDay(stageN(2), c.quests[1]!.rival!.startsOnDay + 1);
     expect(supply).toBeGreaterThanOrEqual(c.settings.rivalMinSupply);
   });
   it('is handled for good by the rival-hive errand', () => {
@@ -169,7 +181,7 @@ describe('rival hive', () => {
 describe('errands', () => {
   const board = (extra: string[] = []): State => {
     const s = newGame(c, { seed: 2, unlocks: ['errandsBoard', 'oven', ...extra] });
-    s.stage.index = 1; // the errands open with the second stage
+    reachQuests(c, s, 1); // the errands open with the second stage
     return s;
   };
   const accept = (errand: string): Action => ({ type: 'acceptErrand', errand });
@@ -201,7 +213,7 @@ describe('errands', () => {
       expect(queenDone().unlocks).not.toContain('royal-jelly');
       const gift = (): State => {
         const g = board(['magic-cauldron', 'sunflower']);
-        g.stage.index = 5;
+        reachQuests(c, g, 5);
         g.stock['sunflower-nougat:fine'] = 8;
         return run(g, accept('royal-gift'), deliver('royal-gift'));
       };
@@ -254,7 +266,7 @@ describe('errands', () => {
     const ready = () => {
       const s = board(['clerk']);
       s.nodes['honey-yield'] = 1; // 3 honey a day
-      s.stage.index = 1;
+      reachQuests(c, s, 1);
       return s;
     };
     it('keeps the worker away for its duration, then pays out', () => {

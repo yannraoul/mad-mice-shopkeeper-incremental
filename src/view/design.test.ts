@@ -4,6 +4,7 @@ import { readContentFiles } from '../../scripts/lib/readContent.ts';
 import { createTranslate } from '../i18n/core.ts';
 import { newGame, step } from '../engine/engine.ts';
 import type { Action, State } from '../engine/types.ts';
+import { reachQuests } from '../engine/testkit.ts';
 import {
   buildBoardView,
   buildCraftView,
@@ -39,24 +40,24 @@ describe('header and stage strip', () => {
     const h = buildHeaderView(c, newGame(c, { seed: 1 }), en);
     expect(h.phases.map((p) => [p.label, p.active])).toEqual([['Morning', true], ['Afternoon', false], ['Evening', false]]);
     expect(h.dayNo).toBe(1);
-    expect(h.dayOf).toBe(c.stages[0]!.days);
+    expect(h.dayOf).toBe(7);
     expect(buildHeaderView(c, newGame(c, { seed: 1 }), fr).coinsLabel).toBe('pièces');
   });
   it('has one pip per day, the current one marked, and no chip while there is no rival', () => {
     const v = buildStageView(c, newGame(c, { seed: 1 }), en);
-    expect(v.pips).toHaveLength(c.stages[0]!.days);
+    expect(v.pips).toHaveLength(7);
     expect(v.pips[0]!.state).toBe('current');
     expect(v.pips.filter((p) => p.state === 'current')).toHaveLength(1);
     expect(v.chip).toBeNull();
   });
   it('turns the rival warning into a short chip and marks the day it starts', () => {
     const s = newGame(c, { seed: 1 });
-    s.stage.index = 1; // the week with the rival hive
+    reachQuests(c, s, 1); // the week with the rival hive
     const v = buildStageView(c, s, en);
     expect(v.warning).not.toBeNull();
     expect(v.chip!.label.length).toBeLessThan(v.warning!.length);
     expect(v.chip!.hintLabel).toBe('hint');
-    expect(v.pips.findIndex((p) => p.rival)).toBe(c.stages[1]!.rival!.startsOnDay - 1);
+    expect(v.pips.findIndex((p) => p.rival)).toBe(c.quests[0]!.rival!.startsOnDay - 1);
   });
 });
 
@@ -105,11 +106,11 @@ describe('board stock chips', () => {
 describe('errand presentation states', () => {
   const withBoard = (unlocks: string[] = []) => {
     const s = newGame(c, { seed: 1, unlocks: ['errandsBoard', ...unlocks] });
-    s.stage.index = 1; // errands open with the second stage
+    reachQuests(c, s, 1); // errands open with the second stage
     return s;
   };
   it('goes available -> under way -> ready -> done with a chip and progress', () => {
-    const e = c.errands.find((x) => x.kind === 'deliver' && x.minStage <= 1 && x.requires.every((u) => u === 'errandsBoard' || u === 'oven'));
+    const e = c.errands.find((x) => x.kind === 'deliver' && (x.quest === undefined || x.quest === 'q1') && x.requires.every((u) => u === 'errandsBoard' || u === 'oven'));
     expect(e).toBeDefined();
     let s = withBoard(['oven']);
     const item = (st: State) => buildErrandsView(c, st, en)!.items.find((i) => i.id === e!.id)!;
@@ -144,7 +145,7 @@ describe('evening: upgrade states', () => {
     const poor = nodes(evening(0));
     expect(poor.some((n) => n.state === 'short' && n.shortBy?.startsWith('Short by '))).toBe(true);
     const locked = poor.find((n) => n.state === 'locked')!;
-    expect(locked.lockReason).toMatch(/^(Requires .+ first|Opens at stage \d+)\.$/);
+    expect(locked.lockReason).toMatch(/^(Requires .+ first|Opens with the goal .+)\.$/);
     expect(locked.stateLabel).toBe('Locked');
     const rich = nodes(evening(100000));
     expect(rich.some((n) => n.state === 'afford')).toBe(true);

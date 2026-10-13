@@ -1,4 +1,4 @@
-# Quests instead of stages, weekdays, and the cozy loop (design, not built)
+# Quests instead of stages, weekdays, and the cozy loop (part A of the quest chain built as MMSIM-19; the rest is design)
 
 Source: playtest 4 follow-up. Nothing here is built. It replaces sections 3 and 5 of `alternates-and-economy-v3.md`.
 

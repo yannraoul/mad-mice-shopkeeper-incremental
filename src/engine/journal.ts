@@ -17,9 +17,8 @@ export function journalKey(c: Content, s: State): string | null {
       (w.lostAtLeast === undefined || r.lost >= w.lostAtLeast) &&
       (w.autoServedAtLeast === undefined || r.autoServed >= w.autoServedAtLeast) &&
       (w.node === undefined || (s.nodes[w.node] ?? 0) > 0) &&
-      // Right after a week closes (stage.day is back to 0), its result is the news of the day.
-      (w.weekResult === undefined ||
-        (s.stage.day === 0 && s.lastWeek !== null && (s.lastWeek.passed ? 'passed' : 'missed') === w.weekResult))
+      // A quest completed today is the news of the day.
+      (w.questToday === undefined || Object.values(s.quests).some((d) => d === s.day) === w.questToday)
     );
   });
   const specific = matches.filter((j) => Object.keys(j.when).length > 0);

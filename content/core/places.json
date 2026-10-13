@@ -2,43 +2,43 @@
   {
     "id": "millpond",
     "nameKey": "place.millpond",
-    "minStage": 2,
     "unlock": "map",
-    "income": 3
+    "income": 3,
+    "quest": "q2"
   },
   {
     "id": "old-orchard",
     "nameKey": "place.old-orchard",
-    "minStage": 3,
     "unlock": "map",
-    "income": 5
+    "income": 5,
+    "quest": "q3"
   },
   {
     "id": "sunflower-hollow",
     "nameKey": "place.sunflower-hollow",
-    "minStage": 4,
     "unlock": "map",
-    "income": 8
+    "income": 8,
+    "quest": "q4"
   },
   {
     "id": "stumpsville-road",
     "nameKey": "place.stumpsville-road",
-    "minStage": 5,
     "unlock": "map",
-    "income": 10
+    "income": 10,
+    "quest": "q5"
   },
   {
     "id": "market-stall",
     "nameKey": "place.market-stall",
-    "minStage": 6,
     "unlock": "map",
-    "income": 12
+    "income": 12,
+    "quest": "q6"
   },
   {
     "id": "roadside-inn",
     "nameKey": "place.roadside-inn",
-    "minStage": 7,
     "unlock": "map",
-    "income": 18
+    "income": 18,
+    "quest": "q7"
   }
 ]

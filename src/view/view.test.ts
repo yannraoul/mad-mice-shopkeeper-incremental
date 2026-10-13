@@ -4,6 +4,7 @@ import { readContentFiles } from '../../scripts/lib/readContent.ts';
 import { createTranslate } from '../i18n/core.ts';
 import { newGame, step } from '../engine/engine.ts';
 import type { Action, State } from '../engine/types.ts';
+import { reachQuests } from '../engine/testkit.ts';
 import {
   buildBoardView,
   buildCraftView,
@@ -123,32 +124,20 @@ describe('serve view', () => {
     );
     expect(buildServeView(c, newGame(c, { seed: 1 }), en).workers).toEqual([]);
   });
-  it('lists what a new stage opens on its first day, and nothing at the start or after a missed week', () => {
+  it('lists what a quest opens on the day after it, and nothing at the start', () => {
     const s = newGame(c, { seed: 1 });
-    expect(buildStageView(c, s, en).newThings).toBeNull(); // stage 1 opens nothing
-    s.stage.index = 1;
-    const v = buildStageView(c, s, en);
-    expect(v.newThings).toBe('New this stage: Sunflower patch, Contract board, Errands board, Porter mouse, The queen is sick, A splinter hive.');
-    s.stage.day = 3;
-    expect(buildStageView(c, s, en).newThings).toBeNull(); // only on the first day
-    s.stage.day = 0;
-    s.stage.misses = 1;
-    expect(buildStageView(c, s, en).newThings).toBeNull(); // a repeated week opens nothing new
+    expect(buildStageView(c, s, en).newThings).toBeNull(); // nothing done yet
+    reachQuests(c, s, 1);
+    expect(buildStageView(c, s, en).newThings).toBe('New: Sunflower patch, Contract board, Errands board, Porter mouse, The queen is sick, A splinter hive.');
+    s.day = 5;
+    expect(buildStageView(c, s, en).newThings).toBeNull(); // only for a day or two
   });
-  it('shows the lowered target of a repeated stage', () => {
-    const s = newGame(c, { seed: 1 });
-    s.stage.index = 1;
-    s.stage.misses = 2;
-    expect(buildStageView(c, s, en).target).toBe(Math.round(c.stages[1]!.target * (1 - 2 * c.settings.retryRelief)));
-  });
-  it('counts time in weeks and days, and says which stage it is', () => {
+  it('counts time in weeks and days of the calendar', () => {
     const v = buildStageView(c, newGame(c, { seed: 1 }), en);
-    expect(v.dayText).toBe('stage 1 · week 1 · day 1 / 7');
+    expect(v.dayText).toBe('week 1 · day 1 / 7');
     const s = newGame(c, { seed: 1 });
     s.day = 12;
-    s.stage.index = 1;
-    s.stage.day = 4;
-    expect(buildStageView(c, s, fr).dayText).toBe('étape 2 · semaine 2 · jour 5 / 7');
+    expect(buildStageView(c, s, fr).dayText).toBe('semaine 2 · jour 5 / 7');
   });
   it('builds feed lines from events', () => {
     expect(feedLine(en, { type: 'sold', customer: 1, customerType: 'faithful', candy: 'candy-cane', quality: 'plain', price: 5, tip: 0, hearts: 1, auto: true })).toBe(
@@ -175,7 +164,7 @@ describe('evening view', () => {
     const oven = v.tree.branches[0]!.nodes.find((n) => n.id === 'oven')!;
     expect(oven.buy).toMatchObject({ enabled: false, why: 'Not enough coins.', cost: 60 });
     const garden = v.tree.branches[0]!.nodes.find((n) => n.id === 'dark-garden')!;
-    expect(garden.buy!.why).toBe('Opens at stage 6.');
+    expect(garden.buy!.why).toBe('Opens with the goal "whispers of the cauldron".');
   });
   it('enabled purchases carry their action; owned and maxed nodes say so', () => {
     let s = evening(1000);
@@ -196,8 +185,8 @@ describe('evening view', () => {
   it('map and errands appear only once their upgrades are bought', () => {
     expect(buildMapView(c, evening(0), en)).toBeNull();
     const early = evening(0, ['map']);
-    expect(buildMapView(c, early, en)!.places[0]!.text).toBe('🔒 Unknown place'); // the first place opens with the third stage
-    early.stage.index = 2;
+    expect(buildMapView(c, early, en)!.places[0]!.text).toBe('🔒 Unknown place'); // the first place opens with the third quest
+    reachQuests(c, early, 2);
     const m = buildMapView(c, early, en)!;
     expect(m.art).toBe('map-strip');
     expect(m.places[0]).toMatchObject({ text: 'Millpond', income: '+3 coins a day' });
@@ -208,13 +197,14 @@ describe('evening view', () => {
 describe('stage view', () => {
   const stage2 = (unlocks: string[] = [], day = 1) => {
     const s = newGame(c, { seed: 1, unlocks });
-    s.stage.index = 1;
-    s.stage.day = day - 1;
+    reachQuests(c, s, 1);
+    s.day = day;
     return s;
   };
-  it('shows progress and a heads-up before the rival starts', () => {
+  it('shows the open quest and a heads-up before the rival starts', () => {
     const v = buildStageView(c, stage2(), en);
-    expect(v.progress).toBe('Gathering pilgrims: day 1 / 7 · 0 / 520 coins earned');
+    expect(v.name).toBe('Gathering pilgrims');
+    expect(v.earnedText).toBe('0 / 760 coins earned');
     expect(v.pct).toBe(0);
     expect(v.warning).toBe('A rival hive will start stealing 1 honey each morning from day 3 of the week.');
     expect(v.hints).toEqual(['Errands can stop this: buy the Errands board (Temple branch).']);
@@ -231,22 +221,26 @@ describe('stage view', () => {
     done.errands['rival-hive'] = { status: 'done' };
     expect(buildStageView(c, done, en)).toMatchObject({ warning: null, hints: [] });
   });
-  it('announces the rival a week ahead and reports the stolen amount once it starts', () => {
+  it('announces the rival before the quest that brings it and reports the stolen amount once it starts', () => {
     const late = newGame(c, { seed: 1 });
-    late.stage.day = 5;
-    expect(buildStageView(c, late, en).warning).toBe('Next week a rival hive will start stealing honey. Errands can stop it: prepare now.');
+    expect(buildStageView(c, late, en).warning).toBeNull(); // far from the goal
+    late.revenueTotal = 200; // most of the first goal
+    expect(buildStageView(c, late, en).warning).toBe('A rival hive will start stealing honey once this goal is reached. Errands can stop it: prepare now.');
     const stealing = run(stage2(['errandsBoard'], 3), end, end, end);
     expect(buildStageView(c, stealing, en).warning).toBe('A rival hive steals 1 honey each morning.');
   });
-  it('reports last week and the completed game (generic text when no ending pack is present)', () => {
+  it('reports the completed game (generic text when no ending pack is present)', () => {
     const s = newGame(c, { seed: 1 });
-    s.lastWeek = { stage: 0, passed: false, revenue: 100, target: 240 };
-    expect(buildStageView(c, s, en).lastWeek!.text).toMatch(/Target missed last week \(100 \/ 240\)/);
     s.completed = true;
     expect(buildStageView(c, s, en).complete).toBe('The offering is made. The shop runs on; the cult is pleased.');
     // with an ending pack the text from the pack is used
     const withEnding = { ...c, strings: { ...c.strings, en: { ...c.strings.en, 'ending.text': 'THE END' } } };
     expect(buildStageView(withEnding, s, en).complete).toBe('THE END');
+  });
+  it('says so when every goal is reached', () => {
+    const s = newGame(c, { seed: 1 });
+    reachQuests(c, s, c.quests.length);
+    expect(buildStageView(c, s, en).name).toBe('Every goal is reached');
   });
 });
 
@@ -255,7 +249,7 @@ describe('errands view', () => {
     const s = newGame(c, { seed: 1 });
     expect(buildErrandsView(c, s, en)).toBeNull();
     s.unlocks.push('errandsBoard', 'oven');
-    s.stage.index = 1;
+    reachQuests(c, s, 1);
     let v = buildErrandsView(c, s, en)!;
     const queen = v.items.find((i) => i.id === 'queen-fever')!;
     expect(queen).toMatchObject({ status: 'available', button: { label: 'Accept', enabled: true, action: { type: 'acceptErrand', errand: 'queen-fever' } } });

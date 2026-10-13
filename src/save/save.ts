@@ -5,7 +5,7 @@ import type { State } from '../engine/types.ts';
 
 // Saves are a versioned envelope around the plain engine State. Bump SAVE_VERSION whenever the
 // State shape changes and add a step to `migrate`, so old saves keep loading.
-export const SAVE_VERSION = 10;
+export const SAVE_VERSION = 11;
 const EXPORT_PREFIX = 'CST1:';
 
 const num = z.number();
@@ -29,8 +29,8 @@ const StateSchema = z.object({
   rng: num,
   nextId: num,
   money: num.min(0),
-  stage: z.object({ index: num.int().min(0), day: num.min(0), revenue: num.min(0), misses: num.min(0).default(0) }),
-  lastWeek: z.object({ stage: num, passed: z.boolean(), revenue: num, target: num }).nullable(),
+  quests: rec(num),
+  revenueTotal: num.min(0).default(0),
   completed: z.boolean(),
   errands: rec(z.object({ status: z.enum(['active', 'done']), daysLeft: num.optional() })),
   nodes: rec(num),
@@ -178,6 +178,18 @@ const MIGRATIONS: Record<number, (state: unknown) => unknown> = {
     if (typeof state !== 'object' || state === null) return state;
     return { routine: false, ...(state as Record<string, unknown>) };
   },
+  // v10 -> v11 (MMSIM-19): weekly stages become the quest chain. Stage N cleared means quests q1..qN are done; the
+  // running revenue total is rebuilt from the day reports.
+  10: (state) => {
+    if (typeof state !== 'object' || state === null) return state;
+    if ('quests' in state) return state; // already in the new shape (a hand-made test save)
+    const { stage, lastWeek: _lastWeek, ...rest } = state as Record<string, unknown> & { stage?: { index?: number } };
+    const done = Math.min(8, stage?.index ?? 0);
+    const quests: Record<string, number> = {};
+    for (let i = 1; i <= done; i++) quests[`q${i}`] = 1;
+    const history = (rest.history ?? []) as { revenue?: number }[];
+    return { ...rest, quests, revenueTotal: history.reduce((n, r) => n + (r.revenue ?? 0), 0) };
+  },
 };
 
 /** Upgrade an older envelope to the current shape (none exist yet). */
@@ -212,7 +224,7 @@ export function checkAgainstContent(c: Content, s: State): string | null {
   const has = (rows: { id: string }[], id: string) => rows.some((r) => r.id === id);
   for (const st of s.stations) if (!has(c.stations, st.type)) return `unknown station "${st.type}"`;
   for (const n of Object.keys(s.nodes)) if (!has(c.skillNodes, n)) return `unknown upgrade "${n}"`;
-  if (s.stage.index >= c.stages.length) return `unknown stage ${s.stage.index}`;
+  for (const q of Object.keys(s.quests)) if (!has(c.quests, q)) return `unknown quest "${q}"`;
   for (const e of Object.keys(s.errands)) if (!has(c.errands, e)) return `unknown errand "${e}"`;
   if (!has(c.forecasts, s.forecast)) return `unknown forecast "${s.forecast}"`;
   for (const t of s.delegated) if (!has(c.customerTypes, t)) return `unknown customer type "${t}"`;

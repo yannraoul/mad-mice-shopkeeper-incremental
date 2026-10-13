@@ -136,46 +136,45 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | Errands board | 1 | 90 | The Faithful | unlocks `errandsBoard` | The hive and the temple post errands with lasting rewards. |
 | Map strip | 1 | 60 | The Faithful | unlocks `map` | Reveals places around the shop as the weeks go by. |
 
-### Weekly stages
+### Quests
 
-| Stage | Days | Revenue target | Customer volume | Rival hive |
+| Quest | Needs | Goals | Customer volume once done | Rival hive once done |
 | --- | --- | --- | --- | --- |
-| The first steps | 7 | 240 | x1 | - |
-| Gathering pilgrims | 7 | 520 | x1.5 | steals 1 Honey per morning from day 3 |
-| A name on the road | 7 | 1150 | x2 | steals 2 Honey per morning from day 2 |
-| The pilgrims' table | 7 | 1900 | x2.4 | - |
-| Whispers of the cauldron | 7 | 2800 | x2.8 | - |
-| The hive's blessing | 7 | 3500 | x3 | - |
-| Crowds at the door | 7 | 4000 | x3 | - |
-| The long table | 7 | 4300 | x3 | - |
-| The feast of Sweet Tooth | 7 | 4500 | x3 | - |
+| The first steps | - | earn 240 coins in all | x1.5 | steals 1 Honey per morning from day 3 of the week |
+| Gathering pilgrims | `q1` | earn 760 coins in all | x2 | steals 2 Honey per morning from day 2 of the week |
+| A name on the road | `q2` | earn 1910 coins in all | x2.4 | - |
+| The pilgrims' table | `q3` | earn 3810 coins in all | x2.8 | - |
+| Whispers of the cauldron | `q4` | earn 6610 coins in all | x3 | - |
+| The hive's blessing | `q5` | earn 10110 coins in all | x3 | - |
+| Crowds at the door | `q6` | earn 14110 coins in all | x3 | - |
+| The long table | `q7` | earn 18410 coins in all | x3 | - |
 
 ### Errands
 
-| Name | Kind | Needs | Appears from stage | Reward / effect | Description |
+| Name | Kind | Needs | Opens with quest | Reward / effect | Description |
 | --- | --- | --- | --- | --- | --- |
-| The queen is sick | deliver goods | `errandsBoard`, `oven`, 4 Candy cane (Fine) | 2 | +2 supply:honey; unlocks `bee-customers` | The hive queen has a fever. Bring four Fine candy canes. The hive will repay you with more honey, for good, and once she is well the bees will visit your shop. |
-| The pilgrims' feast | deliver goods | `errandsBoard`, `oven`, `sunflower`, 8 Sunflower brittle (Fine) | 3 | +1 counterSpace; +2 arrivals | The faithful plan a feast. Bring eight Fine sunflower brittles and the counter will be widened for good. |
-| A splinter hive | mission: Clerk away 2 days | `errandsBoard`, `clerk` | 2 | +9 rivalRelief | Send the clerk to parley with the rival hive for two days. If it works, the honey they steal comes back for good. |
-| The magic cauldron | deliver goods | `errandsBoard`, `pulling-machine`, 4 Candy cane (Excellent) | 5 | unlocks `magic-cauldron` | The old cauldron stirs by itself when it is fed well. Bring four Excellent candy canes and it will learn to make Perfect candies from rare ingredients: royal jelly, dark seeds and the like. |
-| The hive's gratitude | deliver goods | `errandsBoard`, `magic-cauldron`, `sunflower`, 8 Sunflower nougat (Fine) | 6 | unlocks `royal-jelly` | The queen is well again and the hive wants to thank you with its rarest gift. Bring eight Fine sunflower nougats for the feast and royal jelly will sometimes come with your honey. |
-| The offering to Sweet Tooth | deliver goods | `errandsBoard`, `magic-cauldron`, `royal-jelly`, `dark-garden`, `cream`, `blackberry`, 3 The Sweet Tooth (Perfect) | 9 | unlocks `ending` | The cult asks for one thing: three Perfect Sweet Tooth candies, made of royal jelly, dark seeds, Stumpsville cream and cursed blackberries, laid before Sweet Tooth itself. After that the shop runs on and the cult is pleased. |
-| The scarecrow mice | deliver goods | `errandsBoard`, `oven`, `sunflower`, 6 Candy cane (Fine) | 3 | +2 supply:sunflower-seed | Crows keep eating the seeds in the hollow. Bring six Fine candy canes to the scarecrow mice and they will guard the patch for good: two more sunflower seeds every morning. |
-| The Stumpsville dairy cart | deliver goods | `errandsBoard`, `sunflower`, 8 Sunflower brittle (Plain) | 4 | unlocks `milk`; +1 supply:milk | A cart from Stumpsville has broken a wheel at your door, loaded with milk. Feed the dairy mice eight sunflower brittles and they will leave milk at your door every morning. |
-| The bramble thicket | deliver goods | `errandsBoard`, `oven`, `sunflower`, 6 Sunflower nougat (Fine) | 5 | unlocks `blueberry`; +1 supply:blueberry | Behind the mill grows a thicket full of blueberries and thorns. Bring six Fine sunflower nougats to the thicket mice and the berries are yours, every morning. |
-| The Stumpsville trade route | deliver goods | `errandsBoard`, `map`, `magic-cauldron`, `milk`, `oven`, 6 Honey fudge (Fine) | 6 | unlocks `cream` | The dairy mice of Stumpsville used to make the richest cream in the valley. Bring six Fine honey fudges to open the old trade route: their cream will sometimes come with your milk. |
-| The cursed bramble | deliver goods | `errandsBoard`, `magic-cauldron`, `blueberry`, `oven`, 6 Honey-berry gums (Fine) | 7 | unlocks `blackberry` | One bramble bears black berries that whisper. The thicket mice will let you pick them if you bring six Fine honey-berry gums: cursed blackberries will sometimes come with your blueberries. |
+| The queen is sick | deliver goods | `errandsBoard`, `oven`, 4 Candy cane (Fine) | q1 | +2 supply:honey; unlocks `bee-customers` | The hive queen has a fever. Bring four Fine candy canes. The hive will repay you with more honey, for good, and once she is well the bees will visit your shop. |
+| The pilgrims' feast | deliver goods | `errandsBoard`, `oven`, `sunflower`, 8 Sunflower brittle (Fine) | q2 | +1 counterSpace; +2 arrivals | The faithful plan a feast. Bring eight Fine sunflower brittles and the counter will be widened for good. |
+| A splinter hive | mission: Clerk away 2 days | `errandsBoard`, `clerk` | q1 | +9 rivalRelief | Send the clerk to parley with the rival hive for two days. If it works, the honey they steal comes back for good. |
+| The magic cauldron | deliver goods | `errandsBoard`, `pulling-machine`, 4 Candy cane (Excellent) | q4 | unlocks `magic-cauldron` | The old cauldron stirs by itself when it is fed well. Bring four Excellent candy canes and it will learn to make Perfect candies from rare ingredients: royal jelly, dark seeds and the like. |
+| The hive's gratitude | deliver goods | `errandsBoard`, `magic-cauldron`, `sunflower`, 8 Sunflower nougat (Fine) | q5 | unlocks `royal-jelly` | The queen is well again and the hive wants to thank you with its rarest gift. Bring eight Fine sunflower nougats for the feast and royal jelly will sometimes come with your honey. |
+| The offering to Sweet Tooth | deliver goods | `errandsBoard`, `magic-cauldron`, `royal-jelly`, `dark-garden`, `cream`, `blackberry`, 3 The Sweet Tooth (Perfect) | q8 | unlocks `ending` | The cult asks for one thing: three Perfect Sweet Tooth candies, made of royal jelly, dark seeds, Stumpsville cream and cursed blackberries, laid before Sweet Tooth itself. After that the shop runs on and the cult is pleased. |
+| The scarecrow mice | deliver goods | `errandsBoard`, `oven`, `sunflower`, 6 Candy cane (Fine) | q2 | +2 supply:sunflower-seed | Crows keep eating the seeds in the hollow. Bring six Fine candy canes to the scarecrow mice and they will guard the patch for good: two more sunflower seeds every morning. |
+| The Stumpsville dairy cart | deliver goods | `errandsBoard`, `sunflower`, 8 Sunflower brittle (Plain) | q3 | unlocks `milk`; +1 supply:milk | A cart from Stumpsville has broken a wheel at your door, loaded with milk. Feed the dairy mice eight sunflower brittles and they will leave milk at your door every morning. |
+| The bramble thicket | deliver goods | `errandsBoard`, `oven`, `sunflower`, 6 Sunflower nougat (Fine) | q4 | unlocks `blueberry`; +1 supply:blueberry | Behind the mill grows a thicket full of blueberries and thorns. Bring six Fine sunflower nougats to the thicket mice and the berries are yours, every morning. |
+| The Stumpsville trade route | deliver goods | `errandsBoard`, `map`, `magic-cauldron`, `milk`, `oven`, 6 Honey fudge (Fine) | q5 | unlocks `cream` | The dairy mice of Stumpsville used to make the richest cream in the valley. Bring six Fine honey fudges to open the old trade route: their cream will sometimes come with your milk. |
+| The cursed bramble | deliver goods | `errandsBoard`, `magic-cauldron`, `blueberry`, `oven`, 6 Honey-berry gums (Fine) | q6 | unlocks `blackberry` | One bramble bears black berries that whisper. The thicket mice will let you pick them if you bring six Fine honey-berry gums: cursed blackberries will sometimes come with your blueberries. |
 
 ### Map places
 
-| Place | Revealed at stage |
+| Place | Opens with quest |
 | --- | --- |
-| Millpond | 3 |
-| Old orchard | 4 |
-| Sunflower hollow | 5 |
-| Stumpsville road | 6 |
-| Market stall | 7 |
-| Roadside inn | 8 |
+| Millpond | q2 |
+| Old orchard | q3 |
+| Sunflower hollow | q4 |
+| Stumpsville road | q5 |
+| Market stall | q6 |
+| Roadside inn | q7 |
 
 ### Art slots (placeholders today: final pixel sizes, swappable files)
 
@@ -221,5 +220,5 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | Customers waiting at the counter at once | 4 |
 | Customers the shop welcomes per day = counter space x | 4 |
 | Hand-made batches before the clerk can sell a recipe | 2 |
-| Base customers per day (stage 1) | 8 |
+| Base customers per day (before any quest) | 8 |
 

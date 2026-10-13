@@ -167,9 +167,17 @@ export function validateRefs(c: Content): string[] {
   const upgradeUnlocks = new Set(c.skillNodes.flatMap((n) => n.effects.filter((e) => e.type === 'unlock').map((e) => (e as { id: string }).id)));
   for (const st of c.craftSteps)
     if (st.automatedBy && !upgradeUnlocks.has(st.automatedBy)) errors.push(`craftSteps/${st.id}: no upgrade grants "${st.automatedBy}"`);
-  if (c.stages.length === 0) errors.push('stages: at least one stage is required');
-  for (const st of c.stages)
-    if (st.rival && !ingredients.has(st.rival.ingredient)) errors.push(`stages/${st.id}: unknown ingredient "${st.rival.ingredient}"`);
+  // Quests: the chain refers only to things that exist, and everything gated behind a quest names a real one.
+  if (c.quests.length === 0) errors.push('quests: at least one quest is required');
+  const questIds = ids(c.quests);
+  for (const q of c.quests) {
+    if (q.rival && !ingredients.has(q.rival.ingredient)) errors.push(`quests/${q.id}: unknown ingredient "${q.rival.ingredient}"`);
+    for (const r of q.requires) if (!questIds.has(r)) errors.push(`quests/${q.id}: unknown required quest "${r}"`);
+    for (const g of q.goals) if (g.type === 'own' && !c.skillNodes.some((n) => n.id === g.node)) errors.push(`quests/${q.id}: unknown upgrade "${g.node}"`);
+  }
+  for (const [table, rows] of [['skillNodes', c.skillNodes], ['errands', c.errands], ['places', c.places]] as const)
+    for (const r of rows as { id: string; quest?: string }[])
+      if (r.quest && !questIds.has(r.quest)) errors.push(`${table}/${r.id}: unknown quest "${r.quest}"`);
   if (c.errands.filter((e) => e.final).length > 1) errors.push('errands: at most one final errand');
   const workerIds = ids(c.workers);
   for (const e of c.errands) {

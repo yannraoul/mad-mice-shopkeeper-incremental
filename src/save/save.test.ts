@@ -29,6 +29,21 @@ describe('save', () => {
     expect(text.startsWith('CST1:')).toBe(true);
     expect(importString(c, `  ${text}\n`)).toEqual({ ok: true, state: s });
   });
+  it('upgrades a v10 save: stage N cleared becomes quests q1..qN done, and the revenue total is rebuilt', () => {
+    const s = played();
+    const old = JSON.parse(serialize(s));
+    old.v = 10;
+    delete old.state.quests;
+    delete old.state.revenueTotal;
+    old.state.stage = { index: 3, day: 2, revenue: 50, misses: 1 };
+    old.state.lastWeek = { stage: 2, passed: true, revenue: 1000, target: 900 };
+    const r = deserialize(c, JSON.stringify(old));
+    if (!r.ok) throw new Error(r.error);
+    expect(Object.keys(r.state.quests)).toEqual(['q1', 'q2', 'q3']);
+    expect(r.state).not.toHaveProperty('stage');
+    expect(r.state).not.toHaveProperty('lastWeek');
+    expect(r.state.revenueTotal).toBe(s.history.reduce((n, h) => n + h.revenue, 0));
+  });
   it('upgrades a v2 save: the morning delivery is taken from the remaining stock', () => {
     const s = played();
     const old = JSON.parse(serialize(s));
@@ -70,12 +85,13 @@ describe('save migration', () => {
     const s = played();
     const env = JSON.parse(serialize(s));
     env.v = 1;
-    for (const k of ['stage', 'lastWeek', 'completed', 'errands']) delete env.state[k];
+    for (const k of ['quests', 'revenueTotal', 'completed', 'errands']) delete env.state[k];
     for (const h of env.state.history) delete h.stage;
     delete env.state.report.stage;
     const r = deserialize(c, JSON.stringify(env));
     if (!r.ok) throw new Error(r.error);
-    expect(r.state.stage).toEqual({ index: 0, day: 0, revenue: 0, misses: 0 });
+    expect(r.state.quests).toEqual({});
+    expect(r.state.revenueTotal).toBe(s.history.reduce((n, h) => n + h.revenue, 0)); // rebuilt from the day reports
     expect(r.state.errands).toEqual({});
     expect(r.state.completed).toBe(false);
     expect(r.state.money).toBe(s.money);

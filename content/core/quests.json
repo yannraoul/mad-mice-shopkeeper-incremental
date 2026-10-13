@@ -1,0 +1,122 @@
+[
+  {
+    "id": "q1",
+    "nameKey": "quest.q1",
+    "requires": [],
+    "goals": [
+      {
+        "type": "earn",
+        "amount": 240
+      }
+    ],
+    "arrivalsMult": 1.5,
+    "rival": {
+      "ingredient": "honey",
+      "amount": 1,
+      "startsOnDay": 3
+    }
+  },
+  {
+    "id": "q2",
+    "nameKey": "quest.q2",
+    "requires": [
+      "q1"
+    ],
+    "goals": [
+      {
+        "type": "earn",
+        "amount": 760
+      }
+    ],
+    "arrivalsMult": 2,
+    "rival": {
+      "ingredient": "honey",
+      "amount": 2,
+      "startsOnDay": 2
+    }
+  },
+  {
+    "id": "q3",
+    "nameKey": "quest.q3",
+    "requires": [
+      "q2"
+    ],
+    "goals": [
+      {
+        "type": "earn",
+        "amount": 1910
+      }
+    ],
+    "arrivalsMult": 2.4
+  },
+  {
+    "id": "q4",
+    "nameKey": "quest.q4",
+    "requires": [
+      "q3"
+    ],
+    "goals": [
+      {
+        "type": "earn",
+        "amount": 3810
+      }
+    ],
+    "arrivalsMult": 2.8
+  },
+  {
+    "id": "q5",
+    "nameKey": "quest.q5",
+    "requires": [
+      "q4"
+    ],
+    "goals": [
+      {
+        "type": "earn",
+        "amount": 6610
+      }
+    ],
+    "arrivalsMult": 3
+  },
+  {
+    "id": "q6",
+    "nameKey": "quest.q6",
+    "requires": [
+      "q5"
+    ],
+    "goals": [
+      {
+        "type": "earn",
+        "amount": 10110
+      }
+    ],
+    "arrivalsMult": 3
+  },
+  {
+    "id": "q7",
+    "nameKey": "quest.q7",
+    "requires": [
+      "q6"
+    ],
+    "goals": [
+      {
+        "type": "earn",
+        "amount": 14110
+      }
+    ],
+    "arrivalsMult": 3
+  },
+  {
+    "id": "q8",
+    "nameKey": "quest.q8",
+    "requires": [
+      "q7"
+    ],
+    "goals": [
+      {
+        "type": "earn",
+        "amount": 18410
+      }
+    ],
+    "arrivalsMult": 3
+  }
+]

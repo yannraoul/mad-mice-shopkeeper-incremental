@@ -92,7 +92,7 @@ function smartEvening(c: Content, s: State): State {
     const r = step(c, s, { type: 'buy', node: id });
     if (!r.ok) {
       // Locked behind something later in the list? keep going. Too poor or maxed? stop and save up.
-      if (['node-locked', 'unlock-needed', 'stage-locked', 'node-maxed', 'unknown-node'].includes(r.code)) continue;
+      if (['node-locked', 'unlock-needed', 'quest-locked', 'node-maxed', 'unknown-node'].includes(r.code)) continue;
       return s;
     }
     s = r.state;

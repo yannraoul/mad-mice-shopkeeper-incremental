@@ -3,7 +3,6 @@
     "id": "queen-fever",
     "nameKey": "errand.queen-fever",
     "descKey": "errand.queen-fever.desc",
-    "minStage": 1,
     "requires": [
       "errandsBoard",
       "oven"
@@ -27,13 +26,13 @@
         "type": "unlock",
         "id": "bee-customers"
       }
-    ]
+    ],
+    "quest": "q1"
   },
   {
     "id": "pilgrim-feast",
     "nameKey": "errand.pilgrim-feast",
     "descKey": "errand.pilgrim-feast.desc",
-    "minStage": 2,
     "requires": [
       "errandsBoard",
       "oven",
@@ -58,13 +57,13 @@
         "stat": "arrivals",
         "add": 2
       }
-    ]
+    ],
+    "quest": "q2"
   },
   {
     "id": "rival-hive",
     "nameKey": "errand.rival-hive",
     "descKey": "errand.rival-hive.desc",
-    "minStage": 1,
     "requires": [
       "errandsBoard",
       "clerk"
@@ -80,13 +79,13 @@
         "stat": "rivalRelief",
         "add": 9
       }
-    ]
+    ],
+    "quest": "q1"
   },
   {
     "id": "magic-cauldron",
     "nameKey": "errand.magic-cauldron",
     "descKey": "errand.magic-cauldron.desc",
-    "minStage": 4,
     "requires": [
       "errandsBoard",
       "pulling-machine"
@@ -104,13 +103,13 @@
         "type": "unlock",
         "id": "magic-cauldron"
       }
-    ]
+    ],
+    "quest": "q4"
   },
   {
     "id": "royal-gift",
     "nameKey": "errand.royal-gift",
     "descKey": "errand.royal-gift.desc",
-    "minStage": 5,
     "requires": [
       "errandsBoard",
       "magic-cauldron",
@@ -129,13 +128,13 @@
         "type": "unlock",
         "id": "royal-jelly"
       }
-    ]
+    ],
+    "quest": "q5"
   },
   {
     "id": "sweet-tooth-offering",
     "nameKey": "errand.sweet-tooth-offering",
     "descKey": "errand.sweet-tooth-offering.desc",
-    "minStage": 8,
     "requires": [
       "errandsBoard",
       "magic-cauldron",
@@ -158,13 +157,13 @@
         "type": "unlock",
         "id": "ending"
       }
-    ]
+    ],
+    "quest": "q8"
   },
   {
     "id": "scarecrow-mice",
     "nameKey": "errand.scarecrow-mice",
     "descKey": "errand.scarecrow-mice.desc",
-    "minStage": 2,
     "requires": [
       "errandsBoard",
       "oven",
@@ -184,13 +183,13 @@
         "stat": "supply:sunflower-seed",
         "add": 2
       }
-    ]
+    ],
+    "quest": "q2"
   },
   {
     "id": "dairy-cart",
     "nameKey": "errand.dairy-cart",
     "descKey": "errand.dairy-cart.desc",
-    "minStage": 3,
     "requires": [
       "errandsBoard",
       "sunflower"
@@ -213,13 +212,13 @@
         "stat": "supply:milk",
         "add": 1
       }
-    ]
+    ],
+    "quest": "q3"
   },
   {
     "id": "bramble-thicket",
     "nameKey": "errand.bramble-thicket",
     "descKey": "errand.bramble-thicket.desc",
-    "minStage": 4,
     "requires": [
       "errandsBoard",
       "oven",
@@ -243,13 +242,13 @@
         "stat": "supply:blueberry",
         "add": 1
       }
-    ]
+    ],
+    "quest": "q4"
   },
   {
     "id": "stumpsville-trade",
     "nameKey": "errand.stumpsville-trade",
     "descKey": "errand.stumpsville-trade.desc",
-    "minStage": 5,
     "requires": [
       "errandsBoard",
       "map",
@@ -270,13 +269,13 @@
         "type": "unlock",
         "id": "cream"
       }
-    ]
+    ],
+    "quest": "q5"
   },
   {
     "id": "cursed-bramble",
     "nameKey": "errand.cursed-bramble",
     "descKey": "errand.cursed-bramble.desc",
-    "minStage": 6,
     "requires": [
       "errandsBoard",
       "magic-cauldron",
@@ -296,6 +295,7 @@
         "type": "unlock",
         "id": "blackberry"
       }
-    ]
+    ],
+    "quest": "q6"
   }
 ]

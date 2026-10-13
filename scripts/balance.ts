@@ -20,9 +20,9 @@ const bots: Bot[] = which === 'both' ? [smartBot, casualBot] : [all[which] ?? sm
 
 if (args.includes('--ablate')) {
   const rows = ablate(content, smartBot, seeds, days).sort((a, b) => a.revenuePct - b.revenuePct);
-  console.log('Without this upgrade (smart bot): revenue change, delay of the final stage');
+  console.log('Without this upgrade (smart bot): revenue change, delay of the last quest');
   for (const r of rows)
-    console.log(`  ${r.node.padEnd(15)} ${r.revenuePct.toFixed(1).padStart(6)}%   final stage ${r.finalStageDelay === null ? 'not always cleared' : (r.finalStageDelay >= 0 ? '+' : '') + r.finalStageDelay + ' days'}`);
+    console.log(`  ${r.node.padEnd(15)} ${r.revenuePct.toFixed(1).padStart(6)}%   last quest ${r.lastQuestDelay === null ? 'not always cleared' : (r.lastQuestDelay >= 0 ? '+' : '') + r.lastQuestDelay + ' days'}`);
   process.exit(0);
 }
 for (const bot of bots) console.log(formatSummary(content, runBalance(content, bot, seeds, days)) + '\n');

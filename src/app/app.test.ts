@@ -43,7 +43,7 @@ describe('game session', () => {
   it('starts a game from its options (seed, unlocks, stage hook)', () => {
     const s = new GameSession({ content: c, start: { seed: 5, unlocks: ['oven'], stage: 2 } });
     expect(s.state.unlocks).toEqual(['oven']);
-    expect(s.state.stage.index).toBe(1);
+    expect(Object.keys(s.state.quests)).toEqual([c.quests[0]!.id]);
     expect(s.persistent).toBe(false);
   });
   it('can start with coins and the final stage cleared (developer hooks)', () => {

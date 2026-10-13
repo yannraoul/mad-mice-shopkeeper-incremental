@@ -30,3 +30,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-16](features/MMSIM-16.md) — The Second cauldron grows up: order book and delivery mouse
 - [MMSIM-17](features/MMSIM-17.md) — Alternates v3: a small store you keep, and Perfect = Excellent plus the candy alternates
 - [MMSIM-18](features/MMSIM-18.md) — The daily routine: a foreman mouse runs the day
+- [MMSIM-19](features/MMSIM-19.md) — The quest chain, part A: quests replace the weekly stages (engine)

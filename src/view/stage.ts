@@ -1,53 +1,53 @@
 import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
-import { currentStage, modifier, rivalPenalty, stageTarget } from '../engine/economy.ts';
+import { dayOfWeek, DAYS_PER_WEEK, goalProgress, modifier, openQuests, rivalPenalty, shopQuest, weekOf } from '../engine/economy.ts';
 import type { State } from '../engine/types.ts';
 import { rivalErrands, unlockName } from './text.ts';
 
 export interface StageView {
-  /** "The first week: day 3 / 7 · 120 / 240 coins earned" */
-  progress: string;
+  /** The quest in progress ("The first steps"), or "Every goal is reached". */
   name: string;
-  day: number;
-  days: number;
-  earned: number;
-  target: number;
+  /** "week 3 · day 2 / 7": the calendar. */
+  dayText: string;
+  /** "120 / 240 coins earned" for the open quest's goal (empty when there is none). */
+  earnedText: string;
   /** 0..100, for a progress bar. */
   pct: number;
-  /** "day 3 / 7" and "120 / 240 coins earned", split so a UI can lay them out. */
-  dayText: string;
-  earnedText: string;
+  /** "+1 more goal(s)" when several quests are open at once. */
+  more: string | null;
   /** One pip per day of the week; `rival` marks the day the rival hive starts stealing. */
   pips: { state: 'done' | 'current' | 'todo'; rival: boolean }[];
   /** Short form of the rival warning for a compact chip; the full text is `warning` + `hints`. */
   chip: { label: string; hintLabel: string } | null;
-  /** The rival hive: stealing now, about to start, or coming next week (null when no threat). */
+  /** The rival hive: stealing now, about to start, or coming when the open quest is reached (null when no threat). */
   warning: string | null;
   /** How the player can stop the threat: one line per relieving errand. */
   hints: string[];
-  /** Result of the week that just closed, shown on the first day after it. */
-  lastWeek: { passed: boolean; text: string } | null;
-  /** "New this stage: Sunflower patch, Errands board." on the first day of a stage that opens things (null otherwise). */
+  /** "New: Sunflower patch, Errands board." for what the latest quest opened (null otherwise). */
   newThings: string | null;
   /** Final quest delivered: the optional ending text (from a pack) or a generic line. */
   complete: string | null;
 }
 
 export function buildStageView(c: Content, s: State, t: Translate): StageView {
-  const stage = currentStage(c, s);
-  const target = stageTarget(c, s);
-  // Revenue shown includes today's sales so far (the week is judged after its last day).
-  const earned = s.stage.revenue + s.report.revenue;
-  const today = s.stage.day + 1;
-  const rival = stage.rival;
+  const today = dayOfWeek(s.day);
+  const open = openQuests(c, s);
+  const quest = open[0];
+  const rival = shopQuest(c, s)?.rival;
   const relief = modifier(c, s, 'rivalRelief');
   const stolen = rival ? rivalPenalty(c, s, rival.ingredient) : 0;
   const ingredientName = (id: string) => t(`ingredient.${id}`).toLocaleLowerCase(t.locale);
 
-  // The rival is announced before it starts (grace period) and a week ahead, so it is never a surprise.
+  // Progress of the open quest: the average of its goals (the chain only uses coins for now).
+  const progress = quest ? quest.goals.map((g) => goalProgress(c, s, g)) : [];
+  const pct = progress.length === 0 ? 100 : Math.round((progress.reduce((n, p) => n + Math.min(1, p.have / p.need), 0) / progress.length) * 100);
+  const earnGoal = quest?.goals.find((g) => g.type === 'earn');
+  const earnProgress = earnGoal ? goalProgress(c, s, earnGoal) : null;
+
+  // The rival is announced before it starts (grace period) and before the quest that brings it, so it is never a surprise.
   const startingSoon = rival && today < rival.startsOnDay && rival.amount - relief > 0 ? rival : null;
-  const nextRival = c.stages[s.stage.index + 1]?.rival;
-  const nextWeek = !rival && !!nextRival && today > stage.days - 3 && nextRival.amount - relief > 0;
+  const nextRival = quest?.rival;
+  const comingSoon = !rival && !!nextRival && pct >= 60 && nextRival.amount - relief > 0;
 
   let warning: string | null = null;
   if (stolen > 0 && rival) warning = t('stage.rival', { amount: stolen, ingredient: ingredientName(rival.ingredient) });
@@ -57,7 +57,7 @@ export function buildStageView(c: Content, s: State, t: Translate): StageView {
       ingredient: ingredientName(startingSoon.ingredient),
       day: startingSoon.startsOnDay,
     });
-  else if (nextWeek) warning = t('stage.rivalNextWeek');
+  else if (comingSoon) warning = t('stage.rivalNextWeek');
 
   const hints: string[] = [];
   if (warning) {
@@ -89,53 +89,33 @@ export function buildStageView(c: Content, s: State, t: Translate): StageView {
         hintLabel: t('stage.hint'),
       };
   const rivalDay = startingSoon?.startsOnDay ?? (stolen > 0 ? rival?.startsOnDay : undefined);
-  const shownDay = Math.min(today, stage.days);
-  const week = s.stage.day === 0 ? s.lastWeek : null;
   const ending = c.strings[t.locale]['ending.text'];
   return {
-    progress: t('stage.progress', {
-      name: t(stage.nameKey),
-      day: Math.min(today, stage.days),
-      days: stage.days,
-      revenue: earned,
-      target,
-    }),
-    name: t(stage.nameKey),
-    day: Math.min(today, stage.days),
-    days: stage.days,
-    earned,
-    target,
-    dayText: t('stage.dayOf', { stage: s.stage.index + 1, week: Math.floor((s.day - 1) / 7) + 1, day: shownDay, days: stage.days }),
-    earnedText: t('stage.earned', { n: earned, target }),
-    pips: Array.from({ length: stage.days }, (_, i) => ({
-      state: i + 1 < shownDay ? 'done' : i + 1 === shownDay ? 'current' : 'todo',
+    name: quest ? t(quest.nameKey) : t('quest.none'),
+    dayText: t('stage.dayOf', { week: weekOf(s.day), day: today, days: DAYS_PER_WEEK }),
+    earnedText: earnProgress ? t('quest.earned', { n: earnProgress.have, target: earnProgress.need }) : '',
+    pct,
+    more: open.length > 1 ? t('quest.more', { n: open.length - 1 }) : null,
+    pips: Array.from({ length: DAYS_PER_WEEK }, (_, i) => ({
+      state: i + 1 < today ? 'done' : i + 1 === today ? 'current' : 'todo',
       rival: rivalDay === i + 1,
     })),
     chip,
-    pct: Math.min(100, Math.round((earned / target) * 100)),
     warning,
     hints,
-    lastWeek: week
-      ? {
-          passed: week.passed,
-          text: week.passed
-            ? t('stage.lastWeekPassed')
-            : t('stage.lastWeekMissed', { revenue: week.revenue, target: week.target }),
-        }
-      : null,
     newThings: newThings(c, s, t),
     complete: s.completed ? (ending ?? t('stage.complete')) : null,
   };
 }
 
-/** What passing the previous stage opened: upgrades, quests and places that start at this stage. */
+/** What the latest quest (done today or yesterday) opened: upgrades, errands and places gated behind it. */
 function newThings(c: Content, s: State, t: Translate): string | null {
-  const i = s.stage.index;
-  if (i === 0 || s.stage.day !== 0 || s.stage.misses > 0) return null;
+  const fresh = Object.entries(s.quests).filter(([, day]) => day >= s.day - 1).map(([id]) => id);
+  if (fresh.length === 0) return null;
   const names = [
-    ...c.skillNodes.filter((n) => n.minStage === i).map((n) => t(n.nameKey)),
-    ...c.errands.filter((e) => e.minStage === i).map((e) => t(e.nameKey)),
-    ...c.places.filter((p) => p.minStage === i).map((p) => t(p.nameKey)),
+    ...c.skillNodes.filter((n) => n.quest && fresh.includes(n.quest)).map((n) => t(n.nameKey)),
+    ...c.errands.filter((e) => e.quest && fresh.includes(e.quest)).map((e) => t(e.nameKey)),
+    ...c.places.filter((p) => p.quest && fresh.includes(p.quest)).map((p) => t(p.nameKey)),
   ];
   return names.length > 0 ? t('stage.new', { list: names.join(', ') }) : null;
 }

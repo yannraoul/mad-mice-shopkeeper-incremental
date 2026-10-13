@@ -1,16 +1,9 @@
 [
   {
-    "id": "week-passed",
-    "textKey": "journal.week-passed",
+    "id": "quest-done",
+    "textKey": "journal.quest-done",
     "when": {
-      "weekResult": "passed"
-    }
-  },
-  {
-    "id": "week-missed",
-    "textKey": "journal.week-missed",
-    "when": {
-      "weekResult": "missed"
+      "questToday": true
     }
   },
   {

@@ -19,7 +19,7 @@ export interface Persistence {
 export interface StartOptions {
   seed?: number;
   unlocks?: string[];
-  /** Start in stage N (1-based); a developer hook. */
+  /** Start with the first N-1 quests done (stage N in the old numbering); a developer hook. */
   stage?: number;
   /** Starting coins; a developer hook. */
   money?: number;
@@ -72,12 +72,14 @@ export class GameSession {
 
   private fresh(o: StartOptions): State {
     const game = newGame(this.content, { seed: o.seed ?? this.randomSeed(), unlocks: o.unlocks });
-    const stage = o.stage ?? 1;
+    const done = this.content.quests.slice(0, Math.max(0, (o.stage ?? 1) - 1));
+    const total = Math.max(0, ...done.flatMap((q) => q.goals.map((g) => (g.type === 'earn' ? g.amount : 0))));
     return {
       ...game,
       money: o.money ?? game.money,
       completed: o.completed ?? game.completed,
-      stage: stage > 1 ? { ...game.stage, index: Math.min(stage, this.content.stages.length) - 1 } : game.stage,
+      quests: Object.fromEntries(done.map((q) => [q.id, game.day])),
+      revenueTotal: total,
     };
   }
 

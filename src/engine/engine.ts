@@ -8,9 +8,11 @@ import {
   isCandyUnlocked,
   isIngredientUnlocked,
   presentCustomerTypes,
-  currentStage,
+  arrivalsMult,
+  goalMet,
+  questDone,
+  questReached,
   openPlaces,
-  stageTarget,
   isQualityUnlocked,
   modifier,
   rivalPenalty,
@@ -50,8 +52,8 @@ export function newGame(c: Content, opts: NewGameOptions): State {
     rng: opts.seed | 0,
     nextId: 1,
     money: c.settings.startMoney,
-    stage: { index: 0, day: 0, revenue: 0, misses: 0 },
-    lastWeek: null,
+    quests: {},
+    revenueTotal: 0,
     completed: false,
     errands: {},
     nodes: {},
@@ -73,6 +75,7 @@ export function newGame(c: Content, opts: NewGameOptions): State {
     history: [],
   };
   startDay(c, s, []);
+  updateQuests(c, s, []);
   return s;
 }
 
@@ -80,6 +83,7 @@ export function step(c: Content, prev: State, action: Action): StepResult {
   const s = structuredClone(prev);
   const events: GameEvent[] = [];
   const err = apply(c, s, action, events);
+  if (!err) updateQuests(c, s, events);
   return err ? { ok: false, error: err.message, code: err.code, params: err.params } : { ok: true, state: s, events };
 }
 
@@ -269,7 +273,7 @@ function buy(c: Content, s: State, nodeId: string, ev: GameEvent[]): Fail | null
   if (!node) return fail('unknown-node', {}, `unknown node "${nodeId}"`);
   const level = s.nodes[nodeId] ?? 0;
   if (level >= node.costs.length) return fail('node-maxed', {}, `"${nodeId}" is at its maximum level`);
-  if (node.minStage > s.stage.index) return fail('stage-locked', { stage: String(node.minStage + 1) }, `"${nodeId}" opens at stage ${node.minStage + 1}`);
+  if (!questReached(s, node.quest)) return fail('quest-locked', { quest: node.quest! }, `"${nodeId}" opens with the quest "${node.quest}"`);
   const missing = node.requires.find((r) => (s.nodes[r] ?? 0) < 1);
   if (missing) return fail('node-locked', { node: missing }, `"${nodeId}" requires "${missing}"`);
   const needed = node.needs.find((u) => !s.unlocks.includes(u));
@@ -312,25 +316,23 @@ function deliverSupply(c: Content, s: State): Record<string, number> {
   return supply;
 }
 
-/** End of a played day: count it toward the week; on the last day of the week, judge the target. */
-function closeDay(c: Content, s: State, ev: GameEvent[]) {
-  const stage = currentStage(c, s);
-  s.stage.revenue += s.report.revenue;
-  s.stage.day += 1;
-  if (s.stage.day < stage.days) return;
-  const target = stageTarget(c, s);
-  const passed = s.stage.revenue >= target;
-  const result = { stage: s.stage.index, passed, revenue: s.stage.revenue, target };
-  s.lastWeek = result;
-  ev.push({ type: 'weekEnded', ...result });
-  // No fail state: a missed week repeats the same stage with a slightly lower target (easy mode); everything bought is kept.
-  // Passing opens the next stage; the last stage just goes on week after week until the final quest is delivered.
-  if (passed) {
-    if (s.stage.index + 1 < c.stages.length) s.stage.index += 1;
-    s.stage.misses = 0;
-  } else s.stage.misses += 1;
-  s.stage.day = 0;
-  s.stage.revenue = 0;
+/** End of a played day: its coins join the running total the `earn` goals count. */
+function closeDay(c: Content, s: State) {
+  s.revenueTotal += s.report.revenue;
+}
+
+/** Complete every open quest whose goals hold (a reward can open the next one at once): no weekly target, no deadline. */
+function updateQuests(c: Content, s: State, ev: GameEvent[]) {
+  for (let again = true; again; ) {
+    again = false;
+    for (const q of c.quests) {
+      if (questDone(s, q.id) || !q.requires.every((r) => questDone(s, r)) || !q.goals.every((g) => goalMet(c, s, g))) continue;
+      s.quests[q.id] = s.day;
+      applyEffects(c, s, q.reward);
+      ev.push({ type: 'questDone', quest: q.id });
+      again = true;
+    }
+  }
 }
 
 function applyEffects(c: Content, s: State, effects: Effect[]) {
@@ -342,7 +344,7 @@ function applyEffects(c: Content, s: State, effects: Effect[]) {
 }
 
 function errandAvailable(c: Content, s: State, e: Content['errands'][number]): boolean {
-  return s.stage.index >= e.minStage && e.requires.every((u) => s.unlocks.includes(u));
+  return questReached(s, e.quest) && e.requires.every((u) => s.unlocks.includes(u));
 }
 
 /** A worker on a mission cannot sell to customers meanwhile. */
@@ -515,7 +517,7 @@ function endPhase(c: Content, s: State, ev: GameEvent[]): Fail | null {
   }
   if (newDay) {
     s.history.push(s.report);
-    closeDay(c, s, ev);
+    closeDay(c, s);
     startDay(c, s, ev);
   } else {
     s.phase = phase;
@@ -575,7 +577,7 @@ function startDay(c: Content, s: State, ev: GameEvent[]) {
   s.day += 1;
   s.phase = 'morning';
   s.forecast = pick(s, c.forecasts).id;
-  s.report = emptyReport(s.day, s.stage.index, s.forecast);
+  s.report = emptyReport(s.day, Object.keys(s.quests).length, s.forecast);
   progressMissions(c, s, ev);
   payIncome(c, s, ev);
   s.supply = deliverSupply(c, s);
@@ -637,7 +639,7 @@ function pickWant(c: Content, s: State, t: Content['customerTypes'][number], can
 function spawnCustomers(c: Content, s: State, ev: GameEvent[]) {
   const fc = c.forecasts.find((f) => f.id === s.forecast)!;
   const spread = 1 + c.settings.arrivalNoise * (rand(s) * 2 - 1);
-  const wanted = Math.max(0, Math.round((c.settings.baseArrivals + modifier(c, s, 'arrivals')) * currentStage(c, s).arrivalsMult * fc.arrivalsMult * spread));
+  const wanted = Math.max(0, Math.round((c.settings.baseArrivals + modifier(c, s, 'arrivals')) * arrivalsMult(c, s) * fc.arrivalsMult * spread));
   // The shop can only welcome so many people a day: counter space is what lets later stages pay off.
   const count = Math.min(wanted, (c.settings.counterSpace + modifier(c, s, 'counterSpace')) * c.settings.customersPerSpace);
   // Customer types that need a quality the shop cannot make yet do not show up.

@@ -7,12 +7,10 @@ import { must, type Bot } from './bot.ts';
 export interface RunStats {
   seed: number;
   days: number;
-  /** Day on which each stage was first cleared (null = not cleared within the run). Index = stage. */
+  /** Day on which each quest was first done (null = not within the run). Index = quest, in content order. */
   clearedDay: (number | null)[];
   /** Day the final quest was delivered (null if never). */
   completedDay: number | null;
-  weeksPlayed: number;
-  weeksMissed: number;
   revenue: number;
   /** Revenue of every day, in order. */
   revenueByDay: number[];
@@ -31,7 +29,7 @@ export interface RunStats {
 export function runOne(c: Content, bot: Bot, seed: number, days: number): RunStats {
   let s = newGame(c, { seed });
   const st: RunStats = {
-    seed, days, clearedDay: c.stages.map(() => null), completedDay: null, weeksPlayed: 0, weeksMissed: 0, revenue: 0,
+    seed, days, clearedDay: c.quests.map(() => null), completedDay: null, revenue: 0,
     revenueByDay: [], boughtDay: {}, arrivals: 0, lost: 0, refused: 0, ingredientsUnused: 0, ingredientsDelivered: 0, stockOnOpen: 0,
   };
   for (let d = 1; d <= days; d++) {
@@ -56,18 +54,16 @@ export function runOne(c: Content, bot: Bot, seed: number, days: number): RunSta
     for (const id of Object.keys(s.nodes)) if (!(id in before) && !(id in st.boughtDay)) st.boughtDay[id] = d;
     s = must(c, s, { type: 'endPhase' });
     if (s.completed && st.completedDay === null) st.completedDay = d;
-    if (s.stage.day === 0 && s.lastWeek) {
-      st.weeksPlayed += 1;
-      if (!s.lastWeek.passed) st.weeksMissed += 1;
-      else if (st.clearedDay[s.lastWeek.stage] === null) st.clearedDay[s.lastWeek.stage] = d;
-    }
+    c.quests.forEach((q, i) => {
+      if (s.quests[q.id] !== undefined && st.clearedDay[i] === null) st.clearedDay[i] = d;
+    });
   }
   return st;
 }
 
 export interface Dist {
   n: number;
-  /** Runs where the value never happened (e.g. stage never cleared). */
+  /** Runs where the value never happened (e.g. quest never done). */
   never: number;
   p10: number;
   median: number;
@@ -84,11 +80,10 @@ export interface Summary {
   bot: string;
   runs: number;
   days: number;
-  /** Per stage: the day it was first cleared. */
-  stageCleared: Dist[];
+  /** Per quest: the day it was first done. */
+  questCleared: Dist[];
   /** Day the final quest was delivered. */
   completed: Dist;
-  weeksMissedPerRun: number;
   avgRevenuePerDay: number;
   /** Mean revenue per day, averaged within each week of play (index 0 = week 1). */
   revenueByWeek: number[];
@@ -112,9 +107,8 @@ export function summarize(c: Content, bot: string, runs: RunStats[]): Summary {
     bot,
     runs: runs.length,
     days,
-    stageCleared: c.stages.map((_, i) => dist(runs.map((r) => r.clearedDay[i] ?? null))),
+    questCleared: c.quests.map((_, i) => dist(runs.map((r) => r.clearedDay[i] ?? null))),
     completed: dist(runs.map((r) => r.completedDay)),
-    weeksMissedPerRun: sum((r) => r.weeksMissed) / Math.max(1, runs.length),
     avgRevenuePerDay: sum((r) => r.revenue) / Math.max(1, runs.length * days),
     revenueByWeek,
     bought: Object.fromEntries(c.skillNodes.map((n) => [n.id, dist(runs.map((r) => r.boughtDay[n.id] ?? null))])),
@@ -133,23 +127,23 @@ export interface Ablation {
   node: string;
   /** Change in average revenue per day when this upgrade cannot be bought, in percent. */
   revenuePct: number;
-  /** Days later (median) the final stage is cleared without it (null = some runs never clear it). */
-  finalStageDelay: number | null;
+  /** Days later (median) the last quest is done without it (null = some runs never clear it). */
+  lastQuestDelay: number | null;
 }
 
 /** Remove each upgrade in turn and see how much the competent player suffers: a measure of relevance. */
 export function ablate(c: Content, bot: Bot, seeds: number[], days: number): Ablation[] {
   const base = runBalance(c, bot, seeds, days);
-  const last = c.stages.length - 1;
+  const last = c.quests.length - 1;
   return c.skillNodes.map((n) => {
     const without = { ...c, skillNodes: c.skillNodes.filter((x) => x.id !== n.id) };
     const r = runBalance(without, bot, seeds, days);
-    const a = base.stageCleared[last]!;
-    const b = r.stageCleared[last]!;
+    const a = base.questCleared[last]!;
+    const b = r.questCleared[last]!;
     return {
       node: n.id,
       revenuePct: (100 * (r.avgRevenuePerDay - base.avgRevenuePerDay)) / base.avgRevenuePerDay,
-      finalStageDelay: b.never > a.never ? null : b.median - a.median,
+      lastQuestDelay: b.never > a.never ? null : b.median - a.median,
     };
   });
 }
@@ -159,11 +153,12 @@ const f = (n: number, d = 0) => (Number.isNaN(n) ? '-' : n.toFixed(d));
 export function formatSummary(c: Content, r: Summary): string {
   const lines: string[] = [];
   lines.push(`== ${r.bot} bot: ${r.runs} runs x ${r.days} days ==`);
-  lines.push(`avg revenue/day ${f(r.avgRevenuePerDay, 1)} | missed weeks/run ${f(r.weeksMissedPerRun, 1)} | customers lost ${f(r.lostPct, 1)}% refused ${f(r.refusedPct, 1)}% | ingredients unused ${f(r.ingredientsUnusedPct, 1)}% | stock on open ${f(r.avgStockOnOpen, 1)}`);
-  lines.push('stage cleared on day (p10 / median / p90, runs that never cleared it):');
-  c.stages.forEach((st, i) => {
-    const d = r.stageCleared[i]!;
-    lines.push(`  ${i + 1} ${st.id.padEnd(8)} target ${String(st.target).padStart(4)}  ${f(d.p10)} / ${f(d.median)} / ${f(d.p90)}   never: ${d.never}/${d.n}`);
+  lines.push(`avg revenue/day ${f(r.avgRevenuePerDay, 1)} | customers lost ${f(r.lostPct, 1)}% refused ${f(r.refusedPct, 1)}% | ingredients unused ${f(r.ingredientsUnusedPct, 1)}% | stock on open ${f(r.avgStockOnOpen, 1)}`);
+  lines.push('quest done on day (p10 / median / p90, runs that never did it):');
+  c.quests.forEach((q, i) => {
+    const d = r.questCleared[i]!;
+    const earn = q.goals.find((g) => g.type === 'earn');
+    lines.push(`  ${i + 1} ${q.id.padEnd(4)} earn ${String(earn && earn.type === 'earn' ? earn.amount : '-').padStart(6)}  ${f(d.p10)} / ${f(d.median)} / ${f(d.p90)}   never: ${d.never}/${d.n}`);
   });
   lines.push(`  final quest delivered on day ${f(r.completed.p10)} / ${f(r.completed.median)} / ${f(r.completed.p90)}   never: ${r.completed.never}/${r.completed.n}`);
   lines.push('avg revenue/day by week: ' + r.revenueByWeek.map((v) => f(v)).join(' '));

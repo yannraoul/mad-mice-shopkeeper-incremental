@@ -44,24 +44,47 @@ export const unlockedCandies = (c: Content, s: Pick<State, 'unlocks'>) =>
 export const presentCustomerTypes = (c: Content, s: Pick<State, 'unlocks'>) =>
   c.customerTypes.filter((t) => t.unlock === undefined || s.unlocks.includes(t.unlock));
 
-export const currentStage = (c: Content, s: Pick<State, 'stage'>) => c.stages[s.stage.index]!;
+/** Calendar: the week (1-based) and the day of the week (1 to 7) of a day number. */
+export const weekOf = (day: number) => Math.floor((day - 1) / 7) + 1;
+export const dayOfWeek = (day: number) => ((day - 1) % 7) + 1;
+export const DAYS_PER_WEEK = 7;
 
-/** This week's target: easy mode lowers it a little after each missed week of the same stage. */
-export function stageTarget(c: Content, s: Pick<State, 'stage'>): number {
-  const relief = Math.min(c.settings.retryReliefMax, s.stage.misses * c.settings.retryRelief);
-  return Math.round(currentStage(c, s).target * (1 - relief));
+export const questDone = (s: Pick<State, 'quests'>, id: string) => s.quests[id] !== undefined;
+/** The quest that is done, if the player has completed the quest this thing waits for (or it waits for none). */
+export const questReached = (s: Pick<State, 'quests'>, quest: string | undefined) => quest === undefined || questDone(s, quest);
+
+/** Coins earned in all, counting today's sales so far. */
+export const earnedTotal = (s: Pick<State, 'revenueTotal' | 'report'>) => s.revenueTotal + s.report.revenue;
+
+/** The latest done quest that sets the shop's busyness (and rival): what the shop has grown into. */
+export const shopQuest = (c: Content, s: Pick<State, 'quests'>) =>
+  [...c.quests].reverse().find((q) => questDone(s, q.id) && q.arrivalsMult !== undefined);
+export const arrivalsMult = (c: Content, s: Pick<State, 'quests'>) => shopQuest(c, s)?.arrivalsMult ?? 1;
+
+type GoalOf = Content['quests'][number]['goals'][number];
+/** How far a goal is: `have` out of `need`. */
+export function goalProgress(c: Content, s: Pick<State, 'revenueTotal' | 'report' | 'nodes' | 'day'>, g: GoalOf): { have: number; need: number } {
+  if (g.type === 'earn') return { have: Math.min(g.amount, earnedTotal(s)), need: g.amount };
+  if (g.type === 'own') return { have: Math.min(g.level, s.nodes[g.node] ?? 0), need: g.level };
+  return { have: Math.min(g.day, s.day), need: g.day };
 }
+export const goalMet = (c: Content, s: Pick<State, 'revenueTotal' | 'report' | 'nodes' | 'day'>, g: GoalOf) => {
+  const p = goalProgress(c, s, g);
+  return p.have >= p.need;
+};
+/** Quests that are open now: not done, every quest they need done. */
+export const openQuests = (c: Content, s: Pick<State, 'quests'>) =>
+  c.quests.filter((q) => !questDone(s, q.id) && q.requires.every((r) => questDone(s, r)));
 
-/** Places on the map that are open now: their unlock is owned and their stage reached (everything is open once the game is complete). */
-export const openPlaces = (c: Content, s: Pick<State, 'unlocks' | 'stage' | 'completed'>) =>
-  c.places.filter((p) => (p.unlock === undefined || s.unlocks.includes(p.unlock)) && (s.stage.index >= p.minStage || s.completed));
+/** Places on the map that are open now: their unlock is owned and their quest done (everything is open once the game is complete). */
+export const openPlaces = (c: Content, s: Pick<State, 'unlocks' | 'quests' | 'completed'>) =>
+  c.places.filter((p) => (p.unlock === undefined || s.unlocks.includes(p.unlock)) && (questReached(s, p.quest) || s.completed));
 
 /** Units of `ingredient` the rival hive steals this morning (after relief from errands). */
-export function rivalPenalty(c: Content, s: Pick<State, 'stage' | 'nodes' | 'errands'>, ingredient: string): number {
-  const rival = currentStage(c, s).rival;
+export function rivalPenalty(c: Content, s: Pick<State, 'quests' | 'day' | 'nodes' | 'errands'>, ingredient: string): number {
+  const rival = shopQuest(c, s)?.rival;
   if (!rival || rival.ingredient !== ingredient) return 0;
-  // stage.day counts finished days of the week, so today is day stage.day + 1
-  if (s.stage.day + 1 < rival.startsOnDay) return 0;
+  if (dayOfWeek(s.day) < rival.startsOnDay) return 0;
   return Math.max(0, rival.amount - modifier(c, s, 'rivalRelief'));
 }
 

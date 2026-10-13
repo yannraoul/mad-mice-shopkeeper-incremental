@@ -4,6 +4,7 @@ import { readContentFiles } from '../../scripts/lib/readContent.ts';
 import { newGame, step } from './engine.ts';
 import { priceOf, satisfies, unlockedCandies } from './economy.ts';
 import type { Action, State } from './types.ts';
+import { reachQuests } from './testkit.ts';
 
 const c = loadContent(readContentFiles(false));
 
@@ -46,10 +47,10 @@ describe('skill tree', () => {
   it('refuses when poor, unknown, or missing a required node', () => {
     expect(failCode(evening(0), buy('oven'))?.code).toBe('not-enough-money');
     expect(failCode(evening(999), buy('nope'))?.code).toBe('unknown-node');
-    expect(failCode(evening(999), buy('dark-garden'))).toEqual({ code: 'stage-locked', params: { stage: '6' } });
+    expect(failCode(evening(999), buy('dark-garden'))).toEqual({ code: 'quest-locked', params: { quest: 'q5' } });
     const late = (unlocks: string[] = []) => {
       const s = evening(999, unlocks);
-      s.stage.index = 5;
+      reachQuests(c, s, 5);
       return s;
     };
     expect(failCode(late(), buy('dark-garden'))).toEqual({ code: 'node-locked', params: { node: 'sunflower-patch' } });
@@ -75,7 +76,7 @@ describe('skill tree', () => {
   });
   it('the second cauldron is an automated station that makes plain drops each morning', () => {
     let s = evening(10_000);
-    s.stage.index = 3; // the second cauldron opens with the third stage (the fourth has no rival hive)
+    reachQuests(c, s, 3); // the second cauldron opens with the third stage (the fourth has no rival hive)
     s = run(s, buy('honey-yield'), buy('auto-cauldron'));
     expect(s.stations.map((x) => x.type)).toEqual(['cauldron', 'auto-cauldron']);
     s = run(s, end);

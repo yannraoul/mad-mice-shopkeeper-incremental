@@ -12,7 +12,7 @@
   <div class="main">
     <div class="line">
       <span><b>{v.name}</b> <span class="muted">· {v.dayText}</span></span>
-      <span class="mono earned">{v.earnedText}</span>
+      <span class="mono earned">{v.earnedText}{#if v.more} · {v.more}{/if}</span>
     </div>
     <div class="days" aria-hidden="true">
       {#each v.pips as p, i (i)}
@@ -40,9 +40,6 @@
 
 {#if v.newThings}
   <p class="week ok">{v.newThings}</p>
-{/if}
-{#if v.lastWeek}
-  <p class="week" class:ok={v.lastWeek.passed}>{v.lastWeek.text}</p>
 {/if}
 {#if v.complete}<p class="week ok">{v.complete}</p>{/if}
 

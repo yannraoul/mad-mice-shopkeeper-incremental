@@ -1,7 +1,7 @@
 import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
 import { step } from '../engine/engine.ts';
-import { stockedAtLeast, stockKey } from '../engine/economy.ts';
+import { questReached, stockedAtLeast, stockKey } from '../engine/economy.ts';
 import type { Action, State } from '../engine/types.ts';
 import { rivalErrands, unlockName } from './text.ts';
 
@@ -41,7 +41,7 @@ export function buildErrandsView(c: Content, s: State, t: Translate): ErrandsVie
   if (!s.unlocks.includes('errandsBoard')) return null;
   const relieving = new Set(rivalErrands(c).map((e) => e.id));
   const items = c.errands
-    .filter((e) => s.stage.index >= e.minStage || s.errands[e.id])
+    .filter((e) => questReached(s, e.quest) || s.errands[e.id])
     .map((e): ErrandItem => {
       const state = s.errands[e.id];
       const missing = e.requires.filter((u) => !s.unlocks.includes(u));

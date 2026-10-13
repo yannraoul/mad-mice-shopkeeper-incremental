@@ -54,7 +54,7 @@
         "station": "auto-cauldron"
       }
     ],
-    "minStage": 2
+    "quest": "q2"
   },
   {
     "id": "oven",
@@ -88,7 +88,7 @@
         "id": "pulling-machine"
       }
     ],
-    "minStage": 3
+    "quest": "q3"
   },
   {
     "id": "dark-garden",
@@ -110,7 +110,7 @@
     "needs": [
       "magic-cauldron"
     ],
-    "minStage": 5
+    "quest": "q5"
   },
   {
     "id": "counter-space",
@@ -162,7 +162,7 @@
         "id": "sunflower"
       }
     ],
-    "minStage": 1
+    "quest": "q1"
   },
   {
     "id": "sunflower-yield",
@@ -215,7 +215,7 @@
         "id": "contractBoard"
       }
     ],
-    "minStage": 1
+    "quest": "q1"
   },
   {
     "id": "faithful",
@@ -270,10 +270,10 @@
         "add": 2
       }
     ],
-    "minStage": 2,
     "needs": [
       "royal-jelly"
-    ]
+    ],
+    "quest": "q2"
   },
   {
     "id": "errands-board",
@@ -292,7 +292,7 @@
         "id": "errandsBoard"
       }
     ],
-    "minStage": 1
+    "quest": "q1"
   },
   {
     "id": "map",
@@ -311,7 +311,7 @@
         "id": "map"
       }
     ],
-    "minStage": 2
+    "quest": "q2"
   },
   {
     "id": "reputation",
@@ -325,14 +325,14 @@
       1500,
       3000
     ],
-    "minStage": 2,
     "effects": [
       {
         "type": "modifier",
         "stat": "priceBonus",
         "add": 6
       }
-    ]
+    ],
+    "quest": "q2"
   },
   {
     "id": "milk-yield",
@@ -348,14 +348,14 @@
     "needs": [
       "milk"
     ],
-    "minStage": 3,
     "effects": [
       {
         "type": "modifier",
         "stat": "supply:milk",
         "add": 1
       }
-    ]
+    ],
+    "quest": "q3"
   },
   {
     "id": "blueberry-yield",
@@ -371,14 +371,14 @@
     "needs": [
       "blueberry"
     ],
-    "minStage": 4,
     "effects": [
       {
         "type": "modifier",
         "stat": "supply:blueberry",
         "add": 1
       }
-    ]
+    ],
+    "quest": "q4"
   },
   {
     "id": "porter-mouse",
@@ -388,13 +388,13 @@
     "costs": [
       90
     ],
-    "minStage": 1,
     "effects": [
       {
         "type": "unlock",
         "id": "auto-fill"
       }
-    ]
+    ],
+    "quest": "q1"
   },
   {
     "id": "stirrer-mouse",
@@ -404,13 +404,13 @@
     "costs": [
       160
     ],
-    "minStage": 2,
     "effects": [
       {
         "type": "unlock",
         "id": "auto-stir"
       }
-    ]
+    ],
+    "quest": "q2"
   },
   {
     "id": "sculptor-mouse",
@@ -420,13 +420,13 @@
     "costs": [
       260
     ],
-    "minStage": 3,
     "effects": [
       {
         "type": "unlock",
         "id": "auto-form"
       }
-    ]
+    ],
+    "quest": "q3"
   },
   {
     "id": "oven-timer",
@@ -436,7 +436,6 @@
     "costs": [
       220
     ],
-    "minStage": 3,
     "effects": [
       {
         "type": "unlock",
@@ -445,7 +444,8 @@
     ],
     "requires": [
       "oven"
-    ]
+    ],
+    "quest": "q3"
   },
   {
     "id": "pulling-motor",
@@ -455,7 +455,6 @@
     "costs": [
       420
     ],
-    "minStage": 4,
     "effects": [
       {
         "type": "unlock",
@@ -464,7 +463,8 @@
     ],
     "requires": [
       "pulling-machine"
-    ]
+    ],
+    "quest": "q4"
   },
   {
     "id": "order-book",
@@ -477,13 +477,13 @@
     "requires": [
       "auto-cauldron"
     ],
-    "minStage": 2,
     "effects": [
       {
         "type": "unlock",
         "id": "order-book"
       }
-    ]
+    ],
+    "quest": "q2"
   },
   {
     "id": "delivery-mouse",
@@ -496,13 +496,13 @@
     "requires": [
       "order-book"
     ],
-    "minStage": 3,
     "effects": [
       {
         "type": "unlock",
         "id": "delivery-mouse"
       }
-    ]
+    ],
+    "quest": "q3"
   },
   {
     "id": "dark-store",
@@ -516,7 +516,6 @@
     "needs": [
       "dark-garden"
     ],
-    "minStage": 5,
     "effects": [
       {
         "type": "modifier",
@@ -528,7 +527,8 @@
         "stat": "altChance:dark-seed",
         "add": 0.05
       }
-    ]
+    ],
+    "quest": "q5"
   },
   {
     "id": "cream-store",
@@ -542,7 +542,6 @@
     "needs": [
       "cream"
     ],
-    "minStage": 4,
     "effects": [
       {
         "type": "modifier",
@@ -554,7 +553,8 @@
         "stat": "altChance:stumpsville-cream",
         "add": 0.05
       }
-    ]
+    ],
+    "quest": "q4"
   },
   {
     "id": "blackberry-store",
@@ -568,7 +568,6 @@
     "needs": [
       "blackberry"
     ],
-    "minStage": 5,
     "effects": [
       {
         "type": "modifier",
@@ -580,7 +579,8 @@
         "stat": "altChance:cursed-blackberry",
         "add": 0.05
       }
-    ]
+    ],
+    "quest": "q5"
   },
   {
     "id": "foreman-mouse",
@@ -596,12 +596,12 @@
       "stirrer-mouse",
       "sculptor-mouse"
     ],
-    "minStage": 3,
     "effects": [
       {
         "type": "unlock",
         "id": "routine"
       }
-    ]
+    ],
+    "quest": "q3"
   }
 ]

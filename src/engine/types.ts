@@ -34,7 +34,7 @@ export interface StationInstance {
 
 export interface DayReport {
   day: number;
-  /** Stage index (0-based) the day was played in. */
+  /** How many quests were done when the day was played. */
   stage: number;
   forecast: string;
   crafted: number;
@@ -64,13 +64,6 @@ export interface ErrandState {
   daysLeft?: number;
 }
 
-export interface WeekResult {
-  stage: number;
-  passed: boolean;
-  revenue: number;
-  target: number;
-}
-
 export interface State {
   day: number;
   phase: Phase;
@@ -78,12 +71,11 @@ export interface State {
   rng: number;
   nextId: number;
   money: number;
-  /** Current weekly stage: index into `stages`, days played this week, revenue earned this week. */
-  /** `misses`: weeks missed on this stage so far (easy mode lowers its target). */
-  stage: { index: number; day: number; revenue: number; misses: number };
-  /** Outcome of the most recent finished week (null before the first). */
-  lastWeek: WeekResult | null;
-  /** True once the final stage has been cleared (play can continue). */
+  /** Quests done, by quest id, with the day each was completed. */
+  quests: Record<string, number>;
+  /** Coins earned on the days that are over (today's are in `report.revenue`): the `earn` goals count both. */
+  revenueTotal: number;
+  /** True once the final quest was delivered (play can continue). */
   completed: boolean;
   /** Errands taken or finished, by errand id. */
   errands: Record<string, ErrandState>;
@@ -144,7 +136,7 @@ export type GameEvent =
   | { type: 'bought'; node: string; level: number }
   | { type: 'errandAccepted'; errand: string }
   | { type: 'errandDone'; errand: string }
-  | ({ type: 'weekEnded' } & WeekResult)
+  | { type: 'questDone'; quest: string }
   | { type: 'contractDone'; contract: number; reward: number }
   | { type: 'contractExpired'; contract: number }
   | { type: 'contractPosted'; contract: number }
@@ -171,7 +163,7 @@ export type FailCode =
   | 'node-maxed'
   | 'node-locked'
   | 'unlock-needed'
-  | 'stage-locked'
+  | 'quest-locked'
   | 'cannot-automate'
   | 'no-order-book'
   | 'no-routine'

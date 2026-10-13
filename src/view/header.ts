@@ -3,7 +3,7 @@ import type { Translate } from '../i18n/core.ts';
 import type { Action, State } from '../engine/types.ts';
 import type { Phase } from '../engine/phases.ts';
 import { PHASES } from '../engine/phases.ts';
-import { currentStage } from '../engine/economy.ts';
+import { dayOfWeek, DAYS_PER_WEEK } from '../engine/economy.ts';
 
 export interface HeaderView {
   title: string;
@@ -45,8 +45,8 @@ export function buildHeaderView(c: Content, s: State, t: Translate): HeaderView 
     phaseId: s.phase,
     phases: PHASES.map((id) => ({ id, label: t(`phase.${id}`), active: id === s.phase })),
     dayLabel: t('ui.dayLabel'),
-    dayNo: Math.min(s.stage.day + 1, currentStage(c, s).days),
-    dayOf: currentStage(c, s).days,
+    dayNo: dayOfWeek(s.day),
+    dayOf: DAYS_PER_WEEK,
     money: t('ui.money', { n: s.money }),
     coins: s.money,
     coinsLabel: t('ui.coins'),

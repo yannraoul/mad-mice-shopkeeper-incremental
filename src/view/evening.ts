@@ -76,7 +76,7 @@ export function buildEveningView(c: Content, s: State, t: Translate): EveningVie
     const probe = maxed ? null : step(c, s, action);
     const cost = n.costs[level] ?? 0;
     const buyable = probe?.ok ?? false;
-    const locked = !maxed && !probe!.ok && (probe!.code === 'node-locked' || probe!.code === 'unlock-needed' || probe!.code === 'stage-locked');
+    const locked = !maxed && !probe!.ok && (probe!.code === 'node-locked' || probe!.code === 'unlock-needed' || probe!.code === 'quest-locked');
     const state: TreeNode['state'] = maxed ? (max > 1 ? 'maxed' : 'owned') : locked ? 'locked' : buyable ? 'afford' : 'short';
     return {
       id: n.id,
