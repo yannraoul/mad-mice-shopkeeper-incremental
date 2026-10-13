@@ -21,6 +21,7 @@ const Customer = z.object({
 const Report = z.object({
   day: num, stage: num.default(0), forecast: z.string(), crafted: num, arrivals: num, served: num, tips: num.default(0), surplus: num.default(0), income: num.default(0), autoServed: num,
   refused: num, lost: num, contractsDone: num, contractsExpired: num, revenue: num,
+  autoMade: z.record(z.string(), num).default({}),
 });
 const StateSchema = z.object({
   day: z.number().int().min(1),

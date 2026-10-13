@@ -46,6 +46,8 @@ export const Candy = z.object({
   extra: z.record(id, z.array(IngredientQty)).default({}),
   /** Optional additional gate (absent = none beyond the ingredients). */
   unlock: z.string().optional(),
+  /** Candies one batch yields, whatever the cauldron (absent = the cauldron's batch size). The Sweet Tooth is made one at a time. */
+  batch: z.number().int().positive().optional(),
 });
 /**
  * A step of hand-crafting (fill, stir, bake, pull, whisper, shape). When `automatedBy` is owned, somebody (a hired mouse or a

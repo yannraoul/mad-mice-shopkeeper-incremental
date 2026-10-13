@@ -16,8 +16,28 @@
 
   const v = $derived(buildBoardView(content, game.s, t));
   let open = $state(false);
-  const stockText = $derived(v.stock.length > 0 ? v.stock.map((r) => r.text).join(' · ') : v.stockEmpty);
 </script>
+
+{#snippet stockTable()}
+  {#if v.stockTable.rows.length === 0}
+    <span class="small">{v.stockEmpty}</span>
+  {:else}
+    <div class="stable" style:--cols={v.stockTable.cols.length} role="table" aria-label={v.stockTitle}>
+      <div class="srow head" role="row">
+        <span role="columnheader"></span>
+        {#each v.stockTable.cols as q (q.id)}<span class="q mono" role="columnheader" title={q.name}>{q.short}</span>{/each}
+      </div>
+      {#each v.stockTable.rows as r (r.candy)}
+        <div class="srow" role="row">
+          <span class="cname" role="rowheader"><ImageSlot id={r.art} width={22} /><span>{r.name}</span></span>
+          {#each r.cells as n, i (i)}
+            <span class="q mono" class:zero={n === 0} role="cell" title={v.stockTable.cols[i]!.name}>{n === 0 ? '·' : n}</span>
+          {/each}
+        </div>
+      {/each}
+    </div>
+  {/if}
+{/snippet}
 
 {#snippet contracts()}
   <div class="block">
@@ -58,7 +78,7 @@
         {@render contracts()}
         <div class="block">
           <span class="overline">{v.stockTitle}</span>
-          <span class="small">{stockText}</span>
+          {@render stockTable()}
           <span class="small legend">{v.ringLegend}</span>
         </div>
         {#if feed}
@@ -81,11 +101,11 @@
       {@render contracts()}
       <div class="block">
         <span class="overline">{v.stockTitle}</span>
-        <span class="small">{stockText}</span>
+        {@render stockTable()}
       </div>
     {:else}
       <div class="block">
-        {#each v.stock as r (r.key)}<span class="forecast big">{r.text}</span>{:else}<span class="small">{v.stockEmpty}</span>{/each}
+        {@render stockTable()}
       </div>
       {@render contracts()}
     {/if}
@@ -127,5 +147,13 @@
   .icon :global(.slot) { border-radius: 50%; }
   .icon.rings1 { box-shadow: 0 0 0 2px var(--paper-ring, #fff5d6), 0 0 0 3.5px var(--paperInk); margin: 3px; }
   .icon.rings2 { box-shadow: 0 0 0 2px #fff5d6, 0 0 0 3.5px var(--paperInk), 0 0 0 5.5px #fff5d6, 0 0 0 7px var(--paperInk); margin: 5px; }
+  .stable { display: flex; flex-direction: column; gap: 3px; font-size: 14px; }
+  .srow { display: grid; grid-template-columns: minmax(0, 1fr) repeat(var(--cols), 2.4em); align-items: center; gap: 4px; }
+  .srow.head { font-size: 12px; opacity: 0.7; border-bottom: 1px solid color-mix(in srgb, var(--paperInk) 30%, transparent); padding-bottom: 2px; }
+  .cname { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .cname span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .q { text-align: center; }
+  .q.zero { opacity: 0.35; }
+  .icon.rings3 { box-shadow: 0 0 0 2px #fff5d6, 0 0 0 3.5px var(--paperInk), 0 0 0 5.5px #fff5d6, 0 0 0 7px var(--paperInk), 0 0 0 9px #fff5d6, 0 0 0 10.5px var(--paperInk); margin: 7px; }
   .more { display: flex; flex-direction: column; gap: 12px; padding-top: 6px; }
 </style>

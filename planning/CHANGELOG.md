@@ -30,3 +30,4 @@ lives in its own `bugs/MMSIB-y.md` file; this file is just the index.
 - [MMSIB-15](bugs/MMSIB-15.md) — Craft shelf: cramped leftovers note, tall ingredient list
 - [MMSIB-16](bugs/MMSIB-16.md) — Craft shelf: base and alternate side by side; recipe cards too big
 - [MMSIB-17](bugs/MMSIB-17.md) — Recipes listed in content order instead of by number of ingredients
+- [MMSIB-18](bugs/MMSIB-18.md) — Playtest 4 quick fixes: pip overflow, stock readability, Sweet Tooth one at a time, silent Second cauldron

@@ -191,6 +191,8 @@ export interface CraftView {
   made: string | null;
   /** The Second cauldron's order book; null until it is bought. */
   orders: OrderBookView | null;
+  /** What the automatic cauldron made this morning (or why nothing); null without one. */
+  autoNote: string | null;
 }
 
 export interface OrderBookView {
@@ -203,6 +205,18 @@ export interface OrderBookView {
   candies: { value: string; label: string; selected: boolean }[];
   /** Said once the delivery mouse is hired. */
   mouseNote: string | null;
+}
+
+function buildAutoNote(c: Content, s: State, t: Translate): string | null {
+  const station = s.stations.find((st) => c.stations.find((x) => x.id === st.type)?.auto);
+  if (!station) return null;
+  const made = Object.entries(s.report.autoMade ?? {}).filter(([, n]) => n > 0);
+  if (made.length === 0) return t('craft.autoNone', { station: t(`station.${station.type}`) });
+  const list = made.map(([key, n]) => {
+    const [candy, quality] = key.split(':') as [string, string];
+    return `${n} × ${t(`candy.${candy}`)} (${t(`quality.${quality}`)})`;
+  });
+  return t('craft.autoMade', { station: t(`station.${station.type}`), list: list.join(', ') });
 }
 
 function buildOrders(c: Content, s: State, t: Translate): OrderBookView | null {
@@ -311,7 +325,7 @@ function buildSceneFlat(c: Content, s: State, ui: CraftUi, t: Translate): CraftS
     stationArt: `station-${inst.type}`,
     batchesTitle: t('craft.batchesToday'),
     batches: { left: inst.batchesLeft, total: Math.max(inst.batchesLeft, type.batchesPerDay) },
-    batchInfo: t('craft.batchInfo', { n: inst.batchesLeft, size: batchSize(c, s, inst.type) }),
+    batchInfo: t('craft.batchInfo', { n: inst.batchesLeft, size: batchSize(c, s, inst.type, ui.candy) }),
     inCauldron: session
       ? {
           title: t('craft.inCauldron'),
@@ -325,10 +339,10 @@ function buildSceneFlat(c: Content, s: State, ui: CraftUi, t: Translate): CraftS
 
 export function buildCraftView(c: Content, s: State, ui: CraftUi, t: Translate): CraftView {
   const v = buildCraftBase(c, s, ui, t);
-  return { ...v, scene: buildScene(c, s, ui, t), orders: buildOrders(c, s, t) };
+  return { ...v, scene: buildScene(c, s, ui, t), orders: buildOrders(c, s, t), autoNote: buildAutoNote(c, s, t) };
 }
 
-function buildCraftBase(c: Content, s: State, ui: CraftUi, t: Translate): Omit<CraftView, 'scene' | 'orders'> {
+function buildCraftBase(c: Content, s: State, ui: CraftUi, t: Translate): Omit<CraftView, 'scene' | 'orders' | 'autoNote'> {
   const stepName = (id: string) => {
     if (id === 'stir' || id === 'form') return t(`step.${id}`);
     const extra = c.qualities.flatMap((q) => q.extraSteps).find((x) => x.id === id);
@@ -336,7 +350,7 @@ function buildCraftBase(c: Content, s: State, ui: CraftUi, t: Translate): Omit<C
   };
   const made = ui.note
     ? t('craft.made', {
-        qty: batchSize(c, s, s.stations[ui.note.station]!.type),
+        qty: batchSize(c, s, s.stations[ui.note.station]!.type, ui.note.candy),
         candy: t(`candy.${ui.note.candy}`),
         quality: t(`quality.${ui.note.quality}`),
       })
@@ -353,7 +367,7 @@ function buildCraftBase(c: Content, s: State, ui: CraftUi, t: Translate): Omit<C
       idle: null,
       made: null,
       bench: {
-        track: buildTrack(c, t, session, upcoming, batchSize(c, s, stationType)),
+        track: buildTrack(c, t, session, upcoming, batchSize(c, s, stationType, session.candy)),
         shelfTitle: t('craft.shelf'),
         shelf: unlockedIngredients(c, s).map((ing) => ({
           ingredient: ing.id,

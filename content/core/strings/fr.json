@@ -242,7 +242,7 @@
   "clerk.byHand": "{n} / {need} à la main",
   "clerk.handlesShort": "Clients : {type}",
   "board.stockLabel": "Stock",
-  "board.ringLegend": "Anneau sur l'icône : aucun = Simple, un = Fin, deux = Parfait.",
+  "board.ringLegend": "Anneaux sur l'icône : aucun = Simple, un = Fin, deux = Excellent, trois = Parfait.",
   "errands.state.underway": "En cours",
   "errands.state.away": "{worker} parti",
   "errands.state.ready": "Prête",
@@ -387,5 +387,11 @@
   "craft.orders.errand": "Livraison : {qty} × {candy} ({quality} ou mieux)",
   "craft.orders.byHand": "{line} · à la main",
   "craft.orders.mouse": "La souris livreuse remet toute seule les commandes terminées.",
-  "error.no-order-book": "Le chaudron n'a pas encore de carnet de commandes."
+  "error.no-order-book": "Le chaudron n'a pas encore de carnet de commandes.",
+  "craft.autoMade": "{station} a préparé ce matin : {list}.",
+  "craft.autoNone": "{station} n'a rien préparé ce matin (plus d'ingrédient pour sa recette).",
+  "quality.short.plain": "S",
+  "quality.short.fine": "F",
+  "quality.short.excellent": "E",
+  "quality.short.perfect": "P"
 }

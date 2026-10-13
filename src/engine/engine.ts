@@ -131,7 +131,7 @@ function craft(c: Content, s: State, a: Extract<Action, { type: 'craft' }>, ev: 
   station.batchesLeft -= 1;
   s.batchesMade[a.candy] = (s.batchesMade[a.candy] ?? 0) + 1;
   const key = stockKey(a.candy, a.quality);
-  const qty = batchSize(c, s, station.type);
+  const qty = batchSize(c, s, station.type, a.candy);
   s.stock[key] = (s.stock[key] ?? 0) + qty;
   s.report.crafted += qty;
   ev.push({ type: 'crafted', candy: a.candy, quality: a.quality, qty });
@@ -420,10 +420,11 @@ function runAutoStations(c: Content, s: State, ev: GameEvent[]) {
     if (st.batchesLeft <= 0 || !Object.entries(cost).every(([ing, qty]) => (s.supply[ing] ?? 0) >= qty)) return false;
     for (const [ing, qty] of Object.entries(cost)) s.supply[ing] = (s.supply[ing] ?? 0) - qty;
     st.batchesLeft -= 1;
-    const qty = batchSize(c, s, st.type);
+    const qty = batchSize(c, s, st.type, candy);
     const key = stockKey(candy, quality);
     s.stock[key] = (s.stock[key] ?? 0) + qty;
     s.report.crafted += qty;
+    s.report.autoMade[key] = (s.report.autoMade[key] ?? 0) + qty;
     ev.push({ type: 'crafted', candy, quality, qty });
     return true;
   };
@@ -438,7 +439,7 @@ function runAutoStations(c: Content, s: State, ev: GameEvent[]) {
         const st = autos.find((x) => brew(x, d.candy, quality));
         if (!st) break;
         const key = stockKey(d.candy, quality);
-        probe.stock[key] = (probe.stock[key] ?? 0) + batchSize(c, s, st.type);
+        probe.stock[key] = (probe.stock[key] ?? 0) + batchSize(c, s, st.type, d.candy);
       }
     }
   }
@@ -554,6 +555,7 @@ function emptyReport(day: number, stage: number, forecast: string): DayReport {
     lost: 0,
     contractsDone: 0,
     contractsExpired: 0,
+    autoMade: {},
     revenue: 0,
   };
 }

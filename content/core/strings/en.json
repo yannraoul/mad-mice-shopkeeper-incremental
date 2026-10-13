@@ -242,7 +242,7 @@
   "clerk.byHand": "{n} / {need} by hand",
   "clerk.handlesShort": "{type} customers",
   "board.stockLabel": "Stock",
-  "board.ringLegend": "Ring on the icon: none = Plain, one = Fine, two = Perfect.",
+  "board.ringLegend": "Rings on the icon: none = Plain, one = Fine, two = Excellent, three = Perfect.",
   "errands.state.underway": "Under way",
   "errands.state.away": "{worker} away",
   "errands.state.ready": "Ready",
@@ -387,5 +387,11 @@
   "craft.orders.errand": "Delivery: {qty} × {candy} ({quality} or better)",
   "craft.orders.byHand": "{line} · by hand",
   "craft.orders.mouse": "The delivery mouse hands in finished orders by itself.",
-  "error.no-order-book": "The cauldron has no order book yet."
+  "error.no-order-book": "The cauldron has no order book yet.",
+  "craft.autoMade": "{station} made this morning: {list}.",
+  "craft.autoNone": "{station} made nothing this morning (no ingredient left for its recipe).",
+  "quality.short.plain": "P",
+  "quality.short.fine": "F",
+  "quality.short.excellent": "E",
+  "quality.short.perfect": "PP"
 }

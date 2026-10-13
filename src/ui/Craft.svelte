@@ -28,7 +28,9 @@
 {#snippet ingredient(item: ShelfItem)}
   <span class="pic">
     <ImageSlot id={item.art} width={80} />
-    <span class="strip" aria-hidden="true"><Pips n={item.left} total={item.total} height={9} round /></span>
+    <span class="strip" aria-hidden="true">
+      {#if item.total > 4}<span class="frac mono">{item.left}/{item.total}</span>{:else}<Pips n={item.left} total={item.total} height={9} round />{/if}
+    </span>
   </span>
   <b class="name">{item.name}</b>
   <span class="sr">{item.supply}</span>
@@ -174,6 +176,8 @@
     </div>
   {/if}
 
+  {#if v.autoNote && v.mode === 'idle'}<p class="made" role="status">{v.autoNote}</p>{/if}
+
   {#if v.orders && v.mode === 'idle'}
     {@const o = v.orders}
     <div class="orders">
@@ -243,6 +247,7 @@
     background: rgba(0, 0, 0, 0.55);
     border-radius: 0 0 12px 12px;
   }
+  .frac { font-size: 12px; line-height: 1; color: #fff; }
   .strip :global(.pips) { flex: none; flex-wrap: wrap; justify-content: center; gap: 3px; }
   .strip :global(.pip.round) { border-color: rgba(255, 255, 255, 0.6) !important; }
   .name { font-size: 14px; line-height: 1.15; overflow-wrap: break-word; }

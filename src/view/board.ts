@@ -1,4 +1,4 @@
-import { stockedAtLeast, stockKey } from '../engine/economy.ts';
+import { isQualityUnlocked, stockedAtLeast, stockKey } from '../engine/economy.ts';
 import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
 import type { Action, State } from '../engine/types.ts';
@@ -16,6 +16,11 @@ export interface BoardView {
   stockLabel: string;
   /** One chip per candy in stock; `rings` is the quality rank (0 Plain, 1 Fine, 2 Perfect). */
   stockChips: { key: string; art: string; count: number; rings: number; text: string }[];
+  /** Candy rows and quality columns (cheapest first): how many of each are in stock. */
+  stockTable: {
+    cols: { id: string; short: string; name: string }[];
+    rows: { candy: string; art: string; name: string; cells: number[] }[];
+  };
   ringLegend: string;
   errands: ErrandsView | null;
 }
@@ -70,7 +75,21 @@ export function buildBoardView(c: Content, s: State, t: Translate): BoardView {
           text: `${count} × ${t(`candy.${candy}`)} (${t(`quality.${quality}`)})`,
         };
       }),
+    stockTable: stockTable(c, s, t),
     ringLegend: t('board.ringLegend'),
     errands: buildErrandsView(c, s, t),
   };
+}
+
+/** Only candies with stock get a row; only qualities that are unlocked (or have stock) get a column. */
+function stockTable(c: Content, s: State, t: Translate): BoardView['stockTable'] {
+  const have = (candy: string, quality: string) => s.stock[stockKey(candy, quality)] ?? 0;
+  const cols = c.qualities
+    .slice()
+    .sort((a, b) => a.rank - b.rank)
+    .filter((q) => isQualityUnlocked(c, s, q.id) || c.candies.some((cd) => have(cd.id, q.id) > 0));
+  const rows = c.candies
+    .filter((cd) => cols.some((q) => have(cd.id, q.id) > 0))
+    .map((cd) => ({ candy: cd.id, art: `candy-${cd.id}`, name: t(cd.nameKey), cells: cols.map((q) => have(cd.id, q.id)) }));
+  return { cols: cols.map((q) => ({ id: q.id, short: t(`quality.short.${q.id}`), name: t(q.nameKey) })), rows };
 }

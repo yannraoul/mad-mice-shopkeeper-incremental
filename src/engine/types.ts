@@ -53,6 +53,8 @@ export interface DayReport {
   lost: number;
   contractsDone: number;
   contractsExpired: number;
+  /** What the automatic cauldrons made this morning, by `candy:quality`. */
+  autoMade: Record<string, number>;
   revenue: number;
 }
 

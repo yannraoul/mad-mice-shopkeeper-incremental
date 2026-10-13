@@ -141,3 +141,28 @@ describe('the order book on the Craft screen (MMSIM-16)', () => {
     expect(buildCraftView(c, g.s, initialCraftUi(c), t).orders!.candies.find((x) => x.selected)!.value).toBe('sunflower-brittle');
   });
 });
+
+describe('MMSIB-18 quick fixes', () => {
+  it('the Sweet Tooth is made one at a time, other candies by the cauldron size', async () => {
+    const { batchSize } = await import('../engine/economy.ts');
+    const s = newGame(c, { seed: 1 });
+    expect(batchSize(c, s, 'cauldron', 'sweet-tooth')).toBe(1);
+    expect(batchSize(c, s, 'cauldron', 'candy-cane')).toBe(4);
+  });
+  it('the stock board is a table: candy rows, quality columns', async () => {
+    const { buildBoardView } = await import('../view/board.ts');
+    const g = game();
+    g.s.stock = { 'candy-cane:plain': 3, 'candy-cane:fine': 2, 'toffee:plain': 0 };
+    const tbl = buildBoardView(c, g.s, t).stockTable;
+    expect(tbl.cols.map((x) => x.short)).toEqual(['P', 'F', 'E']); // oven and pulling machine unlocked, no cauldron of magic
+    expect(tbl.rows).toHaveLength(1);
+    expect(tbl.rows[0]!.cells).toEqual([3, 2, 0]);
+  });
+  it('the Second cauldron says what it made this morning', () => {
+    const g = game();
+    g.s.stations.push({ type: 'auto-cauldron', batchesLeft: 0 });
+    expect(buildCraftView(c, g.s, initialCraftUi(c), t).autoNote).toContain('made nothing');
+    g.s.report.autoMade = { 'candy-cane:plain': 8 };
+    expect(buildCraftView(c, g.s, initialCraftUi(c), t).autoNote).toBe('Second cauldron made this morning: 8 × Candy cane (Plain).');
+  });
+});

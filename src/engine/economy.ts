@@ -66,8 +66,8 @@ export function rivalPenalty(c: Content, s: Pick<State, 'stage' | 'nodes' | 'err
 }
 
 /** Candies one batch at this station yields (base capacity plus tree bonuses). */
-export const batchSize = (c: Content, s: Pick<State, 'nodes' | 'errands'>, stationType: string) =>
-  c.stations.find((x) => x.id === stationType)!.capacity + modifier(c, s, 'capacity');
+export const batchSize = (c: Content, s: Pick<State, 'nodes' | 'errands'>, stationType: string, candy?: string) =>
+  c.candies.find((x) => x.id === candy)?.batch ?? c.stations.find((x) => x.id === stationType)!.capacity + modifier(c, s, 'capacity');
 
 export const stockKey = (candy: string, quality: string) => `${candy}:${quality}`;
 
