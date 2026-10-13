@@ -110,6 +110,8 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | Sculptor mouse | 1 | 260 | - | unlocks `auto-form` | A mouse that shapes the candies for you. You can still shape by hand. |
 | Oven timer | 1 | 220 | Oven | unlocks `auto-oven` | The oven bakes on its own and takes the tray out at the right moment. You can still bake by hand. |
 | Pulling motor | 1 | 420 | Pulling machine | unlocks `auto-pull` | A motor for the pulling machine. You can still pull by hand. |
+| Order book | 1 | 300 | Second cauldron | unlocks `order-book` | The Second cauldron first works on the open contracts and delivery errands, with the cheapest quality that qualifies, then makes the candy you prefer. Pick it on the Craft screen. |
+| Delivery mouse | 1 | 420 | Order book | unlocks `delivery-mouse` | A mouse that hands in contracts and delivery errands as soon as the stock covers them (never the final quest). |
 
 **Shop**
 

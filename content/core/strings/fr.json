@@ -375,5 +375,17 @@
   "craft.helperOn": "{helper} : aide",
   "craft.helperOff": "{helper} : à la main",
   "craft.auto": "{helper}",
-  "error.cannot-automate": "Personne ne peut encore faire cette étape pour vous."
+  "error.cannot-automate": "Personne ne peut encore faire cette étape pour vous.",
+  "node.order-book": "Carnet de commandes",
+  "node.order-book.desc": "Le Second chaudron s'occupe d'abord des contrats ouverts et des livraisons, avec la qualité la moins chère qui convient, puis prépare le bonbon que vous préférez. À choisir sur l'écran de fabrication.",
+  "node.delivery-mouse": "Souris livreuse",
+  "node.delivery-mouse.desc": "Une souris qui remet les contrats et les livraisons dès que le stock les couvre (jamais la quête finale).",
+  "craft.orders": "Carnet de commandes",
+  "craft.orders.prefer": "Ensuite il prépare",
+  "craft.orders.none": "Aucune commande ouverte.",
+  "craft.orders.contract": "Contrat : {qty} × {candy} ({quality} ou mieux)",
+  "craft.orders.errand": "Livraison : {qty} × {candy} ({quality} ou mieux)",
+  "craft.orders.byHand": "{line} · à la main",
+  "craft.orders.mouse": "La souris livreuse remet toute seule les commandes terminées.",
+  "error.no-order-book": "Le chaudron n'a pas encore de carnet de commandes."
 }

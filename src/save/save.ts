@@ -5,7 +5,7 @@ import type { State } from '../engine/types.ts';
 
 // Saves are a versioned envelope around the plain engine State. Bump SAVE_VERSION whenever the
 // State shape changes and add a step to `migrate`, so old saves keep loading.
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 const EXPORT_PREFIX = 'CST1:';
 
 const num = z.number();
@@ -44,6 +44,7 @@ const StateSchema = z.object({
   ),
   delegated: z.array(z.string()),
   handSteps: z.array(z.string()).default([]),
+  autoCandy: z.string().nullable().default(null),
   batchesMade: rec(num),
   pending: z.array(Customer),
   queue: z.array(Customer),
@@ -164,6 +165,11 @@ const MIGRATIONS: Record<number, (state: unknown) => unknown> = {
   7: (state) => {
     if (typeof state !== 'object' || state === null) return state;
     return { handSteps: [], ...(state as Record<string, unknown>) };
+  },
+  // v8 -> v9 (MMSIM-16): the Second cauldron's preferred candy.
+  8: (state) => {
+    if (typeof state !== 'object' || state === null) return state;
+    return { autoCandy: null, ...(state as Record<string, unknown>) };
   },
 };
 

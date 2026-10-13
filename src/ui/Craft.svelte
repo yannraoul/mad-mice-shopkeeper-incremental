@@ -174,6 +174,24 @@
     </div>
   {/if}
 
+  {#if v.orders && v.mode === 'idle'}
+    {@const o = v.orders}
+    <div class="orders">
+      <h3>{o.title}</h3>
+      {#if o.none}<p class="muted small">{o.none}</p>{/if}
+      {#if o.lines.length > 0}
+        <ul>{#each o.lines as line}<li>{line}</li>{/each}</ul>
+      {/if}
+      <label class="prefer">
+        <span class="overline">{o.preferLabel}</span>
+        <select onchange={(e) => send({ type: 'setAutoCandy', candy: e.currentTarget.value })}>
+          {#each o.candies as cd (cd.value)}<option value={cd.value} selected={cd.selected}>{cd.label}</option>{/each}
+        </select>
+      </label>
+      {#if o.mouseNote}<p class="muted small">{o.mouseNote}</p>{/if}
+    </div>
+  {/if}
+
   {#if v.made}<p class="made" role="status">{v.made}</p>{/if}
 </section>
 
@@ -334,6 +352,10 @@
   .next { margin-left: auto; }
   .cancel { border-color: var(--ink); margin-right: auto; flex: none; }
   .fillall { flex: none; }
+  .orders { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel2); }
+  .orders h3 { margin: 0; }
+  .orders ul { margin: 0; padding-left: 18px; font-size: 14px; }
+  .prefer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .autonote { color: var(--ok); }
   .helpers { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
   .chip.helper { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel2); color: var(--muted); font: 600 13px/1.2 var(--body); }

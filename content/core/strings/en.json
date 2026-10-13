@@ -375,5 +375,17 @@
   "craft.helperOn": "{helper}: helping",
   "craft.helperOff": "{helper}: by hand",
   "craft.auto": "{helper}",
-  "error.cannot-automate": "Nobody can do this step for you yet."
+  "error.cannot-automate": "Nobody can do this step for you yet.",
+  "node.order-book": "Order book",
+  "node.order-book.desc": "The Second cauldron first works on the open contracts and delivery errands, with the cheapest quality that qualifies, then makes the candy you prefer. Pick it on the Craft screen.",
+  "node.delivery-mouse": "Delivery mouse",
+  "node.delivery-mouse.desc": "A mouse that hands in contracts and delivery errands as soon as the stock covers them (never the final quest).",
+  "craft.orders": "Order book",
+  "craft.orders.prefer": "Then it makes",
+  "craft.orders.none": "No open orders.",
+  "craft.orders.contract": "Contract: {qty} × {candy} ({quality} or better)",
+  "craft.orders.errand": "Delivery: {qty} × {candy} ({quality} or better)",
+  "craft.orders.byHand": "{line} · by hand",
+  "craft.orders.mouse": "The delivery mouse hands in finished orders by itself.",
+  "error.no-order-book": "The cauldron has no order book yet."
 }

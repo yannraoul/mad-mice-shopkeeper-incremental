@@ -27,3 +27,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-13](features/MMSIM-13.md) — The stage chain: nine stages, things that open, passive income, the final quest
 - [MMSIM-14](features/MMSIM-14.md) — The content fill: all four ingredients, fifteen candies, the real final quest
 - [MMSIM-15](features/MMSIM-15.md) — Crafting helpers: fill all, make another batch, mice and machines that take steps over
+- [MMSIM-16](features/MMSIM-16.md) — The Second cauldron grows up: order book and delivery mouse

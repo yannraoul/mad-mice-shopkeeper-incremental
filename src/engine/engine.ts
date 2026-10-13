@@ -26,6 +26,8 @@ import {
   stockKey,
   stockedAtLeast,
   unlockedQualities,
+  openDemands,
+  autoQuality,
 } from './economy.ts';
 import type { Action, Customer, DayReport, Want, Fail, FailCode, GameEvent, State, StepResult } from './types.ts';
 import type { Effect } from '../content/schema.ts';
@@ -60,6 +62,7 @@ export function newGame(c: Content, opts: NewGameOptions): State {
     contracts: [],
     delegated: [],
     handSteps: [],
+    autoCandy: null,
     batchesMade: {},
     pending: [],
     queue: [],
@@ -95,6 +98,8 @@ function apply(c: Content, s: State, a: Action, ev: GameEvent[]): Fail | null {
       return delegate(c, s, a.customerType, a.on, ev);
     case 'setStepMode':
       return setStepMode(c, s, a.step, a.auto);
+    case 'setAutoCandy':
+      return setAutoCandy(c, s, a.candy);
     case 'buy':
       return buy(c, s, a.node, ev);
     case 'acceptErrand':
@@ -130,6 +135,7 @@ function craft(c: Content, s: State, a: Extract<Action, { type: 'craft' }>, ev: 
   s.stock[key] = (s.stock[key] ?? 0) + qty;
   s.report.crafted += qty;
   ev.push({ type: 'crafted', candy: a.candy, quality: a.quality, qty });
+  autoDeliver(c, s, ev);
   return null;
 }
 
@@ -402,23 +408,64 @@ function progressMissions(c: Content, s: State, ev: GameEvent[]) {
   }
 }
 
-/** Automated stations make their candy at the start of the day, before the player acts. */
+/**
+ * Automated stations make their candy at the start of the day, before the player acts. With the order book they first work
+ * on what is asked right now (open contracts, delivery errands under way), using the cheapest quality that qualifies, and
+ * only then make the preferred candy with what is left.
+ */
 function runAutoStations(c: Content, s: State, ev: GameEvent[]) {
-  for (const st of s.stations) {
-    const type = c.stations.find((x) => x.id === st.type)!;
-    if (!type.auto) continue;
-    const { candy, quality } = type.auto;
+  const autos = s.stations.filter((st) => c.stations.find((x) => x.id === st.type)!.auto);
+  const brew = (st: State['stations'][number], candy: string, quality: string): boolean => {
     const cost = batchCost(c, candy, quality);
-    while (st.batchesLeft > 0 && Object.entries(cost).every(([ing, qty]) => (s.supply[ing] ?? 0) >= qty)) {
-      for (const [ing, qty] of Object.entries(cost)) s.supply[ing] = (s.supply[ing] ?? 0) - qty;
-      st.batchesLeft -= 1;
-      const qty = batchSize(c, s, st.type);
-      const key = stockKey(candy, quality);
-      s.stock[key] = (s.stock[key] ?? 0) + qty;
-      s.report.crafted += qty;
-      ev.push({ type: 'crafted', candy, quality, qty });
+    if (st.batchesLeft <= 0 || !Object.entries(cost).every(([ing, qty]) => (s.supply[ing] ?? 0) >= qty)) return false;
+    for (const [ing, qty] of Object.entries(cost)) s.supply[ing] = (s.supply[ing] ?? 0) - qty;
+    st.batchesLeft -= 1;
+    const qty = batchSize(c, s, st.type);
+    const key = stockKey(candy, quality);
+    s.stock[key] = (s.stock[key] ?? 0) + qty;
+    s.report.crafted += qty;
+    ev.push({ type: 'crafted', candy, quality, qty });
+    return true;
+  };
+  const book = s.unlocks.includes('order-book');
+  if (book) {
+    // `probe` is the stock with the earlier demands already set aside, so two orders never count the same candies.
+    const probe = structuredClone(s);
+    for (const d of openDemands(c, s)) {
+      const quality = autoQuality(c, s, d.quality);
+      if (!quality || !isCandyUnlocked(c, s, d.candy)) continue;
+      while (!takeStock(c, probe, d.candy, d.quality, d.qty)) {
+        const st = autos.find((x) => brew(x, d.candy, quality));
+        if (!st) break;
+        const key = stockKey(d.candy, quality);
+        probe.stock[key] = (probe.stock[key] ?? 0) + batchSize(c, s, st.type);
+      }
     }
   }
+  for (const st of autos) {
+    const base = c.stations.find((x) => x.id === st.type)!.auto!;
+    const candy = book && s.autoCandy && isCandyUnlocked(c, s, s.autoCandy) ? s.autoCandy : base.candy;
+    while (brew(st, candy, base.quality));
+  }
+}
+
+/** The delivery mouse hands in every open contract and delivery errand (not the final quest) that stock now covers. */
+function autoDeliver(c: Content, s: State, ev: GameEvent[]) {
+  if (!s.unlocks.includes('delivery-mouse')) return;
+  for (const d of openDemands(c, s)) {
+    if (d.final) continue;
+    if (d.kind === 'contract') fulfill(c, s, d.id as number, ev);
+    else deliverErrand(c, s, d.id as string, ev);
+  }
+}
+
+/** Choose what the Second cauldron makes with what the open orders leave. */
+function setAutoCandy(c: Content, s: State, candy: string): Fail | null {
+  if (!s.unlocks.includes('order-book')) return fail('no-order-book', {}, 'the cauldron has no order book yet');
+  if (!c.candies.some((x) => x.id === candy)) return fail('unknown-candy', { candy }, `unknown candy "${candy}"`);
+  if (!isCandyUnlocked(c, s, candy)) return fail('candy-locked', { candy }, `candy "${candy}" is locked`);
+  s.autoCandy = candy;
+  return null;
 }
 
 /** Take a crafting step back by hand, or hand it to its helper again (only once the helper is hired). */
@@ -521,8 +568,6 @@ function startDay(c: Content, s: State, ev: GameEvent[]) {
   s.supply = deliverSupply(c, s);
   s.supplyToday = { ...s.supply };
   for (const st of s.stations) st.batchesLeft = c.stations.find((x) => x.id === st.type)!.batchesPerDay;
-  runAutoStations(c, s, ev);
-
   s.contracts = s.contracts.filter((ct) => {
     if (ct.deadlineDay >= s.day) return true;
     s.report.contractsExpired += 1;
@@ -530,6 +575,9 @@ function startDay(c: Content, s: State, ev: GameEvent[]) {
     return false;
   });
   if (s.unlocks.includes('contractBoard') && rand(s) < c.settings.contractChance) postContract(c, s, ev);
+  // After the contracts are posted, so the order book can see them.
+  runAutoStations(c, s, ev);
+  autoDeliver(c, s, ev);
   ev.push({ type: 'phase', phase: 'morning', day: s.day });
 }
 

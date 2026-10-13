@@ -125,3 +125,19 @@ describe('make another batch', () => {
     expect(g.s.stations[0]!.batchesLeft).toBe(1);
   });
 });
+
+describe('the order book on the Craft screen (MMSIM-16)', () => {
+  it('is hidden until bought, then lists the open orders and the preferred candy', () => {
+    const g = game();
+    expect(buildCraftView(c, g.s, initialCraftUi(c), t).orders).toBeNull();
+    g.s.unlocks.push('order-book', 'delivery-mouse');
+    g.s.contracts = [{ id: 5, candy: 'candy-cane', quality: 'fine', qty: 4, deadlineDay: 9, reward: 40 }];
+    const o = buildCraftView(c, g.s, initialCraftUi(c), t).orders!;
+    expect(o.lines).toEqual(['Contract: 4 × Candy cane (Fine or better)']);
+    expect(o.candies.find((x) => x.selected)!.value).toBe('candy-cane');
+    expect(o.mouseNote).not.toBeNull();
+    g.s.unlocks.push('sunflower');
+    play(g, initialCraftUi(c), { type: 'setAutoCandy', candy: 'sunflower-brittle' });
+    expect(buildCraftView(c, g.s, initialCraftUi(c), t).orders!.candies.find((x) => x.selected)!.value).toBe('sunflower-brittle');
+  });
+});

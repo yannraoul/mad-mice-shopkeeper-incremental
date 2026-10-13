@@ -16,7 +16,7 @@ export const SMART_ORDER = [
   'cauldron-size', 'faithful', 'patience', 'sunflower-yield', 'reputation', 'hive-bond', 'map', 'dark-garden',
   'counter-space', 'patience', 'faithful', 'reputation', 'hive-bond', 'honey-yield', 'sunflower-yield', 'reputation',
   'reputation', 'milk-yield', 'blueberry-yield', 'milk-yield', 'blueberry-yield', 'milk-yield', 'blueberry-yield',
-  'porter-mouse', 'stirrer-mouse', 'sculptor-mouse', 'oven-timer', 'pulling-motor',
+  'porter-mouse', 'stirrer-mouse', 'sculptor-mouse', 'oven-timer', 'pulling-motor', 'order-book', 'delivery-mouse',
 ];
 
 const total = (s: State, candy: string) =>

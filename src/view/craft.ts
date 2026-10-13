@@ -1,6 +1,6 @@
 import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
-import { automatableSteps, isStepAutomated, unlockedCandies, unlockedIngredients, unlockedQualities, batchSize, batchCost, priceOf, isQualityUnlocked } from '../engine/economy.ts';
+import { automatableSteps, openDemands, autoQuality, isStepAutomated, unlockedCandies, unlockedIngredients, unlockedQualities, batchSize, batchCost, priceOf, isQualityUnlocked } from '../engine/economy.ts';
 import {
   add,
   doStep,
@@ -38,6 +38,7 @@ export type CraftEvent =
   | { type: 'tapShelf'; ingredient: string }
   | { type: 'fillAll' }
   | { type: 'setStepMode'; step: string; auto: boolean }
+  | { type: 'setAutoCandy'; candy: string }
   | { type: 'step'; id: string }
   | { type: 'cancel' };
 
@@ -80,6 +81,9 @@ export function craftReduce(
       return ui.session ? finish(ui, doStep(ui.session, ev.id), dispatch) : ui;
     case 'setStepMode':
       dispatch({ type: 'setStepMode', step: ev.step, auto: ev.auto });
+      return ui;
+    case 'setAutoCandy':
+      dispatch({ type: 'setAutoCandy', candy: ev.candy });
       return ui;
     case 'cancel':
       return { ...ui, session: null };
@@ -185,6 +189,42 @@ export interface CraftView {
   bench: CraftBenchView | null;
   /** "Made 4 × Honey drop (Plain)." for the last finished batch; null while a batch is in progress. */
   made: string | null;
+  /** The Second cauldron's order book; null until it is bought. */
+  orders: OrderBookView | null;
+}
+
+export interface OrderBookView {
+  title: string;
+  /** What the cauldron works on first, as lines ("Contract: 3 × Candy cane (Fine or better)"). */
+  lines: string[];
+  /** Shown when there are none. */
+  none: string | null;
+  preferLabel: string;
+  candies: { value: string; label: string; selected: boolean }[];
+  /** Said once the delivery mouse is hired. */
+  mouseNote: string | null;
+}
+
+function buildOrders(c: Content, s: State, t: Translate): OrderBookView | null {
+  if (!s.unlocks.includes('order-book')) return null;
+  const station = c.stations.find((x) => x.auto)!;
+  const preferred = s.autoCandy ?? station.auto!.candy;
+  const lines = openDemands(c, s).map((d) => {
+    const line = t(d.kind === 'contract' ? 'craft.orders.contract' : 'craft.orders.errand', {
+      qty: d.qty,
+      candy: t(`candy.${d.candy}`),
+      quality: t(`quality.${d.quality}`),
+    });
+    return autoQuality(c, s, d.quality) ? line : t('craft.orders.byHand', { line });
+  });
+  return {
+    title: t('craft.orders'),
+    lines,
+    none: lines.length === 0 ? t('craft.orders.none') : null,
+    preferLabel: t('craft.orders.prefer'),
+    candies: unlockedCandies(c, s).map((cd) => ({ value: cd.id, label: t(cd.nameKey), selected: cd.id === preferred })),
+    mouseNote: s.unlocks.includes('delivery-mouse') ? t('craft.orders.mouse') : null,
+  };
 }
 
 /** The whole path of a batch for the step track: Fill, then every step any quality can have, then Shape. */
@@ -285,10 +325,10 @@ function buildSceneFlat(c: Content, s: State, ui: CraftUi, t: Translate): CraftS
 
 export function buildCraftView(c: Content, s: State, ui: CraftUi, t: Translate): CraftView {
   const v = buildCraftBase(c, s, ui, t);
-  return { ...v, scene: buildScene(c, s, ui, t) };
+  return { ...v, scene: buildScene(c, s, ui, t), orders: buildOrders(c, s, t) };
 }
 
-function buildCraftBase(c: Content, s: State, ui: CraftUi, t: Translate): Omit<CraftView, 'scene'> {
+function buildCraftBase(c: Content, s: State, ui: CraftUi, t: Translate): Omit<CraftView, 'scene' | 'orders'> {
   const stepName = (id: string) => {
     if (id === 'stir' || id === 'form') return t(`step.${id}`);
     const extra = c.qualities.flatMap((q) => q.extraSteps).find((x) => x.id === id);

@@ -212,6 +212,41 @@ export function batchCost(c: Content, candy: string, quality: string): Record<st
   return cost;
 }
 
+/** Something somebody is asking for right now: an open contract or one row of a delivery errand under way. */
+export interface Demand {
+  kind: 'contract' | 'errand';
+  id: number | string;
+  candy: string;
+  /** Minimum quality. */
+  quality: string;
+  qty: number;
+  /** The final quest is never handed in by itself. */
+  final: boolean;
+}
+
+/** Open demands, soonest deadline first (contracts), then the delivery errands. */
+export function openDemands(c: Content, s: Pick<State, 'contracts' | 'errands'>): Demand[] {
+  const contracts = [...s.contracts]
+    .sort((a, b) => a.deadlineDay - b.deadlineDay || a.id - b.id)
+    .map((x): Demand => ({ kind: 'contract', id: x.id, candy: x.candy, quality: x.quality, qty: x.qty, final: false }));
+  const errands = c.errands
+    .filter((e) => e.kind === 'deliver' && s.errands[e.id]?.status === 'active')
+    .flatMap((e) => e.deliver.map((d): Demand => ({ kind: 'errand', id: e.id, candy: d.candy, quality: d.quality, qty: d.qty, final: !!e.final })));
+  return [...contracts, ...errands];
+}
+
+/**
+ * The cheapest quality at or above `minQuality` that an automatic cauldron can make: unlocked, and with no step that only
+ * the player's hands can do (the whisper of a Perfect batch). Null when there is none.
+ */
+export function autoQuality(c: Content, s: Pick<State, 'unlocks'>, minQuality: string): string | null {
+  const min = qualityRank(c, minQuality);
+  const ok = c.qualities
+    .filter((q) => q.rank >= min && isQualityUnlocked(c, s, q.id) && q.extraSteps.every((x) => c.craftSteps.find((r) => r.id === x.id)?.automatedBy))
+    .sort((a, b) => a.rank - b.rank);
+  return ok[0]?.id ?? null;
+}
+
 /** Stocked qualities of `candy` with rank >= minQuality's rank, cheapest first. */
 export function stockedAtLeast(c: Content, s: Pick<State, 'stock'>, candy: string, minQuality: string) {
   const min = qualityRank(c, minQuality);

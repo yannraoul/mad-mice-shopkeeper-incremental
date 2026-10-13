@@ -104,6 +104,8 @@ export interface State {
   delegated: string[];
   /** Crafting steps the player does by hand although a helper could (the others are automated once unlocked). */
   handSteps: string[];
+  /** The candy the Second cauldron makes with what the open orders leave (needs the order book); null = the station's default. */
+  autoCandy: string | null;
   /** Batches crafted by hand per candy id; workers can sell a recipe once enough exist. */
   batchesMade: Record<string, number>;
   /** Customers at the counter (bounded by settings.counterSpace). */
@@ -119,6 +121,7 @@ export type Action =
   | { type: 'serve'; customer: number; candy: string; quality: string }
   | { type: 'refuse'; customer: number }
   | { type: 'setStepMode'; step: string; auto: boolean }
+  | { type: 'setAutoCandy'; candy: string }
   | { type: 'delegate'; customerType: string; on: boolean }
   | { type: 'buy'; node: string }
   | { type: 'acceptErrand'; errand: string }
@@ -165,6 +168,7 @@ export type FailCode =
   | 'unlock-needed'
   | 'stage-locked'
   | 'cannot-automate'
+  | 'no-order-book'
   | 'not-enough-money'
   | 'candy-locked'
   | 'station-automated'

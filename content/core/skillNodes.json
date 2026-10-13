@@ -457,5 +457,43 @@
     "requires": [
       "pulling-machine"
     ]
+  },
+  {
+    "id": "order-book",
+    "branch": "kitchen",
+    "nameKey": "node.order-book",
+    "descKey": "node.order-book.desc",
+    "costs": [
+      300
+    ],
+    "requires": [
+      "auto-cauldron"
+    ],
+    "minStage": 2,
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "order-book"
+      }
+    ]
+  },
+  {
+    "id": "delivery-mouse",
+    "branch": "kitchen",
+    "nameKey": "node.delivery-mouse",
+    "descKey": "node.delivery-mouse.desc",
+    "costs": [
+      420
+    ],
+    "requires": [
+      "order-book"
+    ],
+    "minStage": 3,
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "delivery-mouse"
+      }
+    ]
   }
 ]
