@@ -178,20 +178,22 @@ describe('craft scene, recipes and step track', () => {
   };
   it('describes the shelf, batches and recipes before a batch is started', () => {
     const v = buildCraftView(c, s0, initialCraftUi(c), en);
-    expect(v.scene.shelf[0]).toMatchObject({ ingredient: 'honey', held: false, dimmed: false, enabled: false });
+    expect(v.scene.shelf[0]).toMatchObject({ ingredient: 'honey', enabled: false }); // nothing to tap before a batch is started
     expect(v.scene.batches.left).toBe(v.scene.batches.total);
     expect(v.scene.inCauldron).toBeNull();
     expect(v.idle!.recipes[0]).toMatchObject({ selected: true, costText: '1 Honey' });
     expect(v.idle!.qualityOptions.map((q) => [q.label, q.enabled])).toEqual([['Plain', true], ['Fine', true], ['Excellent', false], ['Perfect', false]]);
     expect(v.idle!.qualityOptions[1]!.note).toBe('×1.6 · oven');
   });
-  it('arms the cauldron while an ingredient is held', () => {
+  it('tapping an ingredient on the shelf puts one unit in the cauldron, and only while the recipe needs it', () => {
     let ui = startUi('plain');
+    const before = buildCraftView(c, s0, ui, en);
+    expect(before.scene.shelf[0]).toMatchObject({ ingredient: 'honey', enabled: true });
+    expect(before.scene.inCauldron!.lines).toEqual(['Honey 0 / 1']);
     ui = craftReduce(c, s0, ui, { type: 'tapShelf', ingredient: 'honey' }, () => true);
     const v = buildCraftView(c, s0, ui, en);
-    expect(v.scene.shelf[0]).toMatchObject({ held: true, dimmed: false });
-    expect(v.scene.stationArmed).toBe(true);
-    expect(v.scene.inCauldron!.lines).toEqual(['Honey 0 / 1']);
+    expect(v.scene.inCauldron!.lines).toEqual(['Honey 1 / 1']);
+    expect(v.scene.shelf[0]).toMatchObject({ enabled: false }); // all the honey this recipe needs is in
   });
   it('lays out the whole path and dims the steps the quality does not use', () => {
     const plain = buildCraftView(c, s0, startUi('plain'), en).bench!.track;

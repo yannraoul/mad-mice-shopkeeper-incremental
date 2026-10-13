@@ -325,5 +325,51 @@
         "add": 6
       }
     ]
+  },
+  {
+    "id": "milk-yield",
+    "branch": "kitchen",
+    "nameKey": "node.milk-yield",
+    "descKey": "node.milk-yield.desc",
+    "costs": [
+      60,
+      140,
+      300,
+      600
+    ],
+    "needs": [
+      "milk"
+    ],
+    "minStage": 3,
+    "effects": [
+      {
+        "type": "modifier",
+        "stat": "supply:milk",
+        "add": 1
+      }
+    ]
+  },
+  {
+    "id": "blueberry-yield",
+    "branch": "kitchen",
+    "nameKey": "node.blueberry-yield",
+    "descKey": "node.blueberry-yield.desc",
+    "costs": [
+      80,
+      180,
+      380,
+      750
+    ],
+    "needs": [
+      "blueberry"
+    ],
+    "minStage": 4,
+    "effects": [
+      {
+        "type": "modifier",
+        "stat": "supply:blueberry",
+        "add": 1
+      }
+    ]
   }
 ]

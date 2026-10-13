@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadContent } from '../content/load.ts';
 import { readContentFiles } from '../../scripts/lib/readContent.ts';
 import { newGame, step } from '../engine/engine.ts';
-import { doStep, hold, isComplete, nextStep, place, placementDone, startSession, type CraftSession } from './session.ts';
+import { add, doStep, isComplete, nextStep, placementDone, startSession, type CraftSession } from './session.ts';
 
 const c = loadContent(readContentFiles(false));
 const start = (quality: string, unlocks: string[] = ['oven', 'pulling-machine', 'magic-cauldron', 'royal-jelly']) => {
@@ -40,31 +40,26 @@ describe('craft session', () => {
       params: { ingredient: 'honey', need: '1', have: '0' },
     });
   });
-  it('places one unit per tap and keeps holding until the ingredient is complete', () => {
-    let cs = hold(start('plain'), 'honey');
-    expect(cs.held).toBe('honey');
-    cs = place(cs);
+  it('puts one unit in per tap, until the recipe has all it needs', () => {
+    let cs = add(start('plain'), 'honey');
     expect(cs.placed.honey).toBe(1);
-    expect(cs.held).toBeNull();
     expect(placementDone(cs)).toBe(true);
-    cs = hold(start('fine'), 'honey');
-    cs = place(cs);
+    expect(add(cs, 'honey')).toBe(cs); // plain needs one honey: nothing more goes in
+    cs = add(start('fine'), 'honey');
     expect(cs.placed.honey).toBe(1);
-    expect(cs.held).toBe('honey'); // fine needs two: keeps holding
-    cs = place(cs);
-    expect(cs.held).toBeNull();
+    expect(placementDone(cs)).toBe(false); // fine needs two
+    cs = add(cs, 'honey');
+    expect(placementDone(cs)).toBe(true);
   });
-  it('ignores placing with nothing held, and holding what is not needed', () => {
+  it('ignores an ingredient the recipe does not use', () => {
     const cs = start('plain');
-    expect(place(cs)).toBe(cs);
-    expect(hold(cs, 'royal-jelly')).toBe(cs);
+    expect(add(cs, 'royal-jelly')).toBe(cs);
   });
   it('only allows steps in order and only after placement', () => {
     let cs: CraftSession = start('fine');
     expect(nextStep(cs)).toBeNull();
     expect(doStep(cs, 'stir')).toBe(cs);
-    cs = hold(cs, 'honey');
-    for (let i = 0; i < 2; i++) cs = place(cs); // fine needs 2 honey: 1 + 1 extra
+    for (let i = 0; i < 2; i++) cs = add(cs, 'honey'); // fine needs 2 honey: 1 + 1 extra
     expect(nextStep(cs)).toBe('stir');
     expect(doStep(cs, 'oven')).toBe(cs);
     cs = doStep(cs, 'stir');

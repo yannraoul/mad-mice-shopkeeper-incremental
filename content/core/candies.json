@@ -81,5 +81,409 @@
         }
       ]
     }
+  },
+  {
+    "id": "toffee",
+    "nameKey": "candy.toffee",
+    "basePrice": 7,
+    "ingredients": [
+      {
+        "ingredient": "milk",
+        "qty": 1
+      }
+    ],
+    "extra": {
+      "fine": [
+        {
+          "ingredient": "milk",
+          "qty": 1
+        }
+      ],
+      "excellent": [
+        {
+          "ingredient": "milk",
+          "qty": 2
+        }
+      ]
+    }
+  },
+  {
+    "id": "berrycorice",
+    "nameKey": "candy.berrycorice",
+    "basePrice": 8,
+    "ingredients": [
+      {
+        "ingredient": "blueberry",
+        "qty": 1
+      }
+    ],
+    "extra": {
+      "fine": [
+        {
+          "ingredient": "blueberry",
+          "qty": 1
+        }
+      ],
+      "excellent": [
+        {
+          "ingredient": "blueberry",
+          "qty": 2
+        }
+      ]
+    }
+  },
+  {
+    "id": "honey-fudge",
+    "nameKey": "candy.honey-fudge",
+    "basePrice": 15,
+    "ingredients": [
+      {
+        "ingredient": "honey",
+        "qty": 1
+      },
+      {
+        "ingredient": "milk",
+        "qty": 1
+      }
+    ],
+    "extra": {
+      "fine": [
+        {
+          "ingredient": "honey",
+          "qty": 1
+        }
+      ],
+      "excellent": [
+        {
+          "ingredient": "honey",
+          "qty": 1
+        },
+        {
+          "ingredient": "milk",
+          "qty": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "honey-berry-gums",
+    "nameKey": "candy.honey-berry-gums",
+    "basePrice": 16,
+    "ingredients": [
+      {
+        "ingredient": "honey",
+        "qty": 1
+      },
+      {
+        "ingredient": "blueberry",
+        "qty": 1
+      }
+    ],
+    "extra": {
+      "fine": [
+        {
+          "ingredient": "honey",
+          "qty": 1
+        }
+      ],
+      "excellent": [
+        {
+          "ingredient": "honey",
+          "qty": 1
+        },
+        {
+          "ingredient": "blueberry",
+          "qty": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "seed-praline",
+    "nameKey": "candy.seed-praline",
+    "basePrice": 16,
+    "ingredients": [
+      {
+        "ingredient": "sunflower-seed",
+        "qty": 1
+      },
+      {
+        "ingredient": "milk",
+        "qty": 1
+      }
+    ],
+    "extra": {
+      "fine": [
+        {
+          "ingredient": "sunflower-seed",
+          "qty": 1
+        }
+      ],
+      "excellent": [
+        {
+          "ingredient": "sunflower-seed",
+          "qty": 1
+        },
+        {
+          "ingredient": "milk",
+          "qty": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "berry-crunch",
+    "nameKey": "candy.berry-crunch",
+    "basePrice": 18,
+    "ingredients": [
+      {
+        "ingredient": "sunflower-seed",
+        "qty": 1
+      },
+      {
+        "ingredient": "blueberry",
+        "qty": 1
+      }
+    ],
+    "extra": {
+      "fine": [
+        {
+          "ingredient": "sunflower-seed",
+          "qty": 1
+        }
+      ],
+      "excellent": [
+        {
+          "ingredient": "sunflower-seed",
+          "qty": 1
+        },
+        {
+          "ingredient": "blueberry",
+          "qty": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "berry-cream-chews",
+    "nameKey": "candy.berry-cream-chews",
+    "basePrice": 19,
+    "ingredients": [
+      {
+        "ingredient": "milk",
+        "qty": 1
+      },
+      {
+        "ingredient": "blueberry",
+        "qty": 1
+      }
+    ],
+    "extra": {
+      "fine": [
+        {
+          "ingredient": "milk",
+          "qty": 1
+        }
+      ],
+      "excellent": [
+        {
+          "ingredient": "milk",
+          "qty": 1
+        },
+        {
+          "ingredient": "blueberry",
+          "qty": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "golden-truffle",
+    "nameKey": "candy.golden-truffle",
+    "basePrice": 27,
+    "ingredients": [
+      {
+        "ingredient": "honey",
+        "qty": 1
+      },
+      {
+        "ingredient": "sunflower-seed",
+        "qty": 1
+      },
+      {
+        "ingredient": "milk",
+        "qty": 1
+      }
+    ],
+    "extra": {
+      "fine": [
+        {
+          "ingredient": "honey",
+          "qty": 1
+        }
+      ],
+      "excellent": [
+        {
+          "ingredient": "honey",
+          "qty": 1
+        },
+        {
+          "ingredient": "sunflower-seed",
+          "qty": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "meadow-bar",
+    "nameKey": "candy.meadow-bar",
+    "basePrice": 30,
+    "ingredients": [
+      {
+        "ingredient": "honey",
+        "qty": 1
+      },
+      {
+        "ingredient": "sunflower-seed",
+        "qty": 1
+      },
+      {
+        "ingredient": "blueberry",
+        "qty": 1
+      }
+    ],
+    "extra": {
+      "fine": [
+        {
+          "ingredient": "honey",
+          "qty": 1
+        }
+      ],
+      "excellent": [
+        {
+          "ingredient": "honey",
+          "qty": 1
+        },
+        {
+          "ingredient": "sunflower-seed",
+          "qty": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "berry-cloud",
+    "nameKey": "candy.berry-cloud",
+    "basePrice": 30,
+    "ingredients": [
+      {
+        "ingredient": "honey",
+        "qty": 1
+      },
+      {
+        "ingredient": "milk",
+        "qty": 1
+      },
+      {
+        "ingredient": "blueberry",
+        "qty": 1
+      }
+    ],
+    "extra": {
+      "fine": [
+        {
+          "ingredient": "honey",
+          "qty": 1
+        }
+      ],
+      "excellent": [
+        {
+          "ingredient": "honey",
+          "qty": 1
+        },
+        {
+          "ingredient": "milk",
+          "qty": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "cheesecake-bites",
+    "nameKey": "candy.cheesecake-bites",
+    "basePrice": 32,
+    "ingredients": [
+      {
+        "ingredient": "sunflower-seed",
+        "qty": 1
+      },
+      {
+        "ingredient": "milk",
+        "qty": 1
+      },
+      {
+        "ingredient": "blueberry",
+        "qty": 1
+      }
+    ],
+    "extra": {
+      "fine": [
+        {
+          "ingredient": "sunflower-seed",
+          "qty": 1
+        }
+      ],
+      "excellent": [
+        {
+          "ingredient": "sunflower-seed",
+          "qty": 1
+        },
+        {
+          "ingredient": "milk",
+          "qty": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "sweet-tooth",
+    "nameKey": "candy.sweet-tooth",
+    "basePrice": 46,
+    "ingredients": [
+      {
+        "ingredient": "honey",
+        "qty": 1
+      },
+      {
+        "ingredient": "sunflower-seed",
+        "qty": 1
+      },
+      {
+        "ingredient": "milk",
+        "qty": 1
+      },
+      {
+        "ingredient": "blueberry",
+        "qty": 1
+      }
+    ],
+    "extra": {
+      "fine": [
+        {
+          "ingredient": "honey",
+          "qty": 1
+        }
+      ],
+      "excellent": [
+        {
+          "ingredient": "honey",
+          "qty": 1
+        },
+        {
+          "ingredient": "sunflower-seed",
+          "qty": 1
+        }
+      ]
+    }
   }
 ]

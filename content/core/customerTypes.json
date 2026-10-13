@@ -23,11 +23,11 @@
     "nameKey": "customer.merchant",
     "minQuality": "fine",
     "patience": 2,
-    "budget": 30,
+    "budget": 45,
     "weight": 2,
     "want": {
       "kind": "rich",
-      "minIngredients": 1
+      "minIngredients": 2
     }
   },
   {

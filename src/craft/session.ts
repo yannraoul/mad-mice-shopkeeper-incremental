@@ -4,9 +4,9 @@ import { step } from '../engine/engine.ts';
 import type { Fail, FailCode, State } from '../engine/types.ts';
 
 // The hand-crafting steps of one batch, as pure data transforms (no UI imports).
-// Tap-to-select / tap-to-place: hold an ingredient, place it unit by unit, then
-// run the post-placement steps in order (stir, quality extras such as the oven,
-// shape). Finishing the last step is when the UI dispatches the engine `craft`.
+// Tapping an ingredient puts one unit in the cauldron; once everything is in, the
+// steps run in order (stir, quality extras such as the oven, shape). Finishing the
+// last step is when the UI dispatches the engine `craft`.
 
 export interface CraftSession {
   station: number;
@@ -15,7 +15,6 @@ export interface CraftSession {
   /** Units of each ingredient this batch needs. */
   need: Record<string, number>;
   placed: Record<string, number>;
-  held: string | null;
   /** Step ids after placement, in order: stir, quality extras, form. */
   steps: string[];
   /** How many of `steps` are done. */
@@ -39,7 +38,6 @@ export function startSession(
     quality,
     need: batchCost(c, candy, quality),
     placed: {},
-    held: null,
     steps: ['stir', ...q.extraSteps.map((x) => x.id), 'form'],
     done: 0,
   };
@@ -57,18 +55,10 @@ export function nextStep(cs: CraftSession): string | null {
 
 export const isComplete = (cs: CraftSession) => placementDone(cs) && cs.done >= cs.steps.length;
 
-/** Pick up an ingredient from the shelf (only one that is still needed). */
-export function hold(cs: CraftSession, ingredient: string): CraftSession {
-  return remaining(cs, ingredient) > 0 ? { ...cs, held: ingredient } : cs;
-}
-
-/** Put one unit of the held ingredient into the station; stays held until all units are in. */
-export function place(cs: CraftSession): CraftSession {
-  const h = cs.held;
-  if (!h || remaining(cs, h) <= 0) return cs;
-  const placed = { ...cs.placed, [h]: (cs.placed[h] ?? 0) + 1 };
-  const next = { ...cs, placed };
-  return remaining(next, h) > 0 ? next : { ...next, held: null };
+/** Put one unit of an ingredient into the cauldron (ignored once the recipe has all it needs of it). */
+export function add(cs: CraftSession, ingredient: string): CraftSession {
+  if (remaining(cs, ingredient) <= 0) return cs;
+  return { ...cs, placed: { ...cs.placed, [ingredient]: (cs.placed[ingredient] ?? 0) + 1 } };
 }
 
 /** Perform a post-placement step; ignored unless it is the expected next one. */

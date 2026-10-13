@@ -110,5 +110,117 @@
     "height": 96,
     "file": "art/candy-sunflower-nougat.svg",
     "altKey": "candy.sunflower-nougat"
+  },
+  {
+    "id": "ingredient-milk",
+    "width": 96,
+    "height": 96,
+    "file": "art/ingredient-milk.svg",
+    "altKey": "ingredient.milk"
+  },
+  {
+    "id": "ingredient-stumpsville-cream",
+    "width": 96,
+    "height": 96,
+    "file": "art/ingredient-stumpsville-cream.svg",
+    "altKey": "ingredient.stumpsville-cream"
+  },
+  {
+    "id": "ingredient-blueberry",
+    "width": 96,
+    "height": 96,
+    "file": "art/ingredient-blueberry.svg",
+    "altKey": "ingredient.blueberry"
+  },
+  {
+    "id": "ingredient-cursed-blackberry",
+    "width": 96,
+    "height": 96,
+    "file": "art/ingredient-cursed-blackberry.svg",
+    "altKey": "ingredient.cursed-blackberry"
+  },
+  {
+    "id": "candy-toffee",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-toffee.svg",
+    "altKey": "candy.toffee"
+  },
+  {
+    "id": "candy-berrycorice",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-berrycorice.svg",
+    "altKey": "candy.berrycorice"
+  },
+  {
+    "id": "candy-honey-fudge",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-honey-fudge.svg",
+    "altKey": "candy.honey-fudge"
+  },
+  {
+    "id": "candy-honey-berry-gums",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-honey-berry-gums.svg",
+    "altKey": "candy.honey-berry-gums"
+  },
+  {
+    "id": "candy-seed-praline",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-seed-praline.svg",
+    "altKey": "candy.seed-praline"
+  },
+  {
+    "id": "candy-berry-crunch",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-berry-crunch.svg",
+    "altKey": "candy.berry-crunch"
+  },
+  {
+    "id": "candy-berry-cream-chews",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-berry-cream-chews.svg",
+    "altKey": "candy.berry-cream-chews"
+  },
+  {
+    "id": "candy-golden-truffle",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-golden-truffle.svg",
+    "altKey": "candy.golden-truffle"
+  },
+  {
+    "id": "candy-meadow-bar",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-meadow-bar.svg",
+    "altKey": "candy.meadow-bar"
+  },
+  {
+    "id": "candy-berry-cloud",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-berry-cloud.svg",
+    "altKey": "candy.berry-cloud"
+  },
+  {
+    "id": "candy-cheesecake-bites",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-cheesecake-bites.svg",
+    "altKey": "candy.cheesecake-bites"
+  },
+  {
+    "id": "candy-sweet-tooth",
+    "width": 96,
+    "height": 96,
+    "file": "art/candy-sweet-tooth.svg",
+    "altKey": "candy.sweet-tooth"
   }
 ]

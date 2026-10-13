@@ -140,13 +140,15 @@
       "errandsBoard",
       "magic-cauldron",
       "royal-jelly",
-      "dark-garden"
+      "dark-garden",
+      "cream",
+      "blackberry"
     ],
     "kind": "deliver",
     "final": true,
     "deliver": [
       {
-        "candy": "sunflower-nougat",
+        "candy": "sweet-tooth",
         "quality": "perfect",
         "qty": 3
       }
@@ -155,6 +157,144 @@
       {
         "type": "unlock",
         "id": "ending"
+      }
+    ]
+  },
+  {
+    "id": "scarecrow-mice",
+    "nameKey": "errand.scarecrow-mice",
+    "descKey": "errand.scarecrow-mice.desc",
+    "minStage": 2,
+    "requires": [
+      "errandsBoard",
+      "oven",
+      "sunflower"
+    ],
+    "kind": "deliver",
+    "deliver": [
+      {
+        "candy": "candy-cane",
+        "quality": "fine",
+        "qty": 6
+      }
+    ],
+    "reward": [
+      {
+        "type": "modifier",
+        "stat": "supply:sunflower-seed",
+        "add": 2
+      }
+    ]
+  },
+  {
+    "id": "dairy-cart",
+    "nameKey": "errand.dairy-cart",
+    "descKey": "errand.dairy-cart.desc",
+    "minStage": 3,
+    "requires": [
+      "errandsBoard",
+      "sunflower"
+    ],
+    "kind": "deliver",
+    "deliver": [
+      {
+        "candy": "sunflower-brittle",
+        "quality": "plain",
+        "qty": 8
+      }
+    ],
+    "reward": [
+      {
+        "type": "unlock",
+        "id": "milk"
+      },
+      {
+        "type": "modifier",
+        "stat": "supply:milk",
+        "add": 1
+      }
+    ]
+  },
+  {
+    "id": "bramble-thicket",
+    "nameKey": "errand.bramble-thicket",
+    "descKey": "errand.bramble-thicket.desc",
+    "minStage": 4,
+    "requires": [
+      "errandsBoard",
+      "oven",
+      "sunflower"
+    ],
+    "kind": "deliver",
+    "deliver": [
+      {
+        "candy": "sunflower-nougat",
+        "quality": "fine",
+        "qty": 6
+      }
+    ],
+    "reward": [
+      {
+        "type": "unlock",
+        "id": "blueberry"
+      },
+      {
+        "type": "modifier",
+        "stat": "supply:blueberry",
+        "add": 1
+      }
+    ]
+  },
+  {
+    "id": "stumpsville-trade",
+    "nameKey": "errand.stumpsville-trade",
+    "descKey": "errand.stumpsville-trade.desc",
+    "minStage": 5,
+    "requires": [
+      "errandsBoard",
+      "map",
+      "magic-cauldron",
+      "milk",
+      "oven"
+    ],
+    "kind": "deliver",
+    "deliver": [
+      {
+        "candy": "honey-fudge",
+        "quality": "fine",
+        "qty": 6
+      }
+    ],
+    "reward": [
+      {
+        "type": "unlock",
+        "id": "cream"
+      }
+    ]
+  },
+  {
+    "id": "cursed-bramble",
+    "nameKey": "errand.cursed-bramble",
+    "descKey": "errand.cursed-bramble.desc",
+    "minStage": 6,
+    "requires": [
+      "errandsBoard",
+      "magic-cauldron",
+      "blueberry",
+      "oven"
+    ],
+    "kind": "deliver",
+    "deliver": [
+      {
+        "candy": "honey-berry-gums",
+        "quality": "fine",
+        "qty": 6
+      }
+    ],
+    "reward": [
+      {
+        "type": "unlock",
+        "id": "blackberry"
       }
     ]
   }

@@ -22,7 +22,7 @@
     "id": "stage-3",
     "nameKey": "stage.name.3",
     "days": 7,
-    "target": 1050,
+    "target": 1150,
     "arrivalsMult": 2,
     "rival": {
       "ingredient": "honey",
@@ -34,42 +34,42 @@
     "id": "stage-4",
     "nameKey": "stage.name.4",
     "days": 7,
-    "target": 1650,
+    "target": 1900,
     "arrivalsMult": 2.4
   },
   {
     "id": "stage-5",
     "nameKey": "stage.name.5",
     "days": 7,
-    "target": 2300,
+    "target": 2800,
     "arrivalsMult": 2.8
   },
   {
     "id": "stage-6",
     "nameKey": "stage.name.6",
     "days": 7,
-    "target": 2700,
+    "target": 3500,
     "arrivalsMult": 3
   },
   {
     "id": "stage-7",
     "nameKey": "stage.name.7",
     "days": 7,
-    "target": 3100,
+    "target": 4000,
     "arrivalsMult": 3
   },
   {
     "id": "stage-8",
     "nameKey": "stage.name.8",
     "days": 7,
-    "target": 3300,
+    "target": 4300,
     "arrivalsMult": 3
   },
   {
     "id": "stage-9",
     "nameKey": "stage.name.9",
     "days": 7,
-    "target": 3450,
+    "target": 4500,
     "arrivalsMult": 3
   }
 ]

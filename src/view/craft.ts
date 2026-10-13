@@ -2,11 +2,10 @@ import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
 import { unlockedCandies, unlockedIngredients, unlockedQualities, batchSize, batchCost, priceOf, isQualityUnlocked } from '../engine/economy.ts';
 import {
+  add,
   doStep,
-  hold,
   isComplete,
   nextStep,
-  place,
   remaining,
   startSession,
   type CraftSession,
@@ -35,7 +34,6 @@ export type CraftEvent =
   | { type: 'select'; field: 'candy' | 'quality'; value: string }
   | { type: 'start' }
   | { type: 'tapShelf'; ingredient: string }
-  | { type: 'tapStation' }
   | { type: 'step'; id: string }
   | { type: 'cancel' };
 
@@ -63,9 +61,7 @@ export function craftReduce(
       return 'error' in r ? ui : { ...ui, note: null, session: r };
     }
     case 'tapShelf':
-      return ui.session ? { ...ui, session: hold(ui.session, ev.ingredient) } : ui;
-    case 'tapStation':
-      return ui.session ? { ...ui, session: place(ui.session) } : ui;
+      return ui.session ? { ...ui, session: add(ui.session, ev.ingredient) } : ui;
     case 'step': {
       if (!ui.session) return ui;
       const next = doStep(ui.session, ev.id);
@@ -89,7 +85,17 @@ export interface CraftIdleView {
   qualities: { value: string; label: string }[];
   qualityLabel: string;
   /** The recipes on offer as cards (cost and price at the chosen quality). */
-  recipes: { value: string; name: string; art: string; costText: string; priceText: string; selected: boolean }[];
+  recipes: {
+    value: string;
+    name: string;
+    art: string;
+    /** "1 Honey, 1 Sunflower seed" */
+    costText: string;
+    /** The same as icons with a count, for a compact card. */
+    cost: { ingredient: string; art: string; name: string; qty: number }[];
+    priceText: string;
+    selected: boolean;
+  }[];
   /** All qualities as a segmented control; locked ones are listed but not `enabled`. */
   qualityOptions: { value: string; label: string; note: string; selected: boolean; enabled: boolean }[];
   start: { label: string; enabled: boolean };
@@ -101,28 +107,33 @@ export interface CraftIdleView {
 }
 
 /** The scene shared by both modes: shelf, cauldron and the batch counters. */
+export type ShelfItem = {
+  ingredient: string;
+  art: string;
+  name: string;
+  /** "3 left" */
+  supply: string;
+  /** Pips: `left` filled out of `total` delivered this morning. */
+  left: number;
+  total: number;
+  /** The base ingredient this one is the rare alternate of (null for a base). */
+  alternateOf: string | null;
+  /** Tapping it puts a unit in the cauldron: only while the recipe still needs some. */
+  enabled: boolean;
+};
+
 export interface CraftScene {
   /** "Unused ingredients sell for 1 coin each when the shop closes." (null when nothing is sold off) */
   surplusNote: string | null;
   shelfTitle: string;
   shelfSub: string;
-  shelf: {
-    ingredient: string;
-    art: string;
-    name: string;
-    /** "3 left" */
-    supply: string;
-    /** Pips: `left` filled out of `total` delivered this morning. */
-    left: number;
-    total: number;
-    held: boolean;
-    /** Dimmed: another ingredient is in hand, or this one is not needed. Only on the bench. */
-    dimmed: boolean;
-    enabled: boolean;
-  }[];
+  shelf: ShelfItem[];
+  /** Each unlocked base ingredient with its unlocked alternate (null while it is locked), in shelf order. */
+  shelfPairs: { base: ShelfItem; alt: ShelfItem | null }[];
+  /** True once any alternate is unlocked: the shelf is then laid out as base and alternate pairs. */
+  shelfHasAlternates: boolean;
   cauldronTitle: string;
   stationArt: string;
-  stationArmed: boolean;
   batchesTitle: string;
   /** Circles: `left` filled out of `total`. */
   batches: { left: number; total: number };
@@ -136,12 +147,10 @@ export interface CraftBenchView {
   /** Fill / Stir / Bake / Shape, the whole path of a batch; steps this quality skips are `dimmed`. */
   track: { id: string; n: number; label: string; note: string; state: 'done' | 'current' | 'todo'; dimmed: boolean }[];
   shelfTitle: string;
-  shelf: { ingredient: string; art: string; name: string; supply: string; held: boolean; enabled: boolean }[];
+  shelf: { ingredient: string; art: string; name: string; supply: string; enabled: boolean }[];
   stationTitle: string;
   /** Art slot id of the station being used. */
   stationArt: string;
-  /** True while an ingredient is in hand: the station is waiting for it. */
-  stationArmed: boolean;
   /** What is in the station so far, per ingredient: "Honey: 1 / 2". */
   contents: { ingredient: string; placed: number; need: number; text: string }[];
   hint: string;
@@ -201,7 +210,19 @@ function buildTrack(
   ];
 }
 
+/** Group the flat shelf into base and alternate pairs. */
+function withPairs(scene: CraftScene): CraftScene {
+  const pairs = scene.shelf
+    .filter((i) => !i.alternateOf)
+    .map((base) => ({ base, alt: scene.shelf.find((i) => i.alternateOf === base.ingredient) ?? null }));
+  return { ...scene, shelfPairs: pairs, shelfHasAlternates: pairs.some((p) => p.alt) };
+}
+
 function buildScene(c: Content, s: State, ui: CraftUi, t: Translate): CraftScene {
+  return withPairs(buildSceneFlat(c, s, ui, t));
+}
+
+function buildSceneFlat(c: Content, s: State, ui: CraftUi, t: Translate): CraftScene {
   const session = ui.session;
   const inst = s.stations[session ? session.station : ui.station] ?? s.stations[0]!;
   const type = c.stations.find((x) => x.id === inst.type)!;
@@ -219,14 +240,14 @@ function buildScene(c: Content, s: State, ui: CraftUi, t: Translate): CraftScene
         supply: t('craft.supply', { n: left }),
         left,
         total: Math.max(left, s.supplyToday[ing.id] ?? 0),
-        held: session?.held === ing.id,
-        dimmed: !!session && !!session.held && session.held !== ing.id,
+        alternateOf: ing.alternateOf ?? null,
         enabled: !!session && remaining(session, ing.id) > 0,
       };
     }),
+    shelfPairs: [],
+    shelfHasAlternates: false,
     cauldronTitle: t('craft.cauldron'),
     stationArt: `station-${inst.type}`,
-    stationArmed: !!session?.held,
     batchesTitle: t('craft.batchesToday'),
     batches: { left: inst.batchesLeft, total: Math.max(inst.batchesLeft, type.batchesPerDay) },
     batchInfo: t('craft.batchInfo', { n: inst.batchesLeft, size: batchSize(c, s, inst.type) }),
@@ -278,21 +299,15 @@ function buildCraftBase(c: Content, s: State, ui: CraftUi, t: Translate): Omit<C
           art: `ingredient-${ing.id}`,
           name: t(ing.nameKey),
           supply: t('craft.supply', { n: (s.supply[ing.id] ?? 0) - (session.placed[ing.id] ?? 0) }),
-          held: session.held === ing.id,
           enabled: remaining(session, ing.id) > 0,
         })),
         stationTitle: t('craft.inCauldron'),
         stationArt: `station-${stationType}`,
-        stationArmed: !!session.held,
         contents: Object.entries(session.need).map(([ingredient, need]) => {
           const placed = session.placed[ingredient] ?? 0;
           return { ingredient, placed, need, text: `${t(`ingredient.${ingredient}`)}: ${placed} / ${need}` };
         }),
-        hint: upcoming
-          ? t('craft.hint.step', { step: stepName(upcoming) })
-          : session.held
-            ? t('craft.hint.place', { station: t(`station.${stationType}`) })
-            : t('craft.hint.pick'),
+        hint: upcoming ? t('craft.hint.step', { step: stepName(upcoming) }) : t('craft.hint.pick'),
         steps: session.steps.map((id, i) => ({
           id,
           label: `${i < session.done ? '✓ ' : ''}${stepName(id)}`,
@@ -332,13 +347,23 @@ function buildCraftBase(c: Content, s: State, ui: CraftUi, t: Translate): Omit<C
       candyLabel: t('craft.candy'),
       qualities: unlockedQualities(c, s).map((q) => ({ value: q.id, label: t(q.nameKey) })),
       qualityLabel: t('craft.quality'),
-      recipes: unlockedCandies(c, s).map((cd) => ({
+      // Fewest ingredients first (singles, then pairs, ...); the content order breaks ties.
+      recipes: unlockedCandies(c, s)
+        .map((cd, i) => ({ cd, i }))
+        .sort((a, b) => a.cd.ingredients.length - b.cd.ingredients.length || a.i - b.i)
+        .map(({ cd }) => ({
         value: cd.id,
         name: t(cd.nameKey),
         art: `candy-${cd.id}`,
         costText: Object.entries(batchCost(c, cd.id, ui.quality))
           .map(([ing, qty]) => `${qty} ${t(`ingredient.${ing}`)}`)
           .join(', '),
+        cost: Object.entries(batchCost(c, cd.id, ui.quality)).map(([ing, qty]) => ({
+          ingredient: ing,
+          art: `ingredient-${ing}`,
+          name: t(`ingredient.${ing}`),
+          qty,
+        })),
         priceText: t('ui.money', { n: priceOf(c, cd.id, ui.quality) }),
         selected: cd.id === ui.candy,
       })),

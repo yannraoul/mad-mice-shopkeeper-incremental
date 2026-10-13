@@ -25,3 +25,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-11](features/MMSIM-11.md) — Recipes, ingredients and qualities v2
 - [MMSIM-12](features/MMSIM-12.md) — Customer cravings, happiness and tips
 - [MMSIM-13](features/MMSIM-13.md) — The stage chain: nine stages, things that open, passive income, the final quest
+- [MMSIM-14](features/MMSIM-14.md) — The content fill: all four ingredients, fifteen candies, the real final quest

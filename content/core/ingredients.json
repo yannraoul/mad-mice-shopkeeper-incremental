@@ -29,5 +29,37 @@
     "alternateOf": "sunflower-seed",
     "chance": 0.15,
     "surplusValue": 5
+  },
+  {
+    "id": "milk",
+    "nameKey": "ingredient.milk",
+    "dailySupply": 2,
+    "unlock": "milk",
+    "surplusValue": 1
+  },
+  {
+    "id": "stumpsville-cream",
+    "nameKey": "ingredient.stumpsville-cream",
+    "dailySupply": 0,
+    "unlock": "cream",
+    "alternateOf": "milk",
+    "chance": 0.15,
+    "surplusValue": 5
+  },
+  {
+    "id": "blueberry",
+    "nameKey": "ingredient.blueberry",
+    "dailySupply": 2,
+    "unlock": "blueberry",
+    "surplusValue": 1
+  },
+  {
+    "id": "cursed-blackberry",
+    "nameKey": "ingredient.cursed-blackberry",
+    "dailySupply": 0,
+    "unlock": "blackberry",
+    "alternateOf": "blueberry",
+    "chance": 0.15,
+    "surplusValue": 5
   }
 ]

@@ -21,6 +21,13 @@
     "income": 8
   },
   {
+    "id": "stumpsville-road",
+    "nameKey": "place.stumpsville-road",
+    "minStage": 5,
+    "unlock": "map",
+    "income": 10
+  },
+  {
     "id": "market-stall",
     "nameKey": "place.market-stall",
     "minStage": 6,

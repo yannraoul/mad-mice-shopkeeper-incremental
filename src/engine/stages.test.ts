@@ -78,7 +78,7 @@ describe('weekly stages', () => {
     expect(final.minStage).toBe(c.stages.length - 1);
     let s = newGame(c, { seed: 1, unlocks: final.requires });
     s.stage.index = final.minStage;
-    s.stock['sunflower-nougat:perfect'] = 3;
+    s.stock['sweet-tooth:perfect'] = 3;
     s = run(s, { type: 'acceptErrand', errand: final.id }, { type: 'deliverErrand', errand: final.id });
     expect(s.completed).toBe(true);
   });

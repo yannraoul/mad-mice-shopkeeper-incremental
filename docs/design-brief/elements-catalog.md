@@ -12,6 +12,10 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | Royal jelly | 0 | `royal-jelly` | rare alternate of Honey: each delivered unit has a 15% chance to arrive as this instead |
 | Sunflower seed | 2 | `sunflower` |  |
 | Dark sunflower seed | 0 | `dark-garden` | rare alternate of Sunflower seed: each delivered unit has a 15% chance to arrive as this instead |
+| Milk | 2 | `milk` |  |
+| Cream from Stumpsville | 0 | `cream` | rare alternate of Milk: each delivered unit has a 15% chance to arrive as this instead |
+| Blueberry | 2 | `blueberry` |  |
+| Cursed blackberry | 0 | `blackberry` | rare alternate of Blueberry: each delivered unit has a 15% chance to arrive as this instead |
 
 ### Candies (recipes)
 
@@ -20,6 +24,18 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | Candy cane | 5 | 1 Honey | Fine: +1 Honey; Excellent: +2 Honey | all its ingredients are unlocked |
 | Sunflower brittle | 6 | 1 Sunflower seed | Fine: +1 Sunflower seed; Excellent: +2 Sunflower seed | all its ingredients are unlocked |
 | Sunflower nougat | 14 | 1 Honey + 1 Sunflower seed | Fine: +1 Honey; Excellent: +1 Honey + 1 Sunflower seed | all its ingredients are unlocked |
+| Toffee | 7 | 1 Milk | Fine: +1 Milk; Excellent: +2 Milk | all its ingredients are unlocked |
+| Berrycorice | 8 | 1 Blueberry | Fine: +1 Blueberry; Excellent: +2 Blueberry | all its ingredients are unlocked |
+| Honey fudge | 15 | 1 Honey + 1 Milk | Fine: +1 Honey; Excellent: +1 Honey + 1 Milk | all its ingredients are unlocked |
+| Honey-berry gums | 16 | 1 Honey + 1 Blueberry | Fine: +1 Honey; Excellent: +1 Honey + 1 Blueberry | all its ingredients are unlocked |
+| Seed praline | 16 | 1 Sunflower seed + 1 Milk | Fine: +1 Sunflower seed; Excellent: +1 Sunflower seed + 1 Milk | all its ingredients are unlocked |
+| Berry crunch | 18 | 1 Sunflower seed + 1 Blueberry | Fine: +1 Sunflower seed; Excellent: +1 Sunflower seed + 1 Blueberry | all its ingredients are unlocked |
+| Berry cream chews | 19 | 1 Milk + 1 Blueberry | Fine: +1 Milk; Excellent: +1 Milk + 1 Blueberry | all its ingredients are unlocked |
+| Golden truffle | 27 | 1 Honey + 1 Sunflower seed + 1 Milk | Fine: +1 Honey; Excellent: +1 Honey + 1 Sunflower seed | all its ingredients are unlocked |
+| Meadow bar | 30 | 1 Honey + 1 Sunflower seed + 1 Blueberry | Fine: +1 Honey; Excellent: +1 Honey + 1 Sunflower seed | all its ingredients are unlocked |
+| Berry cloud | 30 | 1 Honey + 1 Milk + 1 Blueberry | Fine: +1 Honey; Excellent: +1 Honey + 1 Milk | all its ingredients are unlocked |
+| Cheesecake bites | 32 | 1 Sunflower seed + 1 Milk + 1 Blueberry | Fine: +1 Sunflower seed; Excellent: +1 Sunflower seed + 1 Milk | all its ingredients are unlocked |
+| The Sweet Tooth | 46 | 1 Honey + 1 Sunflower seed + 1 Milk + 1 Blueberry | Fine: +1 Honey; Excellent: +1 Honey + 1 Sunflower seed | all its ingredients are unlocked |
 
 ### Qualities (ordered)
 
@@ -43,7 +59,7 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | --- | --- | --- | --- | --- | --- | --- |
 | Faithful | one specific recipe they can afford | Plain | 6 | 6 | 5 | from the start |
 | Traveler | a craving: any candy with an unlocked ingredient | Plain | 12 | 4 | 3 | from the start |
-| Merchant | any candy with 1+ ingredients | Fine | 30 | 2 | 2 | from the start |
+| Merchant | any candy with 2+ ingredients | Fine | 45 | 2 | 2 | from the start |
 | Bee | a craving: any candy with Honey | Plain | 10 | 5 | 1.5 | after errand reward `bee-customers` |
 
 ### Workers
@@ -76,6 +92,8 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | Dark seed garden | 1 | 300 | Sunflower patch | unlocks `dark-garden` | Dark sunflower seeds, the rare alternate of sunflower seeds, now sometimes come with the morning delivery. Needed for Perfect sunflower candies. |
 | Sunflower patch | 1 | 80 | - | unlocks `sunflower` | Sunflower seeds arrive every morning: opens Sunflower brittle, Sunflower nougat and more. Make a recipe by hand twice before the clerk can sell it. |
 | More sunflower seeds | 4 | 40 / 100 / 220 / 450 | Sunflower patch | +1 supply:sunflower-seed | One more sunflower seed every morning. |
+| More milk | 4 | 60 / 140 / 300 / 600 | - | +1 supply:milk | One more jug of milk every morning. |
+| More blueberries | 4 | 80 / 180 / 380 / 750 | - | +1 supply:blueberry | One more handful of blueberries every morning. |
 
 **Shop**
 
@@ -102,13 +120,13 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | --- | --- | --- | --- | --- |
 | The first steps | 7 | 240 | x1 | - |
 | Gathering pilgrims | 7 | 520 | x1.5 | steals 1 Honey per morning from day 3 |
-| A name on the road | 7 | 1050 | x2 | steals 2 Honey per morning from day 2 |
-| The pilgrims' table | 7 | 1650 | x2.4 | - |
-| Whispers of the cauldron | 7 | 2300 | x2.8 | - |
-| The hive's blessing | 7 | 2700 | x3 | - |
-| Crowds at the door | 7 | 3100 | x3 | - |
-| The long table | 7 | 3300 | x3 | - |
-| The feast of Sweet Tooth | 7 | 3450 | x3 | - |
+| A name on the road | 7 | 1150 | x2 | steals 2 Honey per morning from day 2 |
+| The pilgrims' table | 7 | 1900 | x2.4 | - |
+| Whispers of the cauldron | 7 | 2800 | x2.8 | - |
+| The hive's blessing | 7 | 3500 | x3 | - |
+| Crowds at the door | 7 | 4000 | x3 | - |
+| The long table | 7 | 4300 | x3 | - |
+| The feast of Sweet Tooth | 7 | 4500 | x3 | - |
 
 ### Errands
 
@@ -119,7 +137,12 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | A splinter hive | mission: Clerk away 2 days | `errandsBoard`, `clerk` | 2 | +9 rivalRelief | Send the clerk to parley with the rival hive for two days. If it works, the honey they steal comes back for good. |
 | The magic cauldron | deliver goods | `errandsBoard`, `pulling-machine`, 4 Candy cane (Excellent) | 5 | unlocks `magic-cauldron` | The old cauldron stirs by itself when it is fed well. Bring four Excellent candy canes and it will learn to make Perfect candies from rare ingredients: royal jelly, dark seeds and the like. |
 | The hive's gratitude | deliver goods | `errandsBoard`, `magic-cauldron`, `sunflower`, 8 Sunflower nougat (Fine) | 6 | unlocks `royal-jelly` | The queen is well again and the hive wants to thank you with its rarest gift. Bring eight Fine sunflower nougats for the feast and royal jelly will sometimes come with your honey. |
-| The offering to Sweet Tooth | deliver goods | `errandsBoard`, `magic-cauldron`, `royal-jelly`, `dark-garden`, 3 Sunflower nougat (Perfect) | 9 | unlocks `ending` | The cult asks for one thing: three Perfect sunflower nougats, made with royal jelly and dark seeds, laid before Sweet Tooth. After that the shop runs on and the cult is pleased. |
+| The offering to Sweet Tooth | deliver goods | `errandsBoard`, `magic-cauldron`, `royal-jelly`, `dark-garden`, `cream`, `blackberry`, 3 The Sweet Tooth (Perfect) | 9 | unlocks `ending` | The cult asks for one thing: three Perfect Sweet Tooth candies, made of royal jelly, dark seeds, Stumpsville cream and cursed blackberries, laid before Sweet Tooth itself. After that the shop runs on and the cult is pleased. |
+| The scarecrow mice | deliver goods | `errandsBoard`, `oven`, `sunflower`, 6 Candy cane (Fine) | 3 | +2 supply:sunflower-seed | Crows keep eating the seeds in the hollow. Bring six Fine candy canes to the scarecrow mice and they will guard the patch for good: two more sunflower seeds every morning. |
+| The Stumpsville dairy cart | deliver goods | `errandsBoard`, `sunflower`, 8 Sunflower brittle (Plain) | 4 | unlocks `milk`; +1 supply:milk | A cart from Stumpsville has broken a wheel at your door, loaded with milk. Feed the dairy mice eight sunflower brittles and they will leave milk at your door every morning. |
+| The bramble thicket | deliver goods | `errandsBoard`, `oven`, `sunflower`, 6 Sunflower nougat (Fine) | 5 | unlocks `blueberry`; +1 supply:blueberry | Behind the mill grows a thicket full of blueberries and thorns. Bring six Fine sunflower nougats to the thicket mice and the berries are yours, every morning. |
+| The Stumpsville trade route | deliver goods | `errandsBoard`, `map`, `magic-cauldron`, `milk`, `oven`, 6 Honey fudge (Fine) | 6 | unlocks `cream` | The dairy mice of Stumpsville used to make the richest cream in the valley. Bring six Fine honey fudges to open the old trade route: their cream will sometimes come with your milk. |
+| The cursed bramble | deliver goods | `errandsBoard`, `magic-cauldron`, `blueberry`, `oven`, 6 Honey-berry gums (Fine) | 7 | unlocks `blackberry` | One bramble bears black berries that whisper. The thicket mice will let you pick them if you bring six Fine honey-berry gums: cursed blackberries will sometimes come with your blueberries. |
 
 ### Map places
 
@@ -128,6 +151,7 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | Millpond | 3 |
 | Old orchard | 4 |
 | Sunflower hollow | 5 |
+| Stumpsville road | 6 |
 | Market stall | 7 |
 | Roadside inn | 8 |
 
@@ -151,6 +175,22 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | `ingredient-royal-jelly` | 96 x 96 | Royal jelly |
 | `ingredient-sunflower-seed` | 96 x 96 | Sunflower seed |
 | `candy-sunflower-nougat` | 96 x 96 | Sunflower nougat |
+| `ingredient-milk` | 96 x 96 | Milk |
+| `ingredient-stumpsville-cream` | 96 x 96 | Cream from Stumpsville |
+| `ingredient-blueberry` | 96 x 96 | Blueberry |
+| `ingredient-cursed-blackberry` | 96 x 96 | Cursed blackberry |
+| `candy-toffee` | 96 x 96 | Toffee |
+| `candy-berrycorice` | 96 x 96 | Berrycorice |
+| `candy-honey-fudge` | 96 x 96 | Honey fudge |
+| `candy-honey-berry-gums` | 96 x 96 | Honey-berry gums |
+| `candy-seed-praline` | 96 x 96 | Seed praline |
+| `candy-berry-crunch` | 96 x 96 | Berry crunch |
+| `candy-berry-cream-chews` | 96 x 96 | Berry cream chews |
+| `candy-golden-truffle` | 96 x 96 | Golden truffle |
+| `candy-meadow-bar` | 96 x 96 | Meadow bar |
+| `candy-berry-cloud` | 96 x 96 | Berry cloud |
+| `candy-cheesecake-bites` | 96 x 96 | Cheesecake bites |
+| `candy-sweet-tooth` | 96 x 96 | The Sweet Tooth |
 
 ### Key numbers
 

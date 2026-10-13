@@ -1,6 +1,6 @@
 # Recipes, ingredients and qualities v2 (design, not built yet)
 
-Status: **MMSIM-11 built** the mechanics (see `planning/features/MMSIM-11.md`) with honey and sunflower, three candies and the four qualities; milk, blueberry, the other candies and the ingredient quests are MMSIM-14. Alternates arrive by chance (15% of delivered base units once unlocked), not a fixed 1 a day. Numbers are first drafts for `npm run balance`.
+Status: **MMSIM-14 built the rest** (all four ingredients, 15 candies, the quests, the final quest; see `planning/features/MMSIM-14.md`). **MMSIM-11 built** the mechanics (see `planning/features/MMSIM-11.md`) with honey and sunflower, three candies and the four qualities; milk, blueberry, the other candies and the ingredient quests are MMSIM-14. Alternates arrive by chance (15% of delivered base units once unlocked), not a fixed 1 a day. Numbers are first drafts for `npm run balance`.
 Companions: `docs/customer-cravings-v2.md` (who wants what, happiness, tips) and `docs/stages-and-progression-v2.md`
 (the chain of weeks that unlocks things).
 

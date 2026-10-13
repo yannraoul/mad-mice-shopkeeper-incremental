@@ -122,7 +122,13 @@ The balance harness gets a "hand actions per day" figure: steps a human would do
 - Minigames on a phone: a big touch area and generous tolerance; simple mode is a first-class way to play.
 - Risk and reward must not punish: a miss costs at most one candy and the player can always switch the step back to Auto.
 
-## Open questions
+## Answers from the second review
+1. Different bonuses per step scale better than +1 candy everywhere: a Fine candy of a new recipe is worth far more than +1 coin a candy, so a bake or a pull should be able to give something bigger than a candy. Keep the rewards a content value per step.
+2. Stir should have an effect so doing it by hand matters: idea, widen the success windows of the Bake and Pull minigames (the Stir result sets how wide they are), with the windows tuned by candy quality (a higher quality has a narrower great window and a wider miss window).
+3. No stepper is needed: 3 batches a day, and Make another batch is enough.
+4. The mice should eventually be seen running the shop in the background (animated, as a background rendering rather than cards).
+
+## Open questions (first round, kept for the record)
 1. Are the draft rewards right (extra candy for Bake, Pull and Shape; the risk of losing one), or should Bake raise the selling
    value of the batch instead (needs a per batch value in the stock, a bigger change)?
 2. Stir has no reward in this draft: is that fine, or should it do something?

@@ -15,7 +15,7 @@ export const SMART_ORDER = [
   'sunflower-yield', 'auto-cauldron', 'hive-bond', 'reputation', 'counter-space', 'honey-yield', 'pulling-machine',
   'cauldron-size', 'faithful', 'patience', 'sunflower-yield', 'reputation', 'hive-bond', 'map', 'dark-garden',
   'counter-space', 'patience', 'faithful', 'reputation', 'hive-bond', 'honey-yield', 'sunflower-yield', 'reputation',
-  'reputation',
+  'reputation', 'milk-yield', 'blueberry-yield', 'milk-yield', 'blueberry-yield', 'milk-yield', 'blueberry-yield',
 ];
 
 const total = (s: State, candy: string) =>

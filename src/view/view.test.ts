@@ -298,6 +298,14 @@ describe('craft view and reducer', () => {
     expect(play(game, ui, { type: 'start' }).session).toBeNull(); // start is a no-op when blocked
   });
 
+  it('lists the recipes by number of ingredients, singles first, the content order breaking ties', () => {
+    const game = { s: newGame(c, { seed: 1, unlocks: ['sunflower', 'milk', 'blueberry'] }) };
+    const names = buildCraftView(c, game.s, initialCraftUi(c), en).idle!.recipes.map((r) => r.name);
+    expect(names.slice(0, 4)).toEqual(['Candy cane', 'Sunflower brittle', 'Toffee', 'Berrycorice']);
+    expect(names.indexOf('Toffee')).toBeLessThan(names.indexOf('Sunflower nougat'));
+    expect(names.indexOf('Sunflower nougat')).toBeLessThan(names.indexOf('Golden truffle')); // pairs before triples
+    expect(names.at(-1)).toBe('The Sweet Tooth');
+  });
   it('recipe costs follow the chosen quality, and the shelf pips keep the morning total after a bonus is bought', () => {
     const game = { s: newGame(c, { seed: 1, unlocks: ['oven'] }) };
     let ui = initialCraftUi(c);
@@ -315,13 +323,9 @@ describe('craft view and reducer', () => {
     let ui = play(game, initialCraftUi(c), { type: 'start' });
     let v = buildCraftView(c, game.s, ui, en);
     expect(v.mode).toBe('bench');
-    expect(v.bench!.hint).toBe('Tap an ingredient on the shelf to pick it up.');
+    expect(v.bench!.hint).toBe('Tap an ingredient on the shelf to put it in the cauldron.');
     expect(v.bench!.steps.map((s) => s.id)).toEqual(['stir', 'form']);
     ui = play(game, ui, { type: 'tapShelf', ingredient: 'honey' });
-    v = buildCraftView(c, game.s, ui, en);
-    expect(v.bench!.stationArmed).toBe(true);
-    expect(v.bench!.hint).toBe('Now tap the Cauldron to put it in.');
-    ui = play(game, ui, { type: 'tapStation' });
     v = buildCraftView(c, game.s, ui, en);
     expect(v.bench!.contents).toEqual([{ ingredient: 'honey', placed: 1, need: 1, text: 'Honey: 1 / 1' }]);
     expect(v.bench!.hint).toBe('Next: Stir');

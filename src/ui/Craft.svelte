@@ -3,6 +3,7 @@
   import { t } from '../i18n/i18n.svelte.ts';
   import { buildCraftView, craftReduce, initialCraftUi, type CraftEvent, type CraftUi } from '../view/craft.ts';
   import { game, dispatch } from './game.svelte.ts';
+  import type { ShelfItem } from '../view/craft.ts';
   import ImageSlot from './ImageSlot.svelte';
   import Pips from './Pips.svelte';
 
@@ -14,47 +15,54 @@
   const next = $derived(v.bench?.steps.find((st) => st.primary));
 </script>
 
+{#snippet slot(item: ShelfItem)}
+  {#if v.mode === 'bench'}
+    <button class="tile" class:dim={!item.enabled} disabled={!item.enabled} onclick={() => send({ type: 'tapShelf', ingredient: item.ingredient })}>
+      {@render ingredient(item)}
+    </button>
+  {:else}
+    <div class="tile">{@render ingredient(item)}</div>
+  {/if}
+{/snippet}
+
+{#snippet ingredient(item: ShelfItem)}
+  <span class="pic">
+    <ImageSlot id={item.art} width={80} />
+    <span class="strip" aria-hidden="true"><Pips n={item.left} total={item.total} height={9} round /></span>
+  </span>
+  <b class="name">{item.name}</b>
+  <span class="sr">{item.supply}</span>
+{/snippet}
+
 <section class="frame workshop" aria-labelledby="workshop-title">
   <h2 id="workshop-title">{v.title}</h2>
 
-  <div class="scene">
+  <div class="scene" class:many={sc.shelfPairs.length > 2}>
     <div class="col">
       <div class="overline">{sc.shelfTitle} · {sc.shelfSub}</div>
-      <div class="shelf">
-        {#each sc.shelf as item (item.ingredient)}
-          {#if v.mode === 'bench'}
-            <button
-              class="tile"
-              class:held={item.held}
-              class:dim={item.dimmed || !item.enabled}
-              disabled={!item.enabled}
-              aria-pressed={item.held}
-              onclick={() => send({ type: 'tapShelf', ingredient: item.ingredient })}
-            >
-              <ImageSlot id={item.art} />
-              <span class="info"><b>{item.name}</b><Pips n={item.left} total={item.total} height={10} round /><span class="muted small">{item.supply}</span></span>
-            </button>
-          {:else}
-            <div class="tile">
-              <ImageSlot id={item.art} />
-              <span class="info"><b>{item.name}</b><Pips n={item.left} total={item.total} height={10} round /><span class="muted small">{item.supply}</span></span>
+      <!-- Responsive: with three or more bases on a wide enough shelf, one column per base (the alternate under it);
+           otherwise rows of two (base left, alternate right), or just the bases two to a row before any alternate exists. -->
+      <div class="shelfbox">
+        <div class="shelf" class:paired={sc.shelfHasAlternates} class:cols={sc.shelfPairs.length > 2} style:--pairs={Math.min(sc.shelfPairs.length, 4)}>
+          {#each sc.shelfPairs as p (p.base.ingredient)}
+            <div class="pair">
+              {@render slot(p.base)}
+              {#if p.alt}
+                {@render slot(p.alt)}
+              {:else if sc.shelfHasAlternates}
+                <span class="tile ghost" aria-hidden="true"></span>
+              {/if}
             </div>
-          {/if}
-        {/each}
+          {/each}
+        </div>
       </div>
-      {#if sc.surplusNote}<p class="muted small note">{sc.surplusNote}</p>{/if}
+      {#if sc.surplusNote}<p class="surplus">{sc.surplusNote}</p>{/if}
     </div>
 
     <div class="col stagecol">
       <div class="overline heads"><span>{sc.cauldronTitle}</span><span>{sc.batchesTitle}</span></div>
       <div class="stage">
-        {#if v.mode === 'bench'}
-          <button class="cauldron" class:armed={sc.stationArmed} onclick={() => send({ type: 'tapStation' })} aria-label={sc.cauldronTitle}>
-            <ImageSlot id={sc.stationArt} />
-          </button>
-        {:else}
-          <div class="cauldron"><ImageSlot id={sc.stationArt} /></div>
-        {/if}
+        <div class="cauldron"><ImageSlot id={sc.stationArt} /></div>
         <div class="meta">
           <div class="circles" aria-hidden="true">
             {#each Array.from({ length: sc.batches.total }, (_, i) => i) as i (i)}
@@ -97,11 +105,18 @@
               aria-checked={r.selected}
               onclick={() => send({ type: 'select', field: 'candy', value: r.value })}
             >
-              <ImageSlot id={r.art} />
-              <span class="info">
-                <b>{r.name}</b>
-                <span class="muted small">{r.costText}</span>
-                <span class="price mono">{r.priceText}</span>
+              <ImageSlot id={r.art} width={44} />
+              <span class="rinfo">
+                <b class="rname">{r.name}</b>
+                <span class="rrow">
+                  <span class="cost" title={r.costText}>
+                    {#each r.cost as ci (ci.ingredient)}
+                      <span class="ci"><ImageSlot id={ci.art} width={22} /><i>{ci.qty}</i></span>
+                    {/each}
+                    <span class="sr">{r.costText}</span>
+                  </span>
+                  <span class="price mono">{r.priceText}</span>
+                </span>
               </span>
               <span class="radio" aria-hidden="true"></span>
             </button>
@@ -156,27 +171,58 @@
 <style>
   .workshop { display: flex; flex-direction: column; gap: 20px; }
   .small { font-size: 13px; }
-  .scene { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 24px; }
+  .scene { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; }
+  /* Three or more base ingredients: a wider shelf on desktop. */
+  @media (min-width: 900px) {
+    .scene.many { grid-template-columns: 370px minmax(0, 1fr); }
+  }
   .col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
   .heads { display: flex; justify-content: space-between; gap: 8px; }
 
-  .shelf { background: var(--shelf); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 2px; border-bottom: 6px solid var(--shelfEdge); }
+  .shelfbox { container-type: inline-size; }
+  .shelf { background: var(--shelf); border-radius: 14px; padding: 10px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: 4px; border-bottom: 6px solid var(--shelfEdge); }
+  /* Rows of two: a pair is just its two tiles in the grid, base left and alternate right. */
+  .pair { display: contents; }
+  .tile.ghost { visibility: hidden; }
+  /* A shelf wide enough for a column per base: the alternate sits under its base. */
+  @container (min-width: 290px) {
+    .shelf.cols { grid-template-columns: repeat(var(--pairs), minmax(0, 1fr)); gap: 2px; padding: 8px 6px; }
+    .shelf.cols .pair { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .shelf.cols .tile.ghost { display: none; }
+  }
   .tile {
     display: flex;
-    gap: 14px;
+    flex-direction: column;
+    gap: 6px;
     align-items: center;
-    padding: 10px;
+    padding: 8px 4px;
     border-radius: 12px;
     background: transparent;
     border: 2px solid transparent;
     color: var(--ink);
-    text-align: left;
+    text-align: center;
+    min-width: 0;
   }
+  /* The picture with the counter dots laid over its bottom edge; the name sits under it. */
+  .pic { position: relative; display: block; line-height: 0; }
+  .strip {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    padding: 5px 4px;
+    background: rgba(0, 0, 0, 0.55);
+    border-radius: 0 0 12px 12px;
+  }
+  .strip :global(.pips) { flex: none; flex-wrap: wrap; justify-content: center; gap: 3px; }
+  .strip :global(.pip.round) { border-color: rgba(255, 255, 255, 0.6) !important; }
+  .name { font-size: 14px; line-height: 1.15; overflow-wrap: break-word; }
+  .surplus { margin: 0; padding: 4px 4px 0; font-size: 12px; line-height: 1.35; color: var(--muted); }
   button.tile:disabled { opacity: 1; }
   .tile.dim { opacity: 0.45; }
-  .tile.held { background: var(--panel); border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent); }
-  .info { display: flex; flex-direction: column; gap: 6px; text-align: left; min-width: 0; }
-  .info b { font-size: 16px; }
+  button.tile:not(:disabled):hover { background: var(--panel); }
 
   .stage {
     display: flex;
@@ -190,7 +236,6 @@
     border-bottom: 6px solid var(--shelfEdge);
   }
   .cauldron { border-radius: 14px; padding: 6px; border: 3px solid transparent; background: transparent; display: block; }
-  button.cauldron.armed, .cauldron.armed { border: 3px dashed var(--accent); box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 25%, transparent); }
   .meta { display: flex; flex-direction: column; gap: 10px; min-width: 150px; }
   .circles { display: flex; gap: 6px; }
   .circle { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); }
@@ -200,13 +245,13 @@
 
   .start { display: flex; flex-direction: column; gap: 12px; }
   .start h3 { font-size: 20px; }
-  .recipes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .recipes { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
   .recipe {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     align-items: center;
-    padding: 10px;
-    border-radius: 14px;
+    padding: 6px 8px;
+    border-radius: 12px;
     background: var(--panel2);
     border: 2px solid transparent;
     color: var(--ink);
@@ -214,7 +259,13 @@
     min-width: 0;
   }
   .recipe.selected { background: var(--panel); border-color: var(--accent); }
-  .recipe .price { color: var(--accent); font-size: 13px; }
+  .recipe .price { color: var(--accent); font-size: 12px; white-space: nowrap; }
+  .rinfo { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+  .rrow { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .rname { font-size: 13px; line-height: 1.15; overflow-wrap: break-word; }
+  .cost { display: flex; flex-wrap: wrap; gap: 4px; }
+  .ci { position: relative; display: block; line-height: 0; }
+  .ci i { position: absolute; right: -3px; bottom: -3px; min-width: 13px; height: 13px; padding: 0 2px; border-radius: 7px; background: var(--ink); color: var(--bg); font: 700 10px/13px var(--mono); text-align: center; box-sizing: border-box; }
   .radio { display: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); flex: none; margin-left: auto; }
   .recipe.selected .radio { border-color: var(--accent); background: radial-gradient(var(--accent) 0 45%, transparent 50%); }
 
@@ -278,14 +329,11 @@
   /* Phone: shelf as a 2-column grid, recipes as a list with a radio, steps in columns. */
   @media (max-width: 640px) {
     .scene { grid-template-columns: minmax(0, 1fr); gap: 16px; }
-    .shelf { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .tile { flex-direction: column; gap: 8px; text-align: center; padding: 8px 4px; }
-    .tile .info { align-items: center; text-align: center; }
+    .name { font-size: 12px; }
     .stage { padding: 14px; flex-direction: column; }
     .meta { align-items: center; min-width: 0; }
     .circle { width: 26px; height: 26px; }
-    .recipes { grid-template-columns: minmax(0, 1fr); }
-    .radio { display: block; }
+    .recipes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
     .opt { flex-direction: column; justify-content: center; min-height: 52px; padding: 4px; gap: 0; }
     .controls { flex-direction: column; align-items: stretch; gap: 12px; }

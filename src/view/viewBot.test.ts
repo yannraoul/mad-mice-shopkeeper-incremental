@@ -58,7 +58,6 @@ function playThroughViews(seed: number, days: number) {
         const missing = bench.contents.find((x) => x.placed < x.need);
         if (missing) {
           send({ type: 'tapShelf', ingredient: missing.ingredient });
-          send({ type: 'tapStation' });
           continue;
         }
         const next = bench.steps.find((s) => s.enabled);

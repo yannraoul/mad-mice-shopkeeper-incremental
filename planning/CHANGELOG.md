@@ -26,3 +26,7 @@ lives in its own `bugs/MMSIB-y.md` file; this file is just the index.
 - [MMSIB-11](bugs/MMSIB-11.md) — Recipe cost ignored the chosen quality; shelf pips moved mid-day; bar and Cancel placement
 - [MMSIB-12](bugs/MMSIB-12.md) — Playtest batch 2: dead honey upgrade, contract button, wording, alternates too early
 - [MMSIB-13](bugs/MMSIB-13.md) — Playtest 2 follow-up: base supply 2, alternates sold, contracts pay for quality, reputation
+- [MMSIB-14](bugs/MMSIB-14.md) — Filling the cauldron took a pick-up tap and a drop tap per unit
+- [MMSIB-15](bugs/MMSIB-15.md) — Craft shelf: cramped leftovers note, tall ingredient list
+- [MMSIB-16](bugs/MMSIB-16.md) — Craft shelf: base and alternate side by side; recipe cards too big
+- [MMSIB-17](bugs/MMSIB-17.md) — Recipes listed in content order instead of by number of ingredients
