@@ -51,3 +51,6 @@ export const dispatch = (a: Action): boolean => session.dispatch(a);
 export const newGameNow = (seed?: number) => session.newGame({ seed });
 export const exportSave = () => session.exportSave();
 export const importSave = (text: string) => session.importSave(text);
+
+// The daily routine beats on a timer: one action every few hundred milliseconds so the day can be watched.
+setInterval(() => session.tickRoutine(), 350);

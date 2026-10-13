@@ -1,0 +1,76 @@
+import { describe, expect, it } from 'vitest';
+import { loadContent } from '../content/load.ts';
+import { readContentFiles } from '../../scripts/lib/readContent.ts';
+import { GameSession } from '../app/session.ts';
+import { newGame, step } from './engine.ts';
+import { nextRoutineAction, routineQualities } from './routine.ts';
+import type { Action, State } from './types.ts';
+
+// MMSIM-18: the daily routine (foreman mouse) plays the morning and the afternoon with the helpers the player has hired.
+const c = loadContent(readContentFiles(false));
+const HELPERS = ['auto-fill', 'auto-stir', 'auto-form'];
+const run = (s: State, ...actions: Action[]) => {
+  for (const a of actions) {
+    const r = step(c, s, a);
+    if (!r.ok) throw new Error(`${a.type}: ${r.error}`);
+    s = r.state;
+  }
+  return s;
+};
+const game = (unlocks: string[] = []) => newGame(c, { seed: 1, unlocks: ['routine', ...HELPERS, ...unlocks] });
+
+describe('switching the routine on', () => {
+  it('needs the foreman mouse and a helper for every basic step', () => {
+    const none = step(c, newGame(c, { seed: 1 }), { type: 'setRoutine', on: true });
+    expect(none.ok ? null : none.code).toBe('no-routine');
+    const partial = step(c, newGame(c, { seed: 1, unlocks: ['routine', 'auto-fill'] }), { type: 'setRoutine', on: true });
+    expect(partial.ok ? null : partial.code).toBe('routine-needs-helpers');
+    expect(run(game(), { type: 'setRoutine', on: true }).routine).toBe(true);
+  });
+});
+
+describe('what the routine makes', () => {
+  it('only qualities whose every step has a helper, and never Perfect', () => {
+    expect(routineQualities(c, game()).map((q) => q.id)).toEqual(['plain']);
+    const withOven = game(['oven']); // Fine needs the oven helper too
+    expect(routineQualities(c, withOven).map((q) => q.id)).toEqual(['plain']);
+    expect(routineQualities(c, game(['oven', 'auto-oven'])).map((q) => q.id)).toEqual(['fine', 'plain']);
+    expect(routineQualities(c, game(['oven', 'auto-oven', 'magic-cauldron'])).every((q) => q.id !== 'perfect')).toBe(true);
+  });
+  it('starts with what is asked, at the cheapest quality that qualifies', () => {
+    const s = run(game(['oven', 'auto-oven']), { type: 'endPhase' }, { type: 'endPhase' }, { type: 'endPhase' });
+    s.contracts = [{ id: 9, candy: 'sunflower-brittle', quality: 'fine', qty: 4, deadlineDay: 9, reward: 50 }];
+    s.unlocks.push('sunflower');
+    s.supply['sunflower-seed'] = 4;
+    expect(nextRoutineAction(c, s)).toMatchObject({ type: 'craft', candy: 'sunflower-brittle', quality: 'fine' });
+  });
+  it('stops making a candy once enough of it is in stock', () => {
+    const s = run(game(), { type: 'endPhase' }, { type: 'endPhase' }, { type: 'endPhase' });
+    s.stock['candy-cane:plain'] = c.settings.routineStock;
+    expect(nextRoutineAction(c, s)).toEqual({ type: 'endPhase' });
+  });
+});
+
+describe('a whole day on routine', () => {
+  it('makes candy, serves the counter, and waits for the player in the evening', () => {
+    const session = new GameSession({ content: c, start: { seed: 4, unlocks: ['routine', ...HELPERS] } });
+    session.dispatch({ type: 'setRoutine', on: true });
+    let beats = 0;
+    while (session.state.phase !== 'evening' && beats++ < 500) expect(session.tickRoutine()).toBe('acted');
+    expect(session.state.phase).toBe('evening');
+    expect(session.state.report.crafted).toBeGreaterThan(0);
+    expect(session.state.report.served).toBeGreaterThan(0);
+    expect(session.tickRoutine()).toBe('waiting'); // upgrades are the player's
+    session.dispatch({ type: 'endPhase' });
+    expect(session.state.phase).toBe('morning');
+    expect(session.tickRoutine()).toBe('acted'); // and the next morning goes on by itself
+  });
+  it('switches itself off when a helper is taken back', () => {
+    const session = new GameSession({ content: c, start: { seed: 4, unlocks: ['routine', ...HELPERS] } });
+    session.dispatch({ type: 'setRoutine', on: true });
+    session.dispatch({ type: 'setStepMode', step: 'stir', auto: false });
+    expect(session.tickRoutine()).toBe('stopped');
+    expect(session.state.routine).toBe(false);
+    expect(session.tickRoutine()).toBe('off');
+  });
+});

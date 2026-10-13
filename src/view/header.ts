@@ -23,6 +23,8 @@ export interface HeaderView {
   coinsLabel: string;
   /** The button that moves the day along. */
   endPhase: { label: string; action: Action };
+  /** The daily routine switch; null until the foreman mouse is hired. */
+  routine: { label: string; on: boolean; status: string; action: Action } | null;
   languages: { value: Lang; label: string }[];
   language: Lang;
   languageLabel: string;
@@ -49,6 +51,14 @@ export function buildHeaderView(c: Content, s: State, t: Translate): HeaderView 
     coins: s.money,
     coinsLabel: t('ui.coins'),
     endPhase: { label: t(END_LABEL[s.phase]), action: { type: 'endPhase' } },
+    routine: s.unlocks.includes('routine')
+      ? {
+          label: t(s.routine ? 'routine.on' : 'routine.off'),
+          on: s.routine,
+          status: s.routine ? t(`routine.status.${s.phase}`) : '',
+          action: { type: 'setRoutine', on: !s.routine },
+        }
+      : null,
     languages: LANGS.map((l) => ({ value: l, label: l.toUpperCase() })),
     language: t.locale,
     languageLabel: t('ui.language'),

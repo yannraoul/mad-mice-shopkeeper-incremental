@@ -108,6 +108,8 @@ export interface State {
   handSteps: string[];
   /** The candy the Second cauldron makes with what the open orders leave (needs the order book); null = the station's default. */
   autoCandy: string | null;
+  /** The daily routine is running: the mice make candy and serve the counter by themselves (needs the foreman mouse). */
+  routine: boolean;
   /** Batches crafted by hand per candy id; workers can sell a recipe once enough exist. */
   batchesMade: Record<string, number>;
   /** Customers at the counter (bounded by settings.counterSpace). */
@@ -124,6 +126,7 @@ export type Action =
   | { type: 'refuse'; customer: number }
   | { type: 'setStepMode'; step: string; auto: boolean }
   | { type: 'setAutoCandy'; candy: string }
+  | { type: 'setRoutine'; on: boolean }
   | { type: 'delegate'; customerType: string; on: boolean }
   | { type: 'buy'; node: string }
   | { type: 'acceptErrand'; errand: string }
@@ -171,6 +174,8 @@ export type FailCode =
   | 'stage-locked'
   | 'cannot-automate'
   | 'no-order-book'
+  | 'no-routine'
+  | 'routine-needs-helpers'
   | 'not-enough-money'
   | 'candy-locked'
   | 'station-automated'

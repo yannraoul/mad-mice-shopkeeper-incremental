@@ -22,5 +22,6 @@
   "tipMax": 0.5,
   "alternateUnits": 3,
   "retryRelief": 0.1,
-  "retryReliefMax": 0.3
+  "retryReliefMax": 0.3,
+  "routineStock": 12
 }

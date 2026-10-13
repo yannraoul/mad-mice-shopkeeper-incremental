@@ -399,5 +399,14 @@
   "node.cream-store": "Cave fraîche",
   "node.cream-store.desc": "Une cave fraîche pour la crème de Stumpsville : l'étagère en contient une de plus et elle arrive un peu plus souvent.",
   "node.blackberry-store": "Panier de ronces",
-  "node.blackberry-store.desc": "Un grand panier pour les mûres maudites : l'étagère en contient une de plus et elles arrivent un peu plus souvent."
+  "node.blackberry-store.desc": "Un grand panier pour les mûres maudites : l'étagère en contient une de plus et elles arrivent un peu plus souvent.",
+  "node.foreman-mouse": "Souris contremaîtresse",
+  "node.foreman-mouse.desc": "Une souris qui mène la journée : avec vos aides elle prépare les bonbons, sert au comptoir et vous attend le soir. Un interrupteur vous laisse reprendre la main à tout moment.",
+  "routine.on": "Routine active",
+  "routine.off": "Routine arrêtée",
+  "routine.status.morning": "Les souris préparent les bonbons…",
+  "routine.status.afternoon": "Les souris servent la boutique…",
+  "routine.status.evening": "Choisissez vos améliorations, puis terminez la journée.",
+  "error.no-routine": "Personne ne peut encore mener la journée.",
+  "error.routine-needs-helpers": "Engagez une souris porteuse, une remueuse et une sculptrice, et laissez-les aider, avant que la routine puisse préparer des bonbons."
 }

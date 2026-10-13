@@ -29,6 +29,7 @@ import {
   unlockedQualities,
   openDemands,
   autoQuality,
+  routineBlockers,
 } from './economy.ts';
 import type { Action, Customer, DayReport, Want, Fail, FailCode, GameEvent, State, StepResult } from './types.ts';
 import type { Effect } from '../content/schema.ts';
@@ -64,6 +65,7 @@ export function newGame(c: Content, opts: NewGameOptions): State {
     delegated: [],
     handSteps: [],
     autoCandy: null,
+    routine: false,
     batchesMade: {},
     pending: [],
     queue: [],
@@ -101,6 +103,8 @@ function apply(c: Content, s: State, a: Action, ev: GameEvent[]): Fail | null {
       return setStepMode(c, s, a.step, a.auto);
     case 'setAutoCandy':
       return setAutoCandy(c, s, a.candy);
+    case 'setRoutine':
+      return setRoutine(c, s, a.on);
     case 'buy':
       return buy(c, s, a.node, ev);
     case 'acceptErrand':
@@ -457,6 +461,14 @@ function autoDeliver(c: Content, s: State, ev: GameEvent[]) {
     if (d.kind === 'contract') fulfill(c, s, d.id as number, ev);
     else deliverErrand(c, s, d.id as string, ev);
   }
+}
+
+/** Switch the daily routine on (needs the foreman mouse and a helper for every basic step) or off. */
+function setRoutine(c: Content, s: State, on: boolean): Fail | null {
+  if (!s.unlocks.includes('routine')) return fail('no-routine', {}, 'nobody can run the day yet');
+  if (on && routineBlockers(c, s).length > 0) return fail('routine-needs-helpers', {}, 'a basic crafting step has no helper');
+  s.routine = on;
+  return null;
 }
 
 /** Choose what the Second cauldron makes with what the open orders leave. */

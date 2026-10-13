@@ -193,6 +193,10 @@ export function isStepAutomated(c: Content, s: Pick<State, 'unlocks' | 'handStep
   return !!row?.automatedBy && s.unlocks.includes(row.automatedBy) && !s.handSteps.includes(stepId);
 }
 
+/** The basic steps (fill, stir, shape) that still need the player's hands: the routine cannot make candy while any is left. */
+export const routineBlockers = (c: Content, s: Pick<State, 'unlocks' | 'handSteps'>): string[] =>
+  ['fill', 'stir', 'form'].filter((id) => !isStepAutomated(c, s, id));
+
 /** Crafting steps a helper could do for the player right now (unlocked, whether or not switched on). */
 export const automatableSteps = (c: Content, s: Pick<State, 'unlocks'>) =>
   c.craftSteps.filter((x) => x.automatedBy && s.unlocks.includes(x.automatedBy));

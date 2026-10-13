@@ -399,5 +399,14 @@
   "node.cream-store": "Cold cellar",
   "node.cream-store.desc": "A cold cellar for Stumpsville cream: the shelf holds one more and it arrives a little more often.",
   "node.blackberry-store": "Bramble basket",
-  "node.blackberry-store.desc": "A deep basket for cursed blackberries: the shelf holds one more and they arrive a little more often."
+  "node.blackberry-store.desc": "A deep basket for cursed blackberries: the shelf holds one more and they arrive a little more often.",
+  "node.foreman-mouse": "Foreman mouse",
+  "node.foreman-mouse.desc": "A mouse that runs the day: with your helpers it makes candy, serves the counter and waits for you in the evening. A switch lets you take over at any moment.",
+  "routine.on": "Routine on",
+  "routine.off": "Routine off",
+  "routine.status.morning": "The mice are making candy…",
+  "routine.status.afternoon": "The mice are serving the shop…",
+  "routine.status.evening": "Pick your upgrades, then end the day.",
+  "error.no-routine": "Nobody can run the day yet.",
+  "error.routine-needs-helpers": "Hire a porter, a stirrer and a sculptor mouse, and keep them helping, before the routine can make candy."
 }

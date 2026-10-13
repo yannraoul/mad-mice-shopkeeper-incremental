@@ -581,5 +581,27 @@
         "add": 0.05
       }
     ]
+  },
+  {
+    "id": "foreman-mouse",
+    "branch": "shop",
+    "nameKey": "node.foreman-mouse",
+    "descKey": "node.foreman-mouse.desc",
+    "costs": [
+      600
+    ],
+    "requires": [
+      "clerk",
+      "porter-mouse",
+      "stirrer-mouse",
+      "sculptor-mouse"
+    ],
+    "minStage": 3,
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "routine"
+      }
+    ]
   }
 ]

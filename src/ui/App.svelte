@@ -44,6 +44,12 @@
 {#if page === 'game'}
   <footer class="actionbar">
     <div class="inner">
+      {#if header.routine}
+        <button class="routine" class:on={header.routine.on} aria-pressed={header.routine.on} onclick={() => dispatch(header.routine!.action)}>
+          <b>{header.routine.label}</b>
+          {#if header.routine.status}<span class="status">{header.routine.status}</span>{/if}
+        </button>
+      {/if}
       <button class="btn big pill" onclick={() => dispatch(header.endPhase.action)}>
         {header.endPhase.label}<span aria-hidden="true">→</span>
       </button>
@@ -65,7 +71,16 @@
     border-top: 1px solid var(--line);
     box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.3);
   }
-  .actionbar .inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: flex-end; }
+  .actionbar .inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+  .routine {
+    pointer-events: auto;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+    min-height: 52px; padding: 6px 14px; border-radius: 26px;
+    border: 1px solid var(--line); background: var(--panel2); color: var(--muted);
+    font: 600 14px/1.2 var(--body); text-align: left;
+  }
+  .routine .status { font-weight: 400; font-size: 12px; }
+  .routine.on { border-color: var(--ok); color: var(--ink); background: color-mix(in srgb, var(--ok) 18%, var(--panel2)); }
   .actionbar .btn { min-height: 52px; }
   main.bar { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
   /* Desktop: no bar, just the button floating at the bottom right of the content column. */
@@ -76,6 +91,6 @@
   @media (max-width: 640px) {
     main { padding: 12px 12px 24px; gap: 12px; }
     main.bar { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-    .actionbar .btn { width: 100%; }
+    .actionbar .btn { flex: 1; }
   }
 </style>

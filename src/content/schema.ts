@@ -240,6 +240,8 @@ export const Settings = z.object({
   retryReliefMax: z.number().min(0).max(1),
   /** How many units of a craved ingredient one unit of its rare alternate counts for when judging happiness. */
   alternateUnits: z.number().int().positive(),
+  /** The daily routine stops making a candy once this many of it are in stock. */
+  routineStock: z.number().int().positive(),
 });
 
 export const Strings = z.record(z.string(), z.string());

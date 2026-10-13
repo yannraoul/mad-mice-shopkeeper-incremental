@@ -125,6 +125,7 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | Hire a clerk | 1 | 100 | - | unlocks `clerk` | Serves Faithful customers for you. |
 | Contract board | 1 | 120 | - | unlocks `contractBoard` | Merchants post orders with a quantity and a deadline. |
 | Reputation | 5 | 120 / 300 / 700 / 1500 / 3000 | - | +6 priceBonus | Pilgrims talk: every sale brings 6% more, rounded up (at least a coin more on cheap candies), per level. |
+| Foreman mouse | 1 | 600 | Hire a clerk, Porter mouse, Stirrer mouse, Sculptor mouse | unlocks `routine` | A mouse that runs the day: with your helpers it makes candy, serves the counter and waits for you in the evening. A switch lets you take over at any moment. |
 
 **Temple / Hive**
 

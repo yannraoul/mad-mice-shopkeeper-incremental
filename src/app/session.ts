@@ -1,5 +1,7 @@
 import type { Content } from '../content/schema.ts';
 import { newGame, step } from '../engine/engine.ts';
+import { routineBlockers } from '../engine/economy.ts';
+import { nextRoutineAction } from '../engine/routine.ts';
 import type { Action, FailCode, GameEvent, State } from '../engine/types.ts';
 import { exportString, importString, type LoadErrorCode } from '../save/save.ts';
 
@@ -106,6 +108,24 @@ export class GameSession {
     this.error = null;
     this.changed();
     return true;
+  }
+
+  /**
+   * One beat of the daily routine: if it is on, do the next thing the mice would do. Returns what happened: 'off',
+   * 'acted', 'waiting' (the evening is the player's), or 'stopped' (a helper was taken back: the routine switched itself off).
+   * The app calls this on a timer; tests call it in a loop.
+   */
+  tickRoutine(): 'off' | 'acted' | 'waiting' | 'stopped' {
+    if (!this.state.routine) return 'off';
+    if (routineBlockers(this.content, this.state).length > 0) {
+      this.dispatch({ type: 'setRoutine', on: false }); // a helper was taken back: the mice cannot run the day
+      return 'stopped';
+    }
+    const a = nextRoutineAction(this.content, this.state);
+    if (!a) return 'waiting';
+    if (this.dispatch(a)) return 'acted';
+    this.dispatch({ type: 'setRoutine', on: false });
+    return 'stopped';
   }
 
   private replace(state: State) {
