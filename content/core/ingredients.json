@@ -11,8 +11,8 @@
     "dailySupply": 0,
     "unlock": "royal-jelly",
     "alternateOf": "honey",
-    "chance": 0.15,
-    "surplusValue": 5
+    "chance": 0.25,
+    "surplusValue": 0
   },
   {
     "id": "sunflower-seed",
@@ -27,8 +27,8 @@
     "dailySupply": 0,
     "unlock": "dark-garden",
     "alternateOf": "sunflower-seed",
-    "chance": 0.15,
-    "surplusValue": 5
+    "chance": 0.25,
+    "surplusValue": 0
   },
   {
     "id": "milk",
@@ -43,8 +43,8 @@
     "dailySupply": 0,
     "unlock": "cream",
     "alternateOf": "milk",
-    "chance": 0.15,
-    "surplusValue": 5
+    "chance": 0.25,
+    "surplusValue": 0
   },
   {
     "id": "blueberry",
@@ -59,7 +59,7 @@
     "dailySupply": 0,
     "unlock": "blackberry",
     "alternateOf": "blueberry",
-    "chance": 0.15,
-    "surplusValue": 5
+    "chance": 0.25,
+    "surplusValue": 0
   }
 ]

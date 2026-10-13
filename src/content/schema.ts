@@ -17,7 +17,7 @@ export const Quality = z.object({
   priceMult: z.number().positive(),
   /** Tree unlock needed before this quality can be crafted (absent = always available). */
   unlock: z.string().optional(),
-  /** Perfect-style quality: the plain recipe with every ingredient replaced by its alternate (same quantities). */
+  /** Perfect-style quality: the recipe of the best other quality plus one unit of each of the candy's `perfect` alternates. */
   alternates: z.boolean().default(false),
   /** Extra hand-crafting steps (after stirring, before forming), e.g. the oven. */
   extraSteps: z.array(z.object({ id, nameKey: key })).default([]),
@@ -25,14 +25,16 @@ export const Quality = z.object({
 export const Ingredient = z.object({
   id,
   nameKey: key,
-  /** Units delivered each morning (unused units do not carry over). Alternates have 0: they replace base units by chance. */
+  /** Units delivered each morning (unused units are sold at closing). Alternates have 0: they come by chance and are kept. */
   dailySupply: z.number().int().min(0),
   /** Tree/errand unlock id that brings this ingredient into the game (absent = from the start). */
   unlock: z.string().optional(),
-  /** This is the rare alternate of that base ingredient: each delivered base unit may become one of these instead. */
+  /** This is the rare alternate of that base ingredient: a stored extra that arrives by chance, never replacing a base unit. */
   alternateOf: id.optional(),
-  /** Chance per delivered base unit of turning into this alternate (modifier stat `altChance:<id>` adds to it). */
+  /** Chance per morning that one unit arrives while the store is not full (modifier stat `altChance:<id>` adds to it). */
   chance: z.number().min(0).max(1).default(0),
+  /** How many units of this alternate the shop can keep (modifier stat `store:<id>` adds to it); alternates carry over and are never sold. */
+  store: z.number().int().positive().default(1),
   /** Coins each unused unit is worth when the shop closes (the rare alternates are worth several times a base unit). */
   surplusValue: z.number().min(0).default(0),
 });
@@ -48,6 +50,8 @@ export const Candy = z.object({
   unlock: z.string().optional(),
   /** Candies one batch yields, whatever the cauldron (absent = the cauldron's batch size). The Sweet Tooth is made one at a time. */
   batch: z.number().int().positive().optional(),
+  /** The alternates a Perfect batch of this candy needs, one unit each (each is the alternate of one of its ingredients). */
+  perfect: z.array(id).default([]),
 });
 /**
  * A step of hand-crafting (fill, stir, bake, pull, whisper, shape). When `automatedBy` is owned, somebody (a hired mouse or a

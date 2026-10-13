@@ -16,6 +16,7 @@ export const SMART_ORDER = [
   'cauldron-size', 'faithful', 'patience', 'sunflower-yield', 'reputation', 'hive-bond', 'map', 'dark-garden',
   'counter-space', 'patience', 'faithful', 'reputation', 'hive-bond', 'honey-yield', 'sunflower-yield', 'reputation',
   'reputation', 'milk-yield', 'blueberry-yield', 'milk-yield', 'blueberry-yield', 'milk-yield', 'blueberry-yield',
+  'dark-store', 'cream-store', 'blackberry-store', 'dark-store', 'cream-store', 'blackberry-store',
   'porter-mouse', 'stirrer-mouse', 'sculptor-mouse', 'oven-timer', 'pulling-motor', 'order-book', 'delivery-mouse',
 ];
 
@@ -40,7 +41,8 @@ function smartMorning(c: Content, s: State): State {
     if (c.stations.find((x) => x.id === s.stations[i]!.type)?.auto) continue;
     while (s.stations[i]!.batchesLeft > 0) {
       const candies = unlockedCandies(c, s).sort((a, b) => total(s, a.id) - total(s, b.id));
-      const qualities = unlockedQualities(c, s).sort((a, b) => b.rank - a.rank); // best first
+      // Best first. Perfect is left to the final errand: its rare ingredients are kept for it.
+      const qualities = unlockedQualities(c, s).filter((q) => !q.alternates).sort((a, b) => b.rank - a.rank);
       let crafted = false;
       for (const candy of candies) {
         // Cheap customers (Faithful) need plain drops: keep a plain reserve before going fancy.

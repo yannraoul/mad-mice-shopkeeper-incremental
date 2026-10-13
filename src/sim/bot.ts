@@ -59,7 +59,7 @@ export function botMorning(c: Content, s: State): State {
   for (let i = 0; i < s.stations.length; i++) {
     if (c.stations.find((x) => x.id === s.stations[i]!.type)?.auto) continue; // runs by itself
     while (s.stations[i]!.batchesLeft > 0) {
-      const qualities = unlockedQualities(c, s);
+      const qualities = unlockedQualities(c, s).filter((q) => !q.alternates); // rare ingredients are kept for the final errand
       // Try qualities starting from a rotating index; take the first one that is affordable.
       const order = qualities.map((_, k) => qualities[(n + k) % qualities.length]!);
       const candies = unlockedCandies(c, s);

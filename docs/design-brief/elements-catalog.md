@@ -9,13 +9,13 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | Name | Delivered each morning (base) | Unlocked by | Notes |
 | --- | --- | --- | --- |
 | Honey | 2 | from the start |  |
-| Royal jelly | 0 | `royal-jelly` | rare alternate of Honey: each delivered unit has a 15% chance to arrive as this instead |
+| Royal jelly | 0 | `royal-jelly` | rare alternate of Honey: each delivered unit has a 25% chance to arrive as this instead |
 | Sunflower seed | 2 | `sunflower` |  |
-| Dark sunflower seed | 0 | `dark-garden` | rare alternate of Sunflower seed: each delivered unit has a 15% chance to arrive as this instead |
+| Dark sunflower seed | 0 | `dark-garden` | rare alternate of Sunflower seed: each delivered unit has a 25% chance to arrive as this instead |
 | Milk | 2 | `milk` |  |
-| Cream from Stumpsville | 0 | `cream` | rare alternate of Milk: each delivered unit has a 15% chance to arrive as this instead |
+| Cream from Stumpsville | 0 | `cream` | rare alternate of Milk: each delivered unit has a 25% chance to arrive as this instead |
 | Blueberry | 2 | `blueberry` |  |
-| Cursed blackberry | 0 | `blackberry` | rare alternate of Blueberry: each delivered unit has a 15% chance to arrive as this instead |
+| Cursed blackberry | 0 | `blackberry` | rare alternate of Blueberry: each delivered unit has a 25% chance to arrive as this instead |
 
 ### Candies (recipes)
 
@@ -112,6 +112,9 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | Pulling motor | 1 | 420 | Pulling machine | unlocks `auto-pull` | A motor for the pulling machine. You can still pull by hand. |
 | Order book | 1 | 300 | Second cauldron | unlocks `order-book` | The Second cauldron first works on the open contracts and delivery errands, with the cheapest quality that qualifies, then makes the candy you prefer. Pick it on the Craft screen. |
 | Delivery mouse | 1 | 420 | Order book | unlocks `delivery-mouse` | A mouse that hands in contracts and delivery errands as soon as the stock covers them (never the final quest). |
+| Dark pantry | 2 | 250 / 600 | - | +1 store:dark-seed; +0.05 altChance:dark-seed | A cool pantry for dark seeds: the shelf holds one more and they arrive a little more often. |
+| Cold cellar | 2 | 180 / 420 | - | +1 store:stumpsville-cream; +0.05 altChance:stumpsville-cream | A cold cellar for Stumpsville cream: the shelf holds one more and it arrives a little more often. |
+| Bramble basket | 2 | 220 / 500 | - | +1 store:cursed-blackberry; +0.05 altChance:cursed-blackberry | A deep basket for cursed blackberries: the shelf holds one more and they arrive a little more often. |
 
 **Shop**
 
@@ -128,7 +131,7 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | Upgrade | Levels | Cost per level | Requires | Effect | Description |
 | --- | --- | --- | --- | --- | --- |
 | The Faithful | 3 | 40 / 200 / 700 | - | +2 weight:faithful; +1 arrivals | More regular customers come. |
-| Hive bond | 3 | 200 / 500 / 1100 | The Faithful | +1 supply:honey; +2 arrivals | The hive sends a little more honey, and its visitors fill the shop. |
+| Hive bond | 3 | 200 / 500 / 1100 | The Faithful | +1 store:royal-jelly; +0.05 altChance:royal-jelly; +2 arrivals | The hive keeps more royal jelly for you: the shelf holds one more and it arrives a little more often. Its visitors fill the shop. |
 | Errands board | 1 | 90 | The Faithful | unlocks `errandsBoard` | The hive and the temple post errands with lasting rewards. |
 | Map strip | 1 | 60 | The Faithful | unlocks `map` | Reveals places around the shop as the weeks go by. |
 

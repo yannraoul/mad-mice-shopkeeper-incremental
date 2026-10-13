@@ -65,6 +65,10 @@ export function rivalPenalty(c: Content, s: Pick<State, 'stage' | 'nodes' | 'err
   return Math.max(0, rival.amount - modifier(c, s, 'rivalRelief'));
 }
 
+/** How many units of an alternate the shop can keep (its base store plus upgrades). */
+export const altStore = (c: Content, s: Pick<State, 'nodes' | 'errands'>, alt: { id: string; store: number }) =>
+  alt.store + modifier(c, s, `store:${alt.id}`);
+
 /** Candies one batch at this station yields (base capacity plus tree bonuses). */
 export const batchSize = (c: Content, s: Pick<State, 'nodes' | 'errands'>, stationType: string, candy?: string) =>
   c.candies.find((x) => x.id === candy)?.batch ?? c.stations.find((x) => x.id === stationType)!.capacity + modifier(c, s, 'capacity');
@@ -195,8 +199,8 @@ export const automatableSteps = (c: Content, s: Pick<State, 'unlocks'>) =>
 
 /**
  * Total ingredients one batch of candy at this quality consumes. Fine and the like add units listed in
- * the candy's `extra`; an `alternates` quality (Perfect) keeps the plain quantities but every ingredient
- * is its rare alternate.
+ * the candy's `extra`; an `alternates` quality (Perfect) is the best ordinary quality's recipe plus one unit of each of
+ * the candy's `perfect` alternates.
  */
 export function batchCost(c: Content, candy: string, quality: string): Record<string, number> {
   const cd = c.candies.find((x) => x.id === candy);
@@ -205,7 +209,10 @@ export function batchCost(c: Content, candy: string, quality: string): Record<st
   const cost: Record<string, number> = {};
   const add = (ingredient: string, qty: number) => (cost[ingredient] = (cost[ingredient] ?? 0) + qty);
   if (q.alternates) {
-    for (const i of cd.ingredients) add(c.ingredients.find((x) => x.alternateOf === i.ingredient)!.id, i.qty);
+    // The best ordinary quality's recipe, plus one unit of each alternate the candy names.
+    const below = c.qualities.filter((x) => !x.alternates).sort((a, b) => b.rank - a.rank)[0]!;
+    for (const i of [...cd.ingredients, ...(cd.extra[below.id] ?? [])]) add(i.ingredient, i.qty);
+    for (const alt of cd.perfect) add(alt, 1);
   } else {
     for (const i of [...cd.ingredients, ...(cd.extra[quality] ?? [])]) add(i.ingredient, i.qty);
   }

@@ -1,6 +1,6 @@
 import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
-import { automatableSteps, openDemands, autoQuality, isStepAutomated, unlockedCandies, unlockedIngredients, unlockedQualities, batchSize, batchCost, priceOf, isQualityUnlocked } from '../engine/economy.ts';
+import { altStore, automatableSteps, openDemands, autoQuality, isStepAutomated, unlockedCandies, unlockedIngredients, unlockedQualities, batchSize, batchCost, priceOf, isQualityUnlocked } from '../engine/economy.ts';
 import {
   add,
   doStep,
@@ -314,7 +314,7 @@ function buildSceneFlat(c: Content, s: State, ui: CraftUi, t: Translate): CraftS
         name: t(ing.nameKey),
         supply: t('craft.supply', { n: left }),
         left,
-        total: Math.max(left, s.supplyToday[ing.id] ?? 0),
+        total: ing.alternateOf ? Math.max(left, altStore(c, s, ing)) : Math.max(left, s.supplyToday[ing.id] ?? 0),
         alternateOf: ing.alternateOf ?? null,
         enabled: !!session && remaining(session, ing.id) > 0,
       };

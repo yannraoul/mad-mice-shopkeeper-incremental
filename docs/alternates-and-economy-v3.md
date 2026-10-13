@@ -1,4 +1,4 @@
-# Alternates v3 and the late economy (design, not built)
+# Alternates v3 and the late economy (alternates built as MMSIM-17; the economy part moved to the v4 doc)
 
 Source: playtest 4 and the save at stage 8 (day 64). Nothing here is built yet; the open questions are at the end.
 

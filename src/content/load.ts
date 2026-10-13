@@ -64,7 +64,7 @@ function validStat(c: Content, stat: string): boolean {
   if (['capacity', 'counterSpace', 'patience', 'rivalRelief', 'arrivals', 'priceBonus'].includes(stat)) return true;
   const [kind, id] = stat.split(':');
   if (kind === 'supply') return c.ingredients.some((i) => i.id === id && !i.alternateOf);
-  if (kind === 'altChance') return c.ingredients.some((i) => i.id === id && i.alternateOf);
+  if (kind === 'altChance' || kind === 'store') return c.ingredients.some((i) => i.id === id && i.alternateOf);
   if (kind === 'weight') return c.customerTypes.some((t) => t.id === id);
   return false;
 }
@@ -115,6 +115,16 @@ export function validateRefs(c: Content): string[] {
       else if (c.ingredients.filter((x) => x.alternateOf === i.ingredient).length !== 1)
         errors.push(`candies/${ca.id}: ingredient "${i.ingredient}" needs exactly one alternate (for Perfect)`);
     }
+  // Perfect: every candy names the alternates it needs, each the alternate of one of its own ingredients.
+  for (const ca of c.candies) {
+    if (c.qualities.some((q) => q.alternates) && ca.perfect.length === 0) errors.push(`candies/${ca.id}: no \`perfect\` alternate`);
+    for (const id of ca.perfect) {
+      const alt = c.ingredients.find((x) => x.id === id);
+      if (!alt?.alternateOf) errors.push(`candies/${ca.id}: perfect "${id}" is not an alternate`);
+      else if (!ca.ingredients.some((i) => i.ingredient === alt.alternateOf))
+        errors.push(`candies/${ca.id}: perfect "${id}" is not the alternate of one of its ingredients`);
+    }
+  }
   // Every unlock id an ingredient or quality waits for must be granted by a node or an errand.
   const granted = new Set<string>();
   for (const n of c.skillNodes) for (const e of n.effects) if (e.type === 'unlock') granted.add(e.id);

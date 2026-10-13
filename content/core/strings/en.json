@@ -118,7 +118,7 @@
   "node.faithful": "The Faithful",
   "node.faithful.desc": "More regular customers come.",
   "node.hive-bond": "Hive bond",
-  "node.hive-bond.desc": "The hive sends a little more honey, and its visitors fill the shop.",
+  "node.hive-bond.desc": "The hive keeps more royal jelly for you: the shelf holds one more and it arrives a little more often. Its visitors fill the shop.",
   "evening.report": "Today's report",
   "evening.revenue": "Earned: {n} coins",
   "evening.served": "Served: {n} (clerk: {auto})",
@@ -296,8 +296,8 @@
   "quality.orBetter": "{quality} or better",
   "unlock.magic-cauldron": "the magic cauldron",
   "error.unlock-needed": "Requires {unlock} first.",
-  "craft.surplus": "Unused ingredients are sold for coins when the shop closes (1 each, rare ones more).",
-  "craft.surplusMixed": "Unused ingredients are sold for coins when the shop closes (rare ones fetch more).",
+  "craft.surplus": "Unused ingredients are sold for coins when the shop closes (1 each). Rare ingredients are kept for Perfect candies.",
+  "craft.surplusMixed": "Unused ingredients are sold for coins when the shop closes. Rare ingredients are kept for Perfect candies.",
   "evening.k.surplus": "Leftovers sold",
   "errand.royal-gift": "The hive's gratitude",
   "errand.royal-gift.desc": "The queen is well again and the hive wants to thank you with its rarest gift. Bring eight Fine sunflower nougats for the feast and royal jelly will sometimes come with your honey.",
@@ -393,5 +393,11 @@
   "quality.short.plain": "P",
   "quality.short.fine": "F",
   "quality.short.excellent": "E",
-  "quality.short.perfect": "PP"
+  "quality.short.perfect": "PP",
+  "node.dark-store": "Dark pantry",
+  "node.dark-store.desc": "A cool pantry for dark seeds: the shelf holds one more and they arrive a little more often.",
+  "node.cream-store": "Cold cellar",
+  "node.cream-store.desc": "A cold cellar for Stumpsville cream: the shelf holds one more and it arrives a little more often.",
+  "node.blackberry-store": "Bramble basket",
+  "node.blackberry-store.desc": "A deep basket for cursed blackberries: the shelf holds one more and they arrive a little more often."
 }

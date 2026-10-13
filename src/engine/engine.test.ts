@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { loadContent } from '../content/load.ts';
 import { readContentFiles } from '../../scripts/lib/readContent.ts';
+import { batchCost } from './economy.ts';
 import { newGame, step } from './engine.ts';
 import { priceOf, serveChoices, unlockedCandies } from './economy.ts';
 import type { Action, State } from './types.ts';
@@ -78,28 +79,41 @@ describe('crafting', () => {
     const s = run(newGame(c, { seed: 1, unlocks: ['oven'] }), craft('fine'));
     expect(s.stock['candy-cane:fine']).toBe(4);
   });
-  it('perfect uses the plain quantity of alternates only', () => {
+  it('perfect is the excellent recipe plus one alternate', () => {
     const s0 = newGame(c, { seed: 1, unlocks: ['magic-cauldron', 'royal-jelly'] });
     s0.supply['royal-jelly'] = 1;
-    const honey = s0.supply.honey;
+    s0.supply.honey = 3;
     const s = run(s0, craft('perfect'));
     expect(s.supply['royal-jelly']).toBe(0);
-    expect(s.supply.honey).toBe(honey);
+    expect(s.supply.honey).toBe(0);
     expect(s.stock['candy-cane:perfect']).toBe(4);
+    s.supply.honey = 3;
     expect(failCode(s, craft('perfect'))).toMatchObject({ code: 'not-enough-ingredient', params: { ingredient: 'royal-jelly' } });
   });
-  it('alternates only arrive once unlocked, and replace base units by chance', () => {
+  it('the Sweet Tooth needs one of each of the four alternates', () => {
+    const cost = batchCost(c, 'sweet-tooth', 'perfect');
+    for (const alt of ['royal-jelly', 'dark-seed', 'stumpsville-cream', 'cursed-blackberry']) expect(cost[alt]).toBe(1);
+  });
+  it('alternates come by chance, one at a time, are kept up to the store, and never replace a base unit', () => {
     expect(newGame(c, { seed: 1 }).supply['royal-jelly']).toBeUndefined();
+    let days = 0;
     let jelly = 0;
-    let base = 0;
     for (let seed = 1; seed <= 200; seed++) {
       const s = newGame(c, { seed, unlocks: ['royal-jelly'] });
+      expect(s.supply.honey).toBe(2); // the jelly never takes a honey's place
+      expect(s.supply['royal-jelly']).toBeLessThanOrEqual(1);
       jelly += s.supply['royal-jelly']!;
-      base += s.supply.honey!;
-      expect(s.supply['royal-jelly']! + s.supply.honey!).toBe(2); // a jelly replaces a honey, never adds one
+      days++;
     }
-    expect(jelly).toBeGreaterThan(0);
-    expect(jelly / (jelly + base)).toBeCloseTo(0.15, 1);
+    expect(jelly / days).toBeCloseTo(0.25, 1);
+  });
+  it('a full store gets nothing more, and a kept alternate carries over to the next morning', () => {
+    let s = newGame(c, { seed: 3, unlocks: ['royal-jelly'] });
+    s.supply['royal-jelly'] = 1;
+    for (let d = 0; d < 6; d++) {
+      s = run(s, { type: 'endPhase' }, { type: 'endPhase' }, { type: 'endPhase' });
+      expect(s.supply['royal-jelly']).toBe(1); // kept, and the cap is 1
+    }
   });
   it('only works in the morning', () => {
     expect(fails(afternoon(), craft())).toMatch(/morning/);
@@ -177,14 +191,11 @@ describe('leftovers', () => {
     expect(s1.money - s0.money).toBe(s1.report.revenue); // customers' coins and leftovers are all in the revenue
     expect(s1.report.revenue).toBeGreaterThanOrEqual(honeyLeft * value);
   });
-  it('rare alternates are sold too, for several times a base unit', () => {
+  it('rare alternates are kept, not sold', () => {
     const s0 = newGame(c, { seed: 1, unlocks: ['royal-jelly'] });
-    s0.supply['royal-jelly'] = 2;
-    const value = c.ingredients.find((i) => i.id === 'royal-jelly')!.surplusValue;
-    expect(value).toBeGreaterThan(c.ingredients.find((i) => i.id === 'honey')!.surplusValue);
+    s0.supply['royal-jelly'] = 1;
     const s1 = run(s0, { type: 'endPhase' }, { type: 'endPhase' });
-    expect(s1.supply['royal-jelly']).toBe(0);
-    expect(s1.report.surplus).toBeGreaterThanOrEqual(2 * value);
+    expect(s1.supply['royal-jelly']).toBe(1);
   });
 });
 

@@ -22,8 +22,8 @@ describe('craft session', () => {
     expect(start('fine').need).toEqual({ honey: 2 }); // fine costs more than plain
     expect(start('excellent').steps).toEqual(['stir', 'oven', 'pull', 'form']);
     expect(start('excellent').need).toEqual({ honey: 3 });
-    // Perfect: the plain quantities, every ingredient replaced by its alternate
-    expect(start('perfect').need).toEqual({ 'royal-jelly': 1 });
+    // Perfect: the Excellent recipe plus one unit of the candy's alternate
+    expect(start('perfect').need).toEqual({ honey: 3, 'royal-jelly': 1 });
     expect(start('perfect').steps).toEqual(['stir', 'magic', 'form']);
   });
   it('refuses to start what the engine would refuse', () => {

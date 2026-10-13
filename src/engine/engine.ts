@@ -4,6 +4,7 @@ import { pick, pickWeighted, rand, randInt } from './rng.ts';
 import {
   batchCost,
   batchSize,
+  altStore,
   isCandyUnlocked,
   isIngredientUnlocked,
   presentCustomerTypes,
@@ -289,8 +290,8 @@ function morningSupply(c: Content, s: State, ingredient: string, base: number): 
 }
 
 /**
- * The morning delivery. Only unlocked ingredients arrive. Once an alternate is unlocked, each delivered unit of
- * its base ingredient has a chance to arrive as the alternate instead, so alternates trickle in without ever being guaranteed.
+ * The morning delivery. Only unlocked ingredients arrive. Alternates are a small store the shop keeps: each morning an
+ * unlocked alternate has a chance to add one unit, unless its store is full. They carry over and are never sold.
  */
 function deliverSupply(c: Content, s: State): Record<string, number> {
   const supply: Record<string, number> = {};
@@ -300,11 +301,9 @@ function deliverSupply(c: Content, s: State): Record<string, number> {
   }
   for (const alt of c.ingredients) {
     if (!alt.alternateOf || !isIngredientUnlocked(c, s, alt.id)) continue;
-    const chance = Math.min(1, alt.chance + modifier(c, s, `altChance:${alt.id}`));
-    let n = 0;
-    for (let k = 0; k < (supply[alt.alternateOf] ?? 0); k++) if (rand(s) < chance) n++;
+    let n = s.supply[alt.id] ?? 0;
+    if (n < altStore(c, s, alt) && rand(s) < Math.min(1, alt.chance + modifier(c, s, `altChance:${alt.id}`))) n++;
     supply[alt.id] = n;
-    supply[alt.alternateOf] = (supply[alt.alternateOf] ?? 0) - n;
   }
   return supply;
 }
@@ -523,12 +522,12 @@ function payIncome(c: Content, s: State, ev: GameEvent[]) {
   ev.push({ type: 'incomePaid', coins });
 }
 
-/** When the shop closes, every unused ingredient is sold off at its surplus value (the rare alternates fetch more). */
+/** When the shop closes, every unused base ingredient is sold off at its surplus value (alternates are kept). */
 function sellSurplus(c: Content, s: State, ev: GameEvent[]) {
   let coins = 0;
   for (const i of c.ingredients) {
     const left = s.supply[i.id] ?? 0;
-    if (left <= 0 || i.surplusValue <= 0) continue;
+    if (left <= 0 || i.surplusValue <= 0 || i.alternateOf) continue; // alternates are kept
     coins += Math.round(left * i.surplusValue);
     s.supply[i.id] = 0;
   }

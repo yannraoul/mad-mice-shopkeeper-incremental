@@ -118,7 +118,7 @@
   "node.faithful": "Les Fidèles",
   "node.faithful.desc": "Plus de clients réguliers viennent.",
   "node.hive-bond": "Lien avec la ruche",
-  "node.hive-bond.desc": "La ruche envoie un peu plus de miel, et ses visiteurs remplissent la boutique.",
+  "node.hive-bond.desc": "La ruche garde plus de gelée royale pour vous : l'étagère en contient une de plus et elle arrive un peu plus souvent. Ses visiteurs remplissent la boutique.",
   "evening.report": "Bilan du jour",
   "evening.revenue": "Gagné : {n} pièces",
   "evening.served": "Servis : {n} (commis : {auto})",
@@ -296,8 +296,8 @@
   "quality.orBetter": "{quality} ou mieux",
   "unlock.magic-cauldron": "le chaudron magique",
   "error.unlock-needed": "Nécessite d'abord {unlock}.",
-  "craft.surplus": "Les ingrédients inutilisés sont vendus à la fermeture (1 pièce chacun, les rares plus).",
-  "craft.surplusMixed": "Les ingrédients inutilisés sont vendus à la fermeture (les rares rapportent plus).",
+  "craft.surplus": "Les ingrédients inutilisés sont vendus à la fermeture (1 pièce chacun). Les ingrédients rares sont gardés pour les bonbons Parfaits.",
+  "craft.surplusMixed": "Les ingrédients inutilisés sont vendus à la fermeture. Les ingrédients rares sont gardés pour les bonbons Parfaits.",
   "evening.k.surplus": "Restes vendus",
   "errand.royal-gift": "La gratitude de la ruche",
   "errand.royal-gift.desc": "La reine est guérie et la ruche veut vous remercier de son cadeau le plus rare. Apportez huit nougats au tournesol Fins pour le festin et de la gelée royale arrivera parfois avec votre miel.",
@@ -393,5 +393,11 @@
   "quality.short.plain": "S",
   "quality.short.fine": "F",
   "quality.short.excellent": "E",
-  "quality.short.perfect": "P"
+  "quality.short.perfect": "P",
+  "node.dark-store": "Garde-manger sombre",
+  "node.dark-store.desc": "Un garde-manger frais pour les graines sombres : l'étagère en contient une de plus et elles arrivent un peu plus souvent.",
+  "node.cream-store": "Cave fraîche",
+  "node.cream-store.desc": "Une cave fraîche pour la crème de Stumpsville : l'étagère en contient une de plus et elle arrive un peu plus souvent.",
+  "node.blackberry-store": "Panier de ronces",
+  "node.blackberry-store.desc": "Un grand panier pour les mûres maudites : l'étagère en contient une de plus et elles arrivent un peu plus souvent."
 }

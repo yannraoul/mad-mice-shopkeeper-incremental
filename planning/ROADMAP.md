@@ -28,3 +28,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-14](features/MMSIM-14.md) — The content fill: all four ingredients, fifteen candies, the real final quest
 - [MMSIM-15](features/MMSIM-15.md) — Crafting helpers: fill all, make another batch, mice and machines that take steps over
 - [MMSIM-16](features/MMSIM-16.md) — The Second cauldron grows up: order book and delivery mouse
+- [MMSIM-17](features/MMSIM-17.md) — Alternates v3: a small store you keep, and Perfect = Excellent plus the candy alternates

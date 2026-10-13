@@ -256,8 +256,13 @@
     "effects": [
       {
         "type": "modifier",
-        "stat": "supply:honey",
+        "stat": "store:royal-jelly",
         "add": 1
+      },
+      {
+        "type": "modifier",
+        "stat": "altChance:royal-jelly",
+        "add": 0.05
       },
       {
         "type": "modifier",
@@ -265,7 +270,10 @@
         "add": 2
       }
     ],
-    "minStage": 2
+    "minStage": 2,
+    "needs": [
+      "royal-jelly"
+    ]
   },
   {
     "id": "errands-board",
@@ -493,6 +501,84 @@
       {
         "type": "unlock",
         "id": "delivery-mouse"
+      }
+    ]
+  },
+  {
+    "id": "dark-store",
+    "branch": "kitchen",
+    "nameKey": "node.dark-store",
+    "descKey": "node.dark-store.desc",
+    "costs": [
+      250,
+      600
+    ],
+    "needs": [
+      "dark-garden"
+    ],
+    "minStage": 5,
+    "effects": [
+      {
+        "type": "modifier",
+        "stat": "store:dark-seed",
+        "add": 1
+      },
+      {
+        "type": "modifier",
+        "stat": "altChance:dark-seed",
+        "add": 0.05
+      }
+    ]
+  },
+  {
+    "id": "cream-store",
+    "branch": "kitchen",
+    "nameKey": "node.cream-store",
+    "descKey": "node.cream-store.desc",
+    "costs": [
+      180,
+      420
+    ],
+    "needs": [
+      "cream"
+    ],
+    "minStage": 4,
+    "effects": [
+      {
+        "type": "modifier",
+        "stat": "store:stumpsville-cream",
+        "add": 1
+      },
+      {
+        "type": "modifier",
+        "stat": "altChance:stumpsville-cream",
+        "add": 0.05
+      }
+    ]
+  },
+  {
+    "id": "blackberry-store",
+    "branch": "kitchen",
+    "nameKey": "node.blackberry-store",
+    "descKey": "node.blackberry-store.desc",
+    "costs": [
+      220,
+      500
+    ],
+    "needs": [
+      "blackberry"
+    ],
+    "minStage": 5,
+    "effects": [
+      {
+        "type": "modifier",
+        "stat": "store:cursed-blackberry",
+        "add": 1
+      },
+      {
+        "type": "modifier",
+        "stat": "altChance:cursed-blackberry",
+        "add": 0.05
       }
     ]
   }
