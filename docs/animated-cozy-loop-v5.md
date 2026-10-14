@@ -1,4 +1,4 @@
-# The animated cozy loop (design, nothing built)
+# The animated cozy loop (design; phase 1 built as MMSIM-22)
 
 Source: brainstorm after MMSIM-21. Step 2 and 3 of the cozy loop in `quests-and-cozy-loop-v4.md` section 3 (animated mice, then take-over). The routine itself exists (MMSIM-18).
 

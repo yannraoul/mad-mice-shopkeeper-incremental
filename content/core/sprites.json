@@ -1,0 +1,78 @@
+[
+  {
+    "id": "baker",
+    "width": 64,
+    "height": 64,
+    "actions": {
+      "idle": {
+        "file": "art/sprites/baker-idle.png",
+        "frames": 4,
+        "fps": 3,
+        "loop": true
+      },
+      "work": {
+        "file": "art/sprites/baker-work.png",
+        "frames": 4,
+        "fps": 6,
+        "loop": true
+      }
+    }
+  },
+  {
+    "id": "porter",
+    "width": 64,
+    "height": 64,
+    "actions": {
+      "idle": {
+        "file": "art/sprites/porter-idle.png",
+        "frames": 4,
+        "fps": 3,
+        "loop": true
+      },
+      "work": {
+        "file": "art/sprites/porter-work.png",
+        "frames": 4,
+        "fps": 6,
+        "loop": true
+      }
+    }
+  },
+  {
+    "id": "sculptor",
+    "width": 64,
+    "height": 64,
+    "actions": {
+      "idle": {
+        "file": "art/sprites/sculptor-idle.png",
+        "frames": 4,
+        "fps": 3,
+        "loop": true
+      },
+      "work": {
+        "file": "art/sprites/sculptor-work.png",
+        "frames": 4,
+        "fps": 6,
+        "loop": true
+      }
+    }
+  },
+  {
+    "id": "stirrer",
+    "width": 64,
+    "height": 64,
+    "actions": {
+      "idle": {
+        "file": "art/sprites/stirrer-idle.png",
+        "frames": 4,
+        "fps": 3,
+        "loop": true
+      },
+      "work": {
+        "file": "art/sprites/stirrer-work.png",
+        "frames": 4,
+        "fps": 6,
+        "loop": true
+      }
+    }
+  }
+]

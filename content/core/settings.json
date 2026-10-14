@@ -21,5 +21,6 @@
   ],
   "tipMax": 0.5,
   "alternateUnits": 3,
-  "routineStock": 12
+  "routineStock": 12,
+  "sceneStepMs": 1400
 }

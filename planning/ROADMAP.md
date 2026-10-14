@@ -33,3 +33,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-19](features/MMSIM-19.md) — The quest chain, part A: quests replace the weekly stages (engine)
 - [MMSIM-20](features/MMSIM-20.md) — The quest chain, part B: objectives, rewards, late money sinks, the retune
 - [MMSIM-21](features/MMSIM-21.md) — Weekdays, part A: market day
+- [MMSIM-22](features/MMSIM-22.md) — The animated workshop, part A: the scene shell (pixel scene, mice, routine paced by the animation)

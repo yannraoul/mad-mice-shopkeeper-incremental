@@ -275,6 +275,43 @@ export const Settings = z.object({
   alternateUnits: z.number().int().positive(),
   /** The daily routine stops making a candy once this many of it are in stock. */
   routineStock: z.number().int().positive(),
+  /** How long (ms) the mouse of a crafting step works on it when the routine is played in the scene. */
+  sceneStepMs: z.number().int().positive(),
+});
+
+/** One animation of a sprite: a horizontal strip of `frames` frames of the sprite's size. */
+const SpriteAction = z.object({
+  /** Path of the strip under `public/`. */
+  file: z.string().min(1),
+  frames: z.number().int().positive(),
+  fps: z.number().positive(),
+  loop: z.boolean().default(true),
+});
+/** An animated character: frame size and its actions (`idle` is required). */
+export const Sprite = z.object({
+  id,
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+  actions: z.record(z.string(), SpriteAction).refine((a) => 'idle' in a, 'a sprite needs an "idle" action'),
+});
+/** A mouse standing in a scene: it shows once its crafting step is done by a helper, and works while that step is played. */
+const SceneActor = z.object({
+  id,
+  sprite: id,
+  /** The crafting step this mouse does (it appears when a helper does it for the player). */
+  step: id,
+  /** Top-left corner of the sprite's frame, in the scene's own pixels. */
+  x: z.number().int(),
+  y: z.number().int(),
+});
+/** A pixel-art background drawn at its own small size and scaled by the UI, with the mice placed on it. */
+export const Scene = z.object({
+  id,
+  file: z.string().min(1),
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+  altKey: key,
+  actors: z.array(SceneActor).default([]),
 });
 
 export const Strings = z.record(z.string(), z.string());
@@ -295,6 +332,8 @@ export const tables = {
   places: Place,
   journal: JournalLine,
   artSlots: ArtSlot,
+  sprites: Sprite,
+  scenes: Scene,
 } as const;
 
 export const LANGS = ['en', 'fr'] as const;

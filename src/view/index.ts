@@ -10,6 +10,7 @@ export * from './map.ts';
 export * from './serve.ts';
 export * from './craft.ts';
 export * from './evening.ts';
+export * from './scene.ts';
 export * from './menu.ts';
 export { describeFail, unlockName, rivalErrands } from './text.ts';
 

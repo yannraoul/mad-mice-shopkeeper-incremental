@@ -150,6 +150,13 @@ export function validateRefs(c: Content): string[] {
   }
   for (const s of c.settings.startStations)
     if (!stations.has(s)) errors.push(`settings: unknown start station "${s}"`);
+  const sprites = ids(c.sprites);
+  const craftStepIds = new Set(c.craftSteps.map((x) => x.id));
+  for (const sc of c.scenes)
+    for (const a of sc.actors) {
+      if (!sprites.has(a.sprite)) errors.push(`scenes/${sc.id}: actor "${a.id}" uses unknown sprite "${a.sprite}"`);
+      if (!craftStepIds.has(a.step)) errors.push(`scenes/${sc.id}: actor "${a.id}" does a step "${a.step}" that does not exist`);
+    }
   const nodes = ids(c.skillNodes);
   for (const n of c.skillNodes) {
     for (const r of n.requires) if (!nodes.has(r)) errors.push(`skillNodes/${n.id}: unknown required node "${r}"`);

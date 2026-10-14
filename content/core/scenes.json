@@ -1,0 +1,39 @@
+[
+  {
+    "id": "workshop",
+    "file": "art/scenes/workshop.png",
+    "width": 256,
+    "height": 144,
+    "altKey": "scene.workshop",
+    "actors": [
+      {
+        "id": "porter",
+        "sprite": "porter",
+        "step": "fill",
+        "x": 115,
+        "y": 80
+      },
+      {
+        "id": "stirrer",
+        "sprite": "stirrer",
+        "step": "stir",
+        "x": 192,
+        "y": 36
+      },
+      {
+        "id": "baker",
+        "sprite": "baker",
+        "step": "oven",
+        "x": 122,
+        "y": 58
+      },
+      {
+        "id": "sculptor",
+        "sprite": "sculptor",
+        "step": "form",
+        "x": 50,
+        "y": 52
+      }
+    ]
+  }
+]

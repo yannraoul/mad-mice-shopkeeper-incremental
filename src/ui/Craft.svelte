@@ -6,6 +6,7 @@
   import type { ShelfItem } from '../view/craft.ts';
   import ImageSlot from './ImageSlot.svelte';
   import Pips from './Pips.svelte';
+  import Scene from './Scene.svelte';
 
   // The only state here is the small hand-crafting interaction; everything else is in the view.
   let ui = $state.raw<CraftUi>(initialCraftUi(content));
@@ -38,6 +39,8 @@
 
 <section class="frame workshop" aria-labelledby="workshop-title">
   <h2 id="workshop-title">{v.title}</h2>
+
+  <Scene />
 
   <div class="scene" class:many={sc.shelfPairs.length > 2}>
     <div class="col">

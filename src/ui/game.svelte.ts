@@ -2,6 +2,7 @@ import { content } from '../content/index.ts';
 import { parseDevOptions } from '../app/dev.ts';
 import { GameSession, type Persistence } from '../app/session.ts';
 import type { Action, GameEvent, State } from '../engine/types.ts';
+import { describeBeat } from '../view/scene.ts';
 import { clearSave, loadSaved, writeSave } from '../save/storage.ts';
 
 // Svelte adapter around the framework-free `GameSession`: it mirrors the session's state into
@@ -52,5 +53,37 @@ export const newGameNow = (seed?: number) => session.newGame({ seed });
 export const exportSave = () => session.exportSave();
 export const importSave = (text: string) => session.importSave(text);
 
-// The daily routine beats on a timer: one action every few hundred milliseconds so the day can be watched.
-setInterval(() => session.tickRoutine(), 350);
+/** The mice of the scene that are working right now (the scene reads this; nothing else does). */
+class SceneClock {
+  working = $state.raw<string[]>([]);
+}
+export const sceneClock = new SceneClock();
+
+// The daily routine is paced by the scene: for an action that has an animation (a batch), the mice of each step work in
+// turn and the action is applied when they are done, so the screen never shows a result before it is played. Actions
+// without an animation (serving, ending a phase) keep the short fixed beat. Reduced motion skips the animation.
+const BEAT_MS = 350;
+const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+function beat() {
+  const a = session.peekRoutine();
+  const clips = a && !reducedMotion() ? describeBeat(content, session.state, a) : [];
+  if (clips.length === 0) {
+    session.tickRoutine();
+    setTimeout(beat, BEAT_MS);
+    return;
+  }
+  let i = 0;
+  const play = () => {
+    const clip = clips[i++];
+    if (!clip) {
+      sceneClock.working = [];
+      session.tickRoutine();
+      setTimeout(beat, BEAT_MS / 2);
+      return;
+    }
+    sceneClock.working = [clip.actor];
+    setTimeout(play, clip.ms);
+  };
+  play();
+}
+setTimeout(beat, BEAT_MS);

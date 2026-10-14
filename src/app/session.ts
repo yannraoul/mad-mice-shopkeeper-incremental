@@ -130,6 +130,15 @@ export class GameSession {
     return 'stopped';
   }
 
+  /**
+   * The action the next routine beat would apply, without applying it (null when the routine is off, waits, or has to stop).
+   * A front end that plays the action first (the scene) asks for it here, plays it, then calls `tickRoutine()`.
+   */
+  peekRoutine(): Action | null {
+    if (!this.state.routine || routineBlockers(this.content, this.state).length > 0) return null;
+    return nextRoutineAction(this.content, this.state);
+  }
+
   private replace(state: State) {
     this.state = state;
     this.events = [];
