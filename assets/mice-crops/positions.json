@@ -1,0 +1,38 @@
+[
+ {
+  "name": "sculptor-table",
+  "window": [
+   50,
+   52,
+   64,
+   64
+  ]
+ },
+ {
+  "name": "baker-oven",
+  "window": [
+   122,
+   58,
+   64,
+   64
+  ]
+ },
+ {
+  "name": "porter-front",
+  "window": [
+   115,
+   80,
+   64,
+   64
+  ]
+ },
+ {
+  "name": "stirrer-cauldron",
+  "window": [
+   192,
+   36,
+   64,
+   64
+  ]
+ }
+]
