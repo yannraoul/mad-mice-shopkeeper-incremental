@@ -1,4 +1,4 @@
-# Quests instead of stages, weekdays, and the cozy loop (quest chain built as MMSIM-19 and MMSIM-20; weekdays and the cozy loop are still design)
+# Quests instead of stages, weekdays, and the cozy loop (quest chain built as MMSIM-19 and MMSIM-20; market day built as MMSIM-21; the rest day and the cozy loop are still design)
 
 Source: playtest 4 follow-up. Nothing here is built. It replaces sections 3 and 5 of `alternates-and-economy-v3.md`.
 
@@ -13,7 +13,7 @@ Proposal: **remove the weekly target and the stage index. Progress is a chain of
 - **Late sinks** (money is idle after about stage 6): more levels on counter space, cauldron size, reputation and patience; places on the map bought with coins; the store upgrades of v3. Costs scale so the last quests need real saving.
 - Effort: large (engine state, save migration, content for about 25 quests, the stage strip becomes a quest log, balance rewrite: bots follow the chain, targets disappear, the guard becomes "time to finish"). Two milestones: **A** the chain engine with quests mapped one to one from the stages; **B** new quests, sinks and the retune.
 
-## 2. Days of the week (your idea)
+## 2. Days of the week (your idea; market day built as MMSIM-21, on day 6)
 A week only has a rhythm if its days differ. Candidates, each small:
 - **Market day** (day 3 or 6): more travelers, better prices on contracts.
 - **Rest day** (day 7): fewer customers and **cleaning**, a short mini-game: skip it and the next week starts with one fewer batch; do it for a small tip bonus. A hired mouse could take cleaning over (the same helper pattern).

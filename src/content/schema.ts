@@ -109,6 +109,20 @@ export const Forecast = z.object({
   /** Per customer type multiplier on its weight (default 1). */
   weights: z.record(z.string(), z.number().positive()).default({}),
 });
+/** A day of the week with its own rhythm (days without a row are ordinary). */
+export const Weekday = z.object({
+  id,
+  /** 1 to 7: the day of the week it falls on. */
+  day: z.number().int().min(1).max(7),
+  nameKey: key,
+  noteKey: key,
+  /** Multiplies the day's walk-ins, on top of the forecast. */
+  arrivalsMult: z.number().positive().default(1),
+  /** Multiplies what a contract pays when it is handed in today. */
+  contractMult: z.number().positive().default(1),
+  /** Per customer type multiplier on its weight (default 1). */
+  weights: z.record(z.string(), z.number().positive()).default({}),
+});
 /** A hired helper: once unlocked it can take over customer types the player delegates. */
 export const Worker = z.object({
   id,
@@ -273,6 +287,7 @@ export const tables = {
   craftSteps: CraftStep,
   customerTypes: CustomerType,
   forecasts: Forecast,
+  weekdays: Weekday,
   workers: Worker,
   skillNodes: SkillNode,
   quests: Quest,

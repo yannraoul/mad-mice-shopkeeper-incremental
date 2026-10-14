@@ -57,7 +57,7 @@
   <section class="note today" aria-label={v.title}>
     <button class="head" aria-expanded={open} onclick={() => (open = !open)}>
       <span class="sun" aria-hidden="true">☀</span>
-      <span class="forecast">{v.forecast}</span>
+      <span class="forecast">{v.weekday ? `${v.weekday.name} · ` : ''}{v.forecast}</span>
       <span class="dot" aria-hidden="true"></span>
       <span class="chev" aria-hidden="true">{open ? '▴' : '▾'}</span>
     </button>
@@ -98,6 +98,7 @@
     </div>
     {#if variant === 'craft'}
       <div class="forecast big">{v.forecast}</div>
+      {#if v.weekday}<div class="small"><strong>{v.weekday.name}</strong> {v.weekday.note}</div>{/if}
       {@render contracts()}
       <div class="block">
         <span class="overline">{v.stockTitle}</span>

@@ -18,6 +18,8 @@
   "forecast.busy": "A busy day is expected",
   "forecast.pilgrims": "Mostly pilgrims are expected",
   "forecast.travelers": "Mostly travelers and merchants are expected",
+  "weekday.market": "Market day",
+  "weekday.market.note": "Travelers and merchants come in numbers and contracts pay a quarter more.",
   "quality.plain": "Plain",
   "quality.fine": "Fine",
   "quality.perfect": "Perfect",

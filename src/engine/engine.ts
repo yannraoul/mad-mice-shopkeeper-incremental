@@ -9,6 +9,7 @@ import {
   isIngredientUnlocked,
   presentCustomerTypes,
   arrivalsMult,
+  weekdayOf,
   goalMet,
   questDone,
   questReached,
@@ -170,7 +171,7 @@ function fulfill(c: Content, s: State, contractId: number, ev: GameEvent[]): Fai
   }
   s.contracts.splice(idx, 1);
   // The posted reward is a minimum: handing over a better quality than asked pays for what was handed over.
-  const reward = Math.max(ct.reward, Math.round(handed * c.settings.contractMult));
+  const reward = Math.round(Math.max(ct.reward, Math.round(handed * c.settings.contractMult)) * (weekdayOf(c, s)?.contractMult ?? 1));
   s.money += reward;
   s.report.revenue += reward;
   s.report.contractsDone += 1;
@@ -659,8 +660,9 @@ function pickWant(c: Content, s: State, t: Content['customerTypes'][number], can
 /** The real afternoon: the forecast shifts the odds, it does not fix the outcome. */
 function spawnCustomers(c: Content, s: State, ev: GameEvent[]) {
   const fc = c.forecasts.find((f) => f.id === s.forecast)!;
+  const wd = weekdayOf(c, s);
   const spread = 1 + c.settings.arrivalNoise * (rand(s) * 2 - 1);
-  const wanted = Math.max(0, Math.round((c.settings.baseArrivals + modifier(c, s, 'arrivals')) * arrivalsMult(c, s) * fc.arrivalsMult * spread));
+  const wanted = Math.max(0, Math.round((c.settings.baseArrivals + modifier(c, s, 'arrivals')) * arrivalsMult(c, s) * fc.arrivalsMult * (wd?.arrivalsMult ?? 1) * spread));
   // The shop can only welcome so many people a day: counter space is what lets later stages pay off.
   const count = Math.min(wanted, (c.settings.counterSpace + modifier(c, s, 'counterSpace')) * c.settings.customersPerSpace);
   // Customer types that need a quality the shop cannot make yet do not show up.
@@ -669,7 +671,7 @@ function spawnCustomers(c: Content, s: State, ev: GameEvent[]) {
   const patienceBonus = modifier(c, s, 'patience');
   let arrived = 0;
   for (let i = 0; i < count; i++) {
-    const t = pickWeighted(s, types, (x) => Math.max(0.1, x.weight + modifier(c, s, `weight:${x.id}`)) * (fc.weights[x.id] ?? 1));
+    const t = pickWeighted(s, types, (x) => Math.max(0.1, x.weight + modifier(c, s, `weight:${x.id}`)) * (fc.weights[x.id] ?? 1) * (wd?.weights[x.id] ?? 1));
     const want = pickWant(c, s, t, candies);
     if (!want) continue;
     s.pending.push({

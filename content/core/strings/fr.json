@@ -18,6 +18,8 @@
   "forecast.busy": "Une journée chargée s'annonce",
   "forecast.pilgrims": "On attend surtout des pèlerins",
   "forecast.travelers": "On attend surtout des voyageurs et des marchands",
+  "weekday.market": "Jour de marché",
+  "weekday.market.note": "Voyageurs et marchands affluent et les contrats rapportent un quart de plus.",
   "quality.plain": "Simple",
   "quality.fine": "Fin",
   "quality.perfect": "Parfait",

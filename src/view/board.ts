@@ -1,4 +1,4 @@
-import { isQualityUnlocked, stockedAtLeast, stockKey } from '../engine/economy.ts';
+import { isQualityUnlocked, stockedAtLeast, stockKey, weekdayOf } from '../engine/economy.ts';
 import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
 import type { Action, State } from '../engine/types.ts';
@@ -7,6 +7,8 @@ import { buildErrandsView, type ErrandsView } from './errands.ts';
 export interface BoardView {
   title: string;
   forecast: string;
+  /** Today's special weekday (market day...): its name and what it does, or null on an ordinary day. */
+  weekday: { name: string; note: string } | null;
   contractsTitle: string;
   noContracts: string;
   contracts: { id: number; text: string; deliver: { label: string; action: Action; enabled: boolean } }[];
@@ -28,10 +30,12 @@ export interface BoardView {
 /** The shared "board": today's forecast, contracts, what is in stock, and the errands. */
 export function buildBoardView(c: Content, s: State, t: Translate): BoardView {
   const forecast = c.forecasts.find((f) => f.id === s.forecast)!;
+  const wd = weekdayOf(c, s);
   const nameOf = (rows: { id: string; nameKey: string }[], id: string) => t(rows.find((r) => r.id === id)!.nameKey);
   return {
     title: t('board.title'),
     forecast: t(forecast.nameKey),
+    weekday: wd ? { name: t(wd.nameKey), note: t(wd.noteKey) } : null,
     contractsTitle: t('board.contracts'),
     noContracts: t('board.noContracts'),
     contracts: s.contracts.map((ct) => ({
@@ -42,7 +46,7 @@ export function buildBoardView(c: Content, s: State, t: Translate): BoardView {
         quality: t('quality.orBetter', { quality: nameOf(c.qualities, ct.quality) }),
         week: Math.floor((ct.deadlineDay - 1) / 7) + 1,
         day: ((ct.deadlineDay - 1) % 7) + 1,
-        reward: ct.reward,
+        reward: Math.round(ct.reward * (wd?.contractMult ?? 1)),
       }),
       deliver: {
         label: t('board.deliver'),

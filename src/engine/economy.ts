@@ -48,6 +48,8 @@ export const presentCustomerTypes = (c: Content, s: Pick<State, 'unlocks'>) =>
 export const weekOf = (day: number) => Math.floor((day - 1) / 7) + 1;
 export const dayOfWeek = (day: number) => ((day - 1) % 7) + 1;
 export const DAYS_PER_WEEK = 7;
+/** Today's special weekday (market day...), if the day of the week has one. */
+export const weekdayOf = (c: Content, s: Pick<State, 'day'>) => c.weekdays.find((w) => w.day === dayOfWeek(s.day));
 
 export const questDone = (s: Pick<State, 'quests'>, id: string) => s.quests[id] !== undefined;
 /** The quest that is done, if the player has completed the quest this thing waits for (or it waits for none). */

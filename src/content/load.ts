@@ -143,6 +143,11 @@ export function validateRefs(c: Content): string[] {
   for (const f of c.forecasts)
     for (const t of Object.keys(f.weights))
       if (!customers.has(t)) errors.push(`forecasts/${f.id}: unknown customer type "${t}"`);
+  for (const w of c.weekdays) {
+    for (const t of Object.keys(w.weights))
+      if (!customers.has(t)) errors.push(`weekdays/${w.id}: unknown customer type "${t}"`);
+    if (c.weekdays.some((o) => o !== w && o.day === w.day)) errors.push(`weekdays/${w.id}: day ${w.day} has more than one row`);
+  }
   for (const s of c.settings.startStations)
     if (!stations.has(s)) errors.push(`settings: unknown start station "${s}"`);
   const nodes = ids(c.skillNodes);
