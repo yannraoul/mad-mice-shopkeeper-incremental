@@ -1,5 +1,5 @@
 import type { Content } from '../content/schema.ts';
-import { newGame, step } from '../engine/engine.ts';
+import { endgameGame, newGame, step } from '../engine/engine.ts';
 import { routineBlockers } from '../engine/economy.ts';
 import { nextRoutineAction } from '../engine/routine.ts';
 import type { Action, FailCode, GameEvent, State } from '../engine/types.ts';
@@ -25,6 +25,8 @@ export interface StartOptions {
   money?: number;
   /** Start with the final stage cleared; a developer hook. */
   completed?: boolean;
+  /** Start in an end-game shop (everything bought and done); a developer hook. */
+  endgame?: boolean;
 }
 
 export interface SessionOptions {
@@ -71,6 +73,7 @@ export class GameSession {
   }
 
   private fresh(o: StartOptions): State {
+    if (o.endgame) return endgameGame(this.content, { seed: o.seed ?? this.randomSeed(), unlocks: o.unlocks });
     const game = newGame(this.content, { seed: o.seed ?? this.randomSeed(), unlocks: o.unlocks });
     const done = this.content.quests.slice(0, Math.max(0, (o.stage ?? 1) - 1));
     const total = Math.max(0, ...done.flatMap((q) => q.goals.map((g) => (g.type === 'earn' ? g.amount : 0))));

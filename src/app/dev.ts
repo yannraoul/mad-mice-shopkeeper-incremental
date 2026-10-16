@@ -10,6 +10,8 @@ export interface DevOptions {
   money?: number;
   /** Start with the final stage already cleared (to see the ending state). */
   completed?: boolean;
+  /** Start in an end-game shop: everything bought, every quest done. */
+  endgame?: boolean;
 }
 
 export function parseDevOptions(search: string): DevOptions {
@@ -18,11 +20,12 @@ export function parseDevOptions(search: string): DevOptions {
   const stage = Number(p.get('stage')) || undefined;
   const money = Number(p.get('money')) || undefined;
   return {
-    active: ['seed', 'unlocks', 'stage', 'money', 'completed'].some((k) => p.has(k)),
+    active: ['seed', 'unlocks', 'stage', 'money', 'completed', 'endgame'].some((k) => p.has(k)),
     seed,
     unlocks: (p.get('unlocks') ?? '').split(',').filter(Boolean),
     stage,
     money: money && money > 0 ? money : undefined,
     completed: p.has('completed') && p.get('completed') !== '0',
+    endgame: p.has('endgame') && p.get('endgame') !== '0',
   };
 }

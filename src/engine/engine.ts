@@ -81,6 +81,43 @@ export function newGame(c: Content, opts: NewGameOptions): State {
   return s;
 }
 
+/**
+ * A developer's end-game shop: every quest and errand done, every upgrade at its top level (its unlocks and stations
+ * applied), every place open, some candy in stock. Not reachable by playing; used by the `?endgame=1` hook.
+ */
+export function endgameGame(c: Content, opts: NewGameOptions): State {
+  const s = newGame(c, opts);
+  s.day = 82;
+  s.completed = true;
+  for (const q of c.quests) {
+    s.quests[q.id] = 64;
+    applyEffects(c, s, q.reward);
+  }
+  for (const e of c.errands) {
+    s.errands[e.id] = { status: 'done' };
+    applyEffects(c, s, e.reward);
+  }
+  for (const n of c.skillNodes) {
+    s.nodes[n.id] = n.costs.length;
+    applyEffects(c, s, n.effects);
+  }
+  s.places = c.places.map((p) => p.id);
+  s.revenueTotal = 49797;
+  s.money = 234;
+  s.supply = deliverSupply(c, s);
+  s.supplyToday = { ...s.supply };
+  for (const st of s.stations) {
+    const row = c.stations.find((x) => x.id === st.type)!;
+    st.batchesLeft = row.batchesPerDay + (row.auto ? 0 : modifier(c, s, 'batches'));
+  }
+  for (const cd of c.candies) {
+    s.stock[`${cd.id}:excellent`] = 12;
+    s.stock[`${cd.id}:perfect`] = 3;
+    s.batchesMade[cd.id] = 5;
+  }
+  return s;
+}
+
 export function step(c: Content, prev: State, action: Action): StepResult {
   const s = structuredClone(prev);
   const events: GameEvent[] = [];
