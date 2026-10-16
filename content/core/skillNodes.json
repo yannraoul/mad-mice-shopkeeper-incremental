@@ -40,6 +40,22 @@
     ]
   },
   {
+    "id": "extra-batch",
+    "branch": "kitchen",
+    "nameKey": "node.extra-batch",
+    "descKey": "node.extra-batch.desc",
+    "costs": [
+      6000
+    ],
+    "effects": [
+      {
+        "type": "modifier",
+        "stat": "batches",
+        "add": 1
+      }
+    ]
+  },
+  {
     "id": "auto-cauldron",
     "branch": "kitchen",
     "nameKey": "node.auto-cauldron",

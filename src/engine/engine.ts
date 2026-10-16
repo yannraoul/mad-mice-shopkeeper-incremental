@@ -216,17 +216,24 @@ function refuse(c: Content, s: State, customerId: number, ev: GameEvent[]): Fail
   if (idx < 0) return fail('no-customer', {}, `customer #${customerId} is not at the counter`);
   s.report.refused += 1;
   ev.push({ type: 'refused', customer: customerId, customerType: s.queue[idx]!.type });
-  removeFromQueue(c, s, idx, ev);
+  // Turning someone away costs the others nothing: it is a choice, not a delay.
+  removeFromQueue(c, s, idx, ev, false);
   return null;
 }
 
-/** One customer is done: everyone still waiting loses 1 patience, then the counter refills. */
-function removeFromQueue(c: Content, s: State, idx: number, ev: GameEvent[]) {
+/**
+ * One customer is done (served or turned away): when `wait` is set everyone still waiting loses 1 patience. A turn has
+ * passed either way: a customer nothing in stock can satisfy has waited one more turn and leaves on their own after
+ * `stuckLeaveTurns` of them, at no cost to the others. Then the counter refills.
+ */
+function removeFromQueue(c: Content, s: State, idx: number, ev: GameEvent[], wait = true) {
   s.queue.splice(idx, 1);
-  for (const cu of s.queue) cu.patience -= 1;
   const stay: Customer[] = [];
   for (const cu of s.queue) {
-    if (cu.patience <= 0) {
+    if (wait) cu.patience -= 1;
+    const stuck = serveChoices(c, s, cu).length === 0 && !workerChoice(c, s, cu) ? (cu.stuck ?? 0) + 1 : 0;
+    cu.stuck = stuck;
+    if (cu.patience <= 0 || stuck >= c.settings.stuckLeaveTurns) {
       s.report.lost += 1;
       ev.push({ type: 'left', customer: cu.id, customerType: cu.type });
     } else stay.push(cu);
@@ -604,7 +611,10 @@ function startDay(c: Content, s: State, ev: GameEvent[]) {
   payIncome(c, s, ev);
   s.supply = deliverSupply(c, s);
   s.supplyToday = { ...s.supply };
-  for (const st of s.stations) st.batchesLeft = c.stations.find((x) => x.id === st.type)!.batchesPerDay;
+  for (const st of s.stations) {
+    const row = c.stations.find((x) => x.id === st.type)!;
+    st.batchesLeft = row.batchesPerDay + (row.auto ? 0 : modifier(c, s, 'batches'));
+  }
   s.contracts = s.contracts.filter((ct) => {
     if (ct.deadlineDay >= s.day) return true;
     s.report.contractsExpired += 1;

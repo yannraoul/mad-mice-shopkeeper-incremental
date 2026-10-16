@@ -109,3 +109,7 @@ Status: brainstorm (no code until this is locked). Started 2026-10-08.
 - **Layout (desktop).** Top bar above the scene: quality and "start a batch". The scene in the middle. On its right: the recipe picker (instead of today's board and errands). Under it: the ingredient shelf as a row. Today's board and the errands move into a side drawer, closed by default (a bottom sheet on a phone).
 - **Phone.** Same order, the scene scaled down, the recipe list under it; zones are tap targets and show a persistent on/off dot (nothing relies on hover).
 - Not in this part: hand-crafting on the scene itself (the step track stays under the scene), the fifth mouse, real art.
+
+## Late game and the counter (decided 2026-10-16, MMSIM-24)
+- A kitchen node, **An extra batch** (one level, 6,000 coins), adds a fourth daily batch to the hand cauldron. The last reputation level (9,000) took days of idle waiting for a player who had finished everything.
+- A customer nothing in stock can satisfy **leaves on their own after 2 turns** (a turn = a customer served or turned away), at no patience cost to the others; it counts as lost. **Turning someone away no longer costs the others a patience either.** Serving still does.

@@ -158,15 +158,25 @@ describe('serving', () => {
     const r = run(s, { type: 'serve', customer: s.queue[0]!.id, candy: 'candy-cane', quality: 'fine' });
     expect(r.money).toBe(priceOf(c, 'candy-cane', 'fine') + 2); // 8 and a 2 coin tip: Fine is one step above what they asked
   });
-  it('drains patience of waiting customers when another is handled, and they leave at 0', () => {
+  it('turning a customer away costs the others no patience', () => {
     const s = afternoon();
     expect(s.queue.length).toBeGreaterThanOrEqual(2);
     s.queue[1]!.patience = 1;
     const waiting = s.queue[1]!.id;
     const r = run(s, { type: 'refuse', customer: s.queue[0]!.id });
-    expect(r.queue.find((x) => x.id === waiting)).toBeUndefined();
-    expect(r.report.lost).toBe(1);
+    expect(r.queue.find((x) => x.id === waiting)?.patience).toBe(1);
     expect(r.report.refused).toBe(1);
+  });
+  it('a customer nothing in stock can satisfy leaves on their own after a couple of turns, at no cost to the others', () => {
+    const s = afternoon();
+    s.stock = {};
+    expect(s.queue.length).toBeGreaterThanOrEqual(3);
+    const [a, b, last] = s.queue.map((x) => x.id);
+    let r = run(s, { type: 'refuse', customer: a! });
+    expect(r.queue.find((x) => x.id === last)?.stuck).toBe(1);
+    r = run(r, { type: 'refuse', customer: b! });
+    expect(r.queue.find((x) => x.id === last)).toBeUndefined();
+    expect(r.report.lost).toBeGreaterThanOrEqual(1);
   });
   it('refills the counter from pending up to counterSpace', () => {
     const s = afternoon();

@@ -61,7 +61,7 @@ export function loadContent(files: RawFile[]): Content {
 
 /** capacity | counterSpace | patience | rivalRelief | arrivals | supply:<ingredient> | weight:<customerType> */
 function validStat(c: Content, stat: string): boolean {
-  if (['capacity', 'counterSpace', 'patience', 'rivalRelief', 'arrivals', 'priceBonus'].includes(stat)) return true;
+  if (['capacity', 'batches', 'counterSpace', 'patience', 'rivalRelief', 'arrivals', 'priceBonus'].includes(stat)) return true;
   const [kind, id] = stat.split(':');
   if (kind === 'supply') return c.ingredients.some((i) => i.id === id && !i.alternateOf);
   if (kind === 'altChance' || kind === 'store') return c.ingredients.some((i) => i.id === id && i.alternateOf);

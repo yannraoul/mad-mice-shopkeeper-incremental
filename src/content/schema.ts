@@ -262,6 +262,8 @@ export const Settings = z.object({
   rivalMinSupply: z.number().int().min(0),
   /** Batches of a recipe the player must craft by hand before a worker can sell it. */
   delegateAfterBatches: z.number().int().min(0),
+  /** A customer nothing in stock can satisfy leaves on their own after this many turns (no patience cost for the others). */
+  stuckLeaveTurns: z.number().int().positive(),
   startStations: z.array(id).min(1),
   startMoney: z.number().min(0),
   /** Chance per day of a new contract (needs the `contractBoard` unlock). */

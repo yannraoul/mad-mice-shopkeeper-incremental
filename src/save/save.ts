@@ -11,7 +11,7 @@ const EXPORT_PREFIX = 'CST1:';
 const num = z.number();
 const rec = <T extends z.ZodType>(t: T) => z.record(z.string(), t);
 const Customer = z.object({
-  id: num, type: z.string(), minQuality: z.string(), patience: num, budget: num,
+  id: num, type: z.string(), minQuality: z.string(), patience: num, budget: num, stuck: num.optional(),
   want: z.discriminatedUnion('kind', [
     z.object({ kind: z.literal('candy'), candy: z.string() }),
     z.object({ kind: z.literal('ingredient'), ingredient: z.string() }),

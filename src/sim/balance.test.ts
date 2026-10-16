@@ -52,7 +52,7 @@ describe('balance: pacing of the campaign', () => {
     // Batches and customers, not ingredients, limit a late game shop (more than half the ingredients go unused with four of them),
     // so this only catches a collapse. The tension the redesign wants (qualities, alternates) comes with MMSIM-12.
     expect(smart.ingredientsUnusedPct).toBeLessThan(75);
-    expect(smart.avgStockOnOpen).toBeLessThan(250);
+    expect(smart.avgStockOnOpen).toBeLessThan(280); // was 250 before MMSIM-24 (the fourth daily batch makes more stock)
   });
   it('customers are rarely lost for a competent player', () => {
     expect(smart.lostPct).toBeLessThan(12);

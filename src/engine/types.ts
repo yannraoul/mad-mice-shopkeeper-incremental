@@ -14,6 +14,8 @@ export interface Customer {
   /** Remaining number of other customers' actions they will wait through. */
   patience: number;
   budget: number;
+  /** Turns spent at the counter with nothing in stock that satisfies them (absent = 0); they leave after a few. */
+  stuck?: number;
 }
 
 export interface Contract {

@@ -103,6 +103,8 @@
   "node.honey-yield": "Honey yield",
   "node.honey-yield.desc": "More honey delivered each morning.",
   "node.cauldron-size": "Bigger cauldrons",
+  "node.extra-batch": "An extra batch",
+  "node.extra-batch.desc": "One more batch of the hand cauldron each day.",
   "node.cauldron-size.desc": "Each batch makes more candies.",
   "node.auto-cauldron": "Second cauldron",
   "node.auto-cauldron.desc": "A cauldron that makes Plain honey drops by itself every morning, using the day's honey.",

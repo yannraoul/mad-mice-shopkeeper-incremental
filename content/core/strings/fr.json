@@ -103,6 +103,8 @@
   "node.honey-yield": "Récolte de miel",
   "node.honey-yield.desc": "Plus de miel livré chaque matin.",
   "node.cauldron-size": "Chaudrons plus grands",
+  "node.extra-batch": "Une fournée de plus",
+  "node.extra-batch.desc": "Une fournée de plus par jour au chaudron manuel.",
   "node.cauldron-size.desc": "Chaque fournée donne plus de bonbons.",
   "node.auto-cauldron": "Second chaudron",
   "node.auto-cauldron.desc": "Un chaudron qui prépare tout seul des gouttes de miel Simples chaque matin, avec le miel du jour.",

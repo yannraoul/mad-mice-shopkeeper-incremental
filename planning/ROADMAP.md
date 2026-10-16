@@ -35,3 +35,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-21](features/MMSIM-21.md) — Weekdays, part A: market day
 - [MMSIM-22](features/MMSIM-22.md) — The animated workshop, part A: the scene shell (pixel scene, mice, routine paced by the animation)
 - [MMSIM-23](features/MMSIM-23.md) — The animated workshop, part B: the workshop as the main screen (hover zones toggle helpers, recipe picker on the right, board and errands in a drawer)
+- [MMSIM-24](features/MMSIM-24.md) — Late game: a fourth daily batch, and customers who leave when nothing fits

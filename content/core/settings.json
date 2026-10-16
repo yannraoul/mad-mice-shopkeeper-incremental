@@ -22,5 +22,6 @@
   "tipMax": 0.5,
   "alternateUnits": 3,
   "routineStock": 12,
-  "sceneStepMs": 1400
+  "sceneStepMs": 1400,
+  "stuckLeaveTurns": 2
 }
