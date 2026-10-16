@@ -46,8 +46,11 @@
     <div class="inner">
       {#if header.routine}
         <button class="routine" class:on={header.routine.on} aria-pressed={header.routine.on} onclick={() => dispatch(header.routine!.action)}>
-          <b>{header.routine.label}</b>
-          {#if header.routine.status}<span class="status">{header.routine.status}</span>{/if}
+          <span class="switch" aria-hidden="true"><span class="knob"></span></span>
+          <span class="txt">
+            <b>{header.routine.label}</b>
+            {#if header.routine.status}<span class="status">{header.routine.status}</span>{/if}
+          </span>
         </button>
       {/if}
       <button class="btn big pill" onclick={() => dispatch(header.endPhase.action)}>
@@ -74,11 +77,17 @@
   .actionbar .inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
   .routine {
     pointer-events: auto;
-    display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
-    min-height: 52px; padding: 6px 14px; border-radius: 26px;
+    display: flex; align-items: center; gap: 10px;
+    min-height: 52px; padding: 6px 16px 6px 10px; border-radius: 26px;
     border: 1px solid var(--line); background: var(--panel2); color: var(--muted);
-    font: 600 14px/1.2 var(--body); text-align: left;
+    font: 600 14px/1.2 var(--body);
   }
+  /* A switch: a track with a knob that slides to the right when the routine is on. */
+  .switch { flex: none; width: 40px; height: 22px; border-radius: 11px; background: var(--line); position: relative; transition: background 0.2s; }
+  .knob { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--panel2); transition: transform 0.2s; }
+  .routine.on .switch { background: var(--ok); }
+  .routine.on .knob { transform: translateX(18px); background: #fff; }
+  .txt { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; text-align: center; }
   .routine .status { font-weight: 400; font-size: 12px; }
   .routine.on { border-color: var(--ok); color: var(--ink); background: color-mix(in srgb, var(--ok) 18%, var(--panel2)); }
   .actionbar .btn { min-height: 52px; }

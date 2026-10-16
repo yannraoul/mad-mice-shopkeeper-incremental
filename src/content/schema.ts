@@ -304,6 +304,15 @@ const SceneActor = z.object({
   x: z.number().int(),
   y: z.number().int(),
 });
+/** A clickable area of a scene that switches one crafting step between its helper and the player's hands. */
+const SceneZone = z.object({
+  step: id,
+  /** Top-left corner and size, in the scene's own pixels. */
+  x: z.number().int(),
+  y: z.number().int(),
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+});
 /** A pixel-art background drawn at its own small size and scaled by the UI, with the mice placed on it. */
 export const Scene = z.object({
   id,
@@ -312,6 +321,7 @@ export const Scene = z.object({
   height: z.number().int().positive(),
   altKey: key,
   actors: z.array(SceneActor).default([]),
+  zones: z.array(SceneZone).default([]),
 });
 
 export const Strings = z.record(z.string(), z.string());

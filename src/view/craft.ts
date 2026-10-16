@@ -1,6 +1,6 @@
 import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
-import { altStore, automatableSteps, openDemands, autoQuality, isStepAutomated, unlockedCandies, unlockedIngredients, unlockedQualities, batchSize, batchCost, priceOf, isQualityUnlocked } from '../engine/economy.ts';
+import { altStore, automatableSteps, openDemands, autoQuality, isStepAutomated, unlockedCandies, unlockedIngredients, unlockedQualities, batchSize, batchCost, priceOf, isQualityUnlocked, stockKey } from '../engine/economy.ts';
 import {
   add,
   doStep,
@@ -109,8 +109,14 @@ export interface CraftIdleView {
     /** The same as icons with a count, for a compact card. */
     cost: { ingredient: string; art: string; name: string; qty: number }[];
     priceText: string;
+    /** Candies in stock per unlocked quality, cheapest first: "3/0/1" (the columns are `stockLegend`). */
+    stockText: string;
+    /** The same in words, for a screen reader. */
+    stockLabel: string;
     selected: boolean;
   }[];
+  /** The quality columns of every recipe's `stockText`: "P/F/E". */
+  stockLegend: string;
   /** All qualities as a segmented control; locked ones are listed but not `enabled`. */
   qualityOptions: { value: string; label: string; note: string; selected: boolean; enabled: boolean }[];
   start: { label: string; enabled: boolean };
@@ -442,8 +448,11 @@ function buildCraftBase(c: Content, s: State, ui: CraftUi, t: Translate): Omit<C
           qty,
         })),
         priceText: t('ui.money', { n: priceOf(c, cd.id, ui.quality) }),
+        stockText: unlockedQualities(c, s).map((q) => s.stock[stockKey(cd.id, q.id)] ?? 0).join('/'),
+        stockLabel: unlockedQualities(c, s).map((q) => `${s.stock[stockKey(cd.id, q.id)] ?? 0} ${t(q.nameKey)}`).join(', '),
         selected: cd.id === ui.candy,
       })),
+      stockLegend: unlockedQualities(c, s).map((q) => t(`quality.short.${q.id}`)).join('/'),
       qualityOptions: c.qualities
         .slice().sort((a, b) => a.rank - b.rank)
         .map((q) => ({

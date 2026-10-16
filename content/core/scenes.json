@@ -30,9 +30,46 @@
       {
         "id": "sculptor",
         "sprite": "sculptor",
-        "step": "form",
+        "step": "pull",
         "x": 50,
         "y": 52
+      }
+    ],
+    "zones": [
+      {
+        "step": "fill",
+        "x": 103,
+        "y": 105,
+        "width": 69,
+        "height": 37
+      },
+      {
+        "step": "stir",
+        "x": 175,
+        "y": 44,
+        "width": 76,
+        "height": 79
+      },
+      {
+        "step": "oven",
+        "x": 103,
+        "y": 44,
+        "width": 69,
+        "height": 59
+      },
+      {
+        "step": "pull",
+        "x": 23,
+        "y": 64,
+        "width": 78,
+        "height": 57
+      },
+      {
+        "step": "form",
+        "x": 140,
+        "y": 3,
+        "width": 65,
+        "height": 40
       }
     ]
   }

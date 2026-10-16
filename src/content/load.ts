@@ -153,6 +153,9 @@ export function validateRefs(c: Content): string[] {
   const sprites = ids(c.sprites);
   const craftStepIds = new Set(c.craftSteps.map((x) => x.id));
   for (const sc of c.scenes)
+    for (const z of sc.zones)
+      if (!craftStepIds.has(z.step)) errors.push(`scenes/${sc.id}: a zone toggles a step "${z.step}" that does not exist`);
+  for (const sc of c.scenes)
     for (const a of sc.actors) {
       if (!sprites.has(a.sprite)) errors.push(`scenes/${sc.id}: actor "${a.id}" uses unknown sprite "${a.sprite}"`);
       if (!craftStepIds.has(a.step)) errors.push(`scenes/${sc.id}: actor "${a.id}" does a step "${a.step}" that does not exist`);

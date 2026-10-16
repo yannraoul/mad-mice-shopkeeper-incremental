@@ -101,3 +101,11 @@ Status: brainstorm (no code until this is locked). Started 2026-10-08.
 - Touch input: tap-to-select / tap-to-place for ingredient picking (no drag-and-drop dependency).
 - Not chosen: Godot web export (heavy for UI-first game; also the break from Godot), Flutter web (possible if staying in Dart matters, but heavier and less suited to content-as-JSON pipelines).
 - Open: text language (FR/EN/both). Keep all strings in content files so translation is data, not code.
+
+## Workshop as the main screen (decided 2026-10-16, MMSIM-23)
+- The pixel-art workshop is the main block of the morning screen: where everything happens, not a banner above a form.
+- **Zones.** Hovering (or focusing, or tapping on a phone) the scene highlights the areas that toggle a crafting step between "a helper does it" and "by hand"; the matching mouse appears with a small pop-in animation. Only steps whose helper is hired have a zone. Zones: fill = sacks at the bottom; stir = the cauldron; oven = the hearth; pull = the left work table (the left mouse, formerly the "sculptor", is now the **pulling mouse** that rolls and stretches the candy paste); form (shaping into the final candy) = the rows of jars with candies at the top right, no mouse yet. The scene has 4 mice for 5 steps; the missing one is a later art task.
+- **The cauldron in the art is the anchor of the cauldron station**: the batches left and what is in the pot are drawn over it.
+- **Layout (desktop).** Top bar above the scene: quality and "start a batch". The scene in the middle. On its right: the recipe picker (instead of today's board and errands). Under it: the ingredient shelf as a row. Today's board and the errands move into a side drawer, closed by default (a bottom sheet on a phone).
+- **Phone.** Same order, the scene scaled down, the recipe list under it; zones are tap targets and show a persistent on/off dot (nothing relies on hover).
+- Not in this part: hand-crafting on the scene itself (the step track stays under the scene), the fifth mouse, real art.

@@ -10,13 +10,15 @@ import { buildSceneView, describeBeat } from './scene.ts';
 const c = loadContent(readContentFiles(false));
 const t = createTranslate(c.strings, 'en');
 const HELPERS = ['auto-fill', 'auto-stir', 'auto-form'];
+const working = (v: NonNullable<ReturnType<typeof buildSceneView>>) => v.actors.filter((a) => a.on).map((a) => a.id).sort();
 const game = (unlocks: string[] = []) => newGame(c, { seed: 1, unlocks: ['routine', ...HELPERS, ...unlocks] });
 
 describe('the scene view', () => {
   it('shows a mouse only where a helper does the step', () => {
     expect(buildSceneView(c, newGame(c, { seed: 1 }), t)!.actors).toEqual([]);
-    expect(buildSceneView(c, game(), t)!.actors.map((a) => a.id).sort()).toEqual(['porter', 'sculptor', 'stirrer']);
-    expect(buildSceneView(c, game(['oven', 'auto-oven']), t)!.actors.map((a) => a.id)).toContain('baker');
+    expect(working(buildSceneView(c, game(), t)!)).toEqual(['porter', 'stirrer']);
+    expect(working(buildSceneView(c, game(['oven', 'auto-oven', 'auto-pull']), t)!)).toEqual(['baker', 'porter', 'sculptor', 'stirrer']);
+    expect(buildSceneView(c, newGame(c, { seed: 1 }), t)!.zones).toEqual([]);
   });
   it('carries what a front end needs to draw it', () => {
     const v = buildSceneView(c, game(), t)!;
@@ -27,17 +29,31 @@ describe('the scene view', () => {
   });
 });
 
+describe('the zones', () => {
+  it('exist only for hired helpers and carry the action that toggles the step', () => {
+    const v = buildSceneView(c, game(), t)!;
+    expect(v.zones.map((z) => z.step).sort()).toEqual(['fill', 'form', 'stir']);
+    const stir = v.zones.find((z) => z.step === 'stir')!;
+    expect(stir.on).toBe(true);
+    expect(stir.action).toEqual({ type: 'setStepMode', step: 'stir', auto: false });
+    const hand = buildSceneView(c, { ...game(), handSteps: ['stir'] }, t)!;
+    expect(hand.zones.find((z) => z.step === 'stir')).toMatchObject({ on: false, action: { type: 'setStepMode', step: 'stir', auto: true }, actors: ['stirrer'] });
+    expect(hand.actors.find((a) => a.id === 'stirrer')!.on).toBe(false);
+  });
+});
+
 describe('describeBeat', () => {
   const craft = (quality: string) => ({ type: 'craft' as const, station: 0, candy: c.candies[0]!.id, quality });
-  it('has each helper mouse work in turn for a batch: fill, stir, shape', () => {
-    expect(describeBeat(c, game(), craft('plain')).map((x) => x.actor)).toEqual(['porter', 'stirrer', 'sculptor']);
+  it('has each helper mouse work in turn for a batch: fill, stir (shaping has no mouse yet)', () => {
+    expect(describeBeat(c, game(), craft('plain')).map((x) => x.actor)).toEqual(['porter', 'stirrer']);
   });
-  it('adds the oven mouse between stir and shape for a baked quality', () => {
-    expect(describeBeat(c, game(['oven', 'auto-oven']), craft('fine')).map((x) => x.actor)).toEqual(['porter', 'stirrer', 'baker', 'sculptor']);
+  it('adds the oven mouse after stir for a baked quality, and the pulling mouse for a pulled one', () => {
+    expect(describeBeat(c, game(['oven', 'auto-oven']), craft('fine')).map((x) => x.actor)).toEqual(['porter', 'stirrer', 'baker']);
+    expect(describeBeat(c, game(['oven', 'auto-oven', 'auto-pull']), craft('excellent')).map((x) => x.actor)).toContain('sculptor');
   });
   it('skips a step the player does by hand, and has no animation for other actions', () => {
     const s = { ...game(), handSteps: ['stir'] };
-    expect(describeBeat(c, s, craft('plain')).map((x) => x.actor)).toEqual(['porter', 'sculptor']);
+    expect(describeBeat(c, s, craft('plain')).map((x) => x.actor)).toEqual(['porter']);
     expect(describeBeat(c, game(), { type: 'endPhase' })).toEqual([]);
   });
 });
