@@ -360,6 +360,8 @@
   "node.pulling-motor.desc": "Un moteur pour la machine à étirer. Vous pouvez toujours étirer à la main.",
   "craft.again": "Préparer une autre fournée",
   "craft.fillAll": "Tout remplir",
+  "transition.open": "Ouvert",
+  "transition.closed": "Fermé",
   "craft.openBoard": "Tableau et courses",
   "craft.closeBoard": "Fermer",
   "craft.helpers": "Aides",

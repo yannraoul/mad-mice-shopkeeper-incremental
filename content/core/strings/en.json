@@ -360,6 +360,8 @@
   "node.pulling-motor.desc": "A motor for the pulling machine. You can still pull by hand.",
   "craft.again": "Make another batch",
   "craft.fillAll": "Fill all",
+  "transition.open": "Open",
+  "transition.closed": "Closed",
   "craft.openBoard": "Board & errands",
   "craft.closeBoard": "Close",
   "craft.helpers": "Helpers",

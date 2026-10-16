@@ -7,6 +7,7 @@
   import { t } from '../i18n/i18n.svelte.ts';
   import { buildHeaderView, describeFail, screenFor } from '../view/index.ts';
   import { game, dispatch } from './game.svelte.ts';
+  import PhaseTransition from './PhaseTransition.svelte';
   import CraftScreen from './CraftScreen.svelte';
   import Serve from './Serve.svelte';
   import Evening from './Evening.svelte';
@@ -19,6 +20,8 @@
   // Navigation between the game and the settings page is a UI concern, so it lives here.
   let page = $state<'game' | 'settings'>('game');
 </script>
+
+<PhaseTransition />
 
 <main class:bar={page === 'game'}>
   <Header {header} onsettings={() => (page = page === 'settings' ? 'game' : 'settings')} />
