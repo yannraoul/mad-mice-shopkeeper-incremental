@@ -362,6 +362,7 @@
   "craft.fillAll": "Tout remplir",
   "transition.open": "Ouvert",
   "transition.closed": "Fermé",
+  "serve.pickOne": "Choisissez un client pour voir sa commande.",
   "craft.openBoard": "Tableau et courses",
   "craft.closeBoard": "Fermer",
   "craft.helpers": "Aides",

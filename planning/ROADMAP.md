@@ -37,3 +37,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-23](features/MMSIM-23.md) — The animated workshop, part B: the workshop as the main screen (hover zones toggle helpers, recipe picker on the right, board and errands in a drawer)
 - [MMSIM-24](features/MMSIM-24.md) — Late game: a fourth daily batch, and customers who leave when nothing fits
 - [MMSIM-25](features/MMSIM-25.md) — Day transitions: the shop sign (open, closed) and the night sky, as CSS placeholders
+- [MMSIM-26](features/MMSIM-26.md) — The animated counter, part A: a placeholder shop scene (moving rectangles, order bubbles) and the accounting picture

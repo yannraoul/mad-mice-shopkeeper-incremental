@@ -48,6 +48,8 @@ export interface CustomerCard {
   options: ServeOption[];
   refuse: { label: string; action: Action };
   nothingFits: string | null;
+  /** The order in a nutshell, for the counter scene's bubble: the candy art (null = "something rich"), the least quality, can we serve them. */
+  bubble: { art: string | null; quality: string; canServe: boolean };
 }
 
 export interface ClerkPanel {
@@ -156,6 +158,11 @@ export function buildServeView(c: Content, s: State, t: Translate, feed: GameEve
       options,
       refuse: { label: t('serve.refuse'), action: { type: 'refuse', customer: cu.id } },
       nothingFits: options.length === 0 ? t('serve.nothingFits') : null,
+      bubble: {
+        art: w.kind === 'candy' ? `candy-${w.candy}` : w.kind === 'ingredient' ? `ingredient-${w.ingredient}` : null,
+        quality: t(`quality.short.${cu.minQuality}`),
+        canServe: options.length > 0,
+      },
     };
   });
 

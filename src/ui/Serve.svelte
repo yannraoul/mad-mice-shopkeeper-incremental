@@ -5,12 +5,16 @@
   import { game, dispatch } from './game.svelte.ts';
   import { media } from './media.svelte.ts';
   import Board from './Board.svelte';
+  import CounterScene from './CounterScene.svelte';
   import ImageSlot from './ImageSlot.svelte';
   import Pips from './Pips.svelte';
 
   const v = $derived(buildServeView(content, game.s, t, game.feed));
   const tierColor = { ok: 'var(--ok)', low: 'var(--accent)', urgent: 'var(--warn)' } as const;
   let clerkOpen = $state(false);
+  // The customer whose order is open under the scene (none once they have left or been served).
+  let selectedId = $state<number | null>(null);
+  const sel = $derived(v.customers.find((c) => c.id === selectedId) ?? null);
 </script>
 
 {#snippet clerk()}
@@ -78,47 +82,53 @@
       <span class="muted summary">{v.summary}</span>
     </div>
 
-    <div class="grid">
-      {#each v.customers as cu (cu.id)}
-        {@const m = cu.patienceMeter}
-        <article class="cust" class:urgent={m.tier === 'urgent'}>
-          <div class="body">
-            <ImageSlot id={cu.portrait} />
-            <div class="main">
-              <div class="who">
-                <b class="type">{cu.name}</b>
-                <span class="mono muted small">{cu.budgetText}</span>
-              </div>
-              <div class="wants">
+    <CounterScene
+      customers={v.customers}
+      clerks={v.workers.map((w) => ({ id: w.id, active: w.toggles.some((tg) => tg.on) }))}
+      selected={selectedId}
+      onselect={(id) => (selectedId = id)}
+    />
+
+    {#if sel}
+      {@const cu = sel}
+      {@const m = cu.patienceMeter}
+    <article class="orderp" class:urgent={m.tier === 'urgent'}>
+        <div class="body">
+          <ImageSlot id={cu.portrait} />
+          <div class="main">
+            <div class="who">
+              <b class="type">{cu.name}</b>
+              <span class="mono muted small">{cu.budgetText}</span>
+            </div>
+            <div class="wants">
                 {#if cu.art}<ImageSlot id={cu.art} width={48} />{/if}
-                <div class="wtext">
-                  <span class="muted small">{cu.wantsLabel}</span>
-                  <b>{cu.candyName}</b>
-                  <span class="small">{cu.atLeastLabel} <b>{cu.qualityName}</b></span>
-                </div>
-              </div>
-              <div class="meter" role="meter" aria-valuemin="0" aria-valuemax={m.max} aria-valuenow={m.left} aria-label={m.label}>
-                <span class="mlabel" style:color={tierColor[m.tier]}>{m.label}</span>
-                <Pips n={m.left} total={m.max} color={tierColor[m.tier]} height={10} />
+              <div class="wtext">
+                <span class="muted small">{cu.wantsLabel}</span>
+                <b>{cu.candyName}</b>
+                <span class="small">{cu.atLeastLabel} <b>{cu.qualityName}</b></span>
               </div>
             </div>
+            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax={m.max} aria-valuenow={m.left} aria-label={m.label}>
+              <span class="mlabel" style:color={tierColor[m.tier]}>{m.label}</span>
+              <Pips n={m.left} total={m.max} color={tierColor[m.tier]} height={10} />
+            </div>
           </div>
-          <div class="acts">
+        </div>
+        <div class="acts">
             {#each cu.options as o (o.candy + o.quality)}
-              <button class="btn opt" disabled={!o.enabled} onclick={() => dispatch(o.action)}>
-                <span>{o.label}</span>
-                <span class="hearts" aria-hidden="true">{o.heartsText}</span>
+            <button class="btn opt" disabled={!o.enabled} onclick={() => dispatch(o.action)}>
+              <span>{o.label}</span>
+              <span class="hearts" aria-hidden="true">{o.heartsText}</span>
                 {#if o.tipText}<span class="tip">{o.tipText}</span>{/if}
-              </button>
+            </button>
             {/each}
             {#if cu.nothingFits}<span class="reason"><span aria-hidden="true">⊘</span>{cu.nothingFits}</span>{/if}
-            <button class="btn3 refuse" onclick={() => dispatch(cu.refuse.action)}>{cu.refuse.label}</button>
-          </div>
-        </article>
-      {:else}
-        <p class="muted">{v.nobody}</p>
-      {/each}
-    </div>
+          <button class="btn3 refuse" onclick={() => dispatch(cu.refuse.action)}>{cu.refuse.label}</button>
+        </div>
+      </article>
+    {:else}
+      <p class="muted pick">{v.customers.length === 0 ? v.nobody : t('serve.pickOne')}</p>
+    {/if}
 
     {#if v.closeWarning}<p class="warn"><span aria-hidden="true">▲</span>{v.closeWarning}</p>{/if}
   </section>
@@ -138,9 +148,9 @@
   .head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
   .summary { font-size: 14px; }
   .small { font-size: 13px; }
-  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-  .cust { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-  .cust.urgent { border-color: var(--warn); box-shadow: 0 0 0 3px color-mix(in srgb, var(--warn) 22%, transparent); }
+  .pick { text-align: center; }
+  .orderp { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .orderp.urgent { border-color: var(--warn); box-shadow: 0 0 0 3px color-mix(in srgb, var(--warn) 22%, transparent); }
   .body { display: flex; gap: 14px; align-items: flex-start; }
   .main { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
   .who { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
@@ -187,8 +197,7 @@
   @media (max-width: 640px) {
     .counter { flex-basis: 100%; }
     .rail { flex-basis: 100%; }
-    .grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-    .cust { background: var(--panel2); border-radius: 16px; }
+    .orderp { background: var(--panel2); border-radius: 16px; }
     .type { font-size: 19px; }
     .acts .btn { flex: 1; min-height: 48px; }
     .refuse { min-height: 48px; }

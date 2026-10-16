@@ -27,6 +27,8 @@
     <div class="top">
       {#if v.journal}
         <section class="note journal">
+          <!-- The picture fills the card and fades into the page at the bottom, under the text. -->
+          <img class="art" src="{import.meta.env.BASE_URL}art/scenes/accounting-idle.png" alt="" width="208" height="128" />
           <span class="overline">{v.journal.title} · {v.journal.dayLine}</span>
           <p>{v.journal.text}</p>
         </section>
@@ -117,7 +119,12 @@
   .rail { flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
   .small { font-size: 12px; }
   .top { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; }
-  .journal { padding: 20px 24px; display: flex; flex-direction: column; gap: 6px; transform: rotate(-0.4deg); }
+  .journal { position: relative; overflow: hidden; min-height: 290px; padding: 20px 24px; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; transform: rotate(-0.4deg); }
+  .journal > :not(.art) { position: relative; }
+  .journal .art {
+    position: absolute; top: 0; left: 0; width: 100%; height: 68%; object-fit: cover; object-position: top; image-rendering: pixelated;
+    -webkit-mask-image: linear-gradient(#000 60%, transparent); mask-image: linear-gradient(#000 60%, transparent);
+  }
   .journal p { font: italic 400 22px/1.3 var(--display); }
   .report { display: flex; flex-direction: column; gap: 10px; padding: 16px 20px; }
   .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -183,7 +190,7 @@
   @media (max-width: 640px) {
     .main, .rail { flex-basis: 100%; }
     .top { grid-template-columns: minmax(0, 1fr); }
-    .journal { padding: 16px 18px; }
+    .journal { padding: 16px 18px; min-height: 250px; }
     .journal p { font-size: 20px; }
     .tree { padding: 14px; }
     .branches { grid-template-columns: minmax(0, 1fr); }

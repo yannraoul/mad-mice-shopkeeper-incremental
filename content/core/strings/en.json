@@ -362,6 +362,7 @@
   "craft.fillAll": "Fill all",
   "transition.open": "Open",
   "transition.closed": "Closed",
+  "serve.pickOne": "Pick a customer to see their order.",
   "craft.openBoard": "Board & errands",
   "craft.closeBoard": "Close",
   "craft.helpers": "Helpers",
