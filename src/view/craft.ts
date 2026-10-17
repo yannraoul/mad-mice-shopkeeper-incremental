@@ -1,6 +1,6 @@
 import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
-import { altStore, automatableSteps, openDemands, autoQuality, isStepAutomated, unlockedCandies, unlockedIngredients, unlockedQualities, batchSize, batchCost, priceOf, isQualityUnlocked, stockKey } from '../engine/economy.ts';
+import { altStore, automatableSteps, openDemands, autoQuality, isStepAutomated, unlockedCandies, unlockedIngredients, unlockedQualities, batchSize, batchCost, priceOf, isQualityUnlocked, stockKey, modifier } from '../engine/economy.ts';
 import {
   add,
   doStep,
@@ -330,7 +330,7 @@ function buildSceneFlat(c: Content, s: State, ui: CraftUi, t: Translate): CraftS
     cauldronTitle: t('craft.cauldron'),
     stationArt: `station-${inst.type}`,
     batchesTitle: t('craft.batchesToday'),
-    batches: { left: inst.batchesLeft, total: Math.max(inst.batchesLeft, type.batchesPerDay) },
+    batches: { left: inst.batchesLeft, total: Math.max(inst.batchesLeft, type.batchesPerDay + (type.auto ? 0 : modifier(c, s, 'batches'))) },
     batchInfo: t('craft.batchInfo', { n: inst.batchesLeft, size: batchSize(c, s, inst.type, ui.candy) }),
     inCauldron: session
       ? {

@@ -121,7 +121,7 @@ export function buildEveningView(c: Content, s: State, t: Translate): EveningVie
         { value: r.lost, label: t('evening.k.lost'), highlight: false },
         { value: r.refused, label: t('evening.k.refused'), highlight: false },
         { value: r.contractsDone, label: t('evening.k.contractsDone'), highlight: false },
-        { value: r.contractsExpired, label: t('evening.k.contractsExpired'), highlight: false },
+        { value: Math.round(s.rating), label: t('evening.k.rating'), highlight: false },
       ],
     },
     journal: journal ? { title: t('journal.title'), dayLine: t('ui.day', { n: s.day }), text: t(journal) } : null,

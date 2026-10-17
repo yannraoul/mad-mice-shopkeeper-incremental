@@ -264,6 +264,13 @@ export const Settings = z.object({
   delegateAfterBatches: z.number().int().min(0),
   /** A customer nothing in stock can satisfy leaves on their own after this many turns (no patience cost for the others). */
   stuckLeaveTurns: z.number().int().positive(),
+  /** The shop's rating (0 to 100, 50 at the start) moves prices by at most this fraction either way (0.1 = plus or minus 10 %). */
+  ratingSwing: z.number().min(0).max(0.5),
+  /** The rating at which prices are unchanged, and how far from it the full swing is reached (50 and 40: 10 or less = -10 %, 90 or more = +10 %). */
+  ratingMid: z.number().min(0).max(100),
+  ratingRange: z.number().positive(),
+  /** How much of each day's satisfaction enters the rating (0.3 = the rating moves 30 % of the way to today's score). */
+  ratingSmoothing: z.number().gt(0).max(1),
   startStations: z.array(id).min(1),
   startMoney: z.number().min(0),
   /** Chance per day of a new contract (needs the `contractBoard` unlock). */

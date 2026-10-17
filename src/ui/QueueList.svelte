@@ -17,6 +17,13 @@
     pick,
   }: { ranked: CustomerCard[]; selected: number | null; onselect: (id: number | null) => void; serveLabel: string; nobody: string; pick: string } = $props();
 
+  // Picking a customer in the scene opens their row: bring it into view if the list is scrolled elsewhere.
+  $effect(() => {
+    if (selected === null) return;
+    const id = selected;
+    queueMicrotask(() => document.getElementById(`queue-row-${id}`)?.scrollIntoView({ block: 'nearest' }));
+  });
+
   const tierColor = { ok: 'var(--ok)', low: 'var(--accent)', urgent: 'var(--warn)' } as const;
 </script>
 
@@ -26,7 +33,7 @@
   <ul class="list" aria-label={pick}>
     {#each ranked as cu (cu.id)}
       {@const m = cu.patienceMeter}
-      <li class="row" class:sel={selected === cu.id} class:urgent={m.tier === 'urgent'}>
+      <li class="row" id="queue-row-{cu.id}" class:sel={selected === cu.id} class:urgent={m.tier === 'urgent'}>
         <div class="line">
           <button class="who" aria-expanded={selected === cu.id} onclick={() => onselect(selected === cu.id ? null : cu.id)}>
             <span class="chip" style:background={customerColor(cu.type)} aria-hidden="true">{cu.name[0]}</span>

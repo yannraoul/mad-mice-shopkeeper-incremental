@@ -113,3 +113,8 @@ Status: brainstorm (no code until this is locked). Started 2026-10-08.
 ## Late game and the counter (decided 2026-10-16, MMSIM-24)
 - A kitchen node, **An extra batch** (one level, 6,000 coins), adds a fourth daily batch to the hand cauldron. The last reputation level (9,000) took days of idle waiting for a player who had finished everything.
 - A customer nothing in stock can satisfy **leaves on their own after 2 turns** (a turn = a customer served or turned away), at no patience cost to the others; it counts as lost. **Turning someone away no longer costs the others a patience either.** Serving still does.
+
+## The shop rating (decided 2026-10-17, MMSIM-27)
+- A rating from 0 to 100 (50 at the start) moves prices by at most **plus or minus 10 %**: 50 or less changes nothing below it down to -10 % at 10, +10 % at 90 (`ratingMid` 50, `ratingRange` 40, `ratingSwing` 0.1). It applies to what customers pay at the counter (not contracts, not surplus), on top of the Reputation upgrade.
+- Each afternoon's satisfaction score is: the sum of how happy each served customer was (hearts out of 3) divided by everyone who came and went (served, turned away, impatient, still waiting at closing). Anyone who goes unserved counts for nothing, so a varied stock matters. The rating moves 30 % of the way to the day's score (`ratingSmoothing`), so one bad day does not undo a good week. No fail state: the worst case is -10 %.
+- Closing the shop early stays possible: the customers who were still waiting just count as unserved.

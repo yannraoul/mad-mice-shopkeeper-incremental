@@ -1,6 +1,6 @@
 import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
-import { modifier, serveChoices } from '../engine/economy.ts';
+import { modifier, ratingMult, serveChoices } from '../engine/economy.ts';
 import type { Action, GameEvent, State } from '../engine/types.ts';
 import { stockTable } from './board.ts';
 
@@ -67,6 +67,8 @@ export interface ClerkPanel {
 
 export interface ServeView {
   title: string;
+  /** The shop's rating and what it does to prices now: "Rating 67 · prices +4 %" and the value 0-100 for a gauge. */
+  rating: { value: number; text: string };
   /** "At the counter: 3 / 4 · Today: 5 served, 0 lost, 25 coins" */
   summary: string;
   /** In counter order (the scene lines them up in this order). */
@@ -208,8 +210,10 @@ export function buildServeView(c: Content, s: State, t: Translate, feed: GameEve
       }),
     }));
 
+  const pct = Math.round((ratingMult(c, s) - 1) * 100);
   return {
     title: t('serve.title'),
+    rating: { value: s.rating, text: t('rating.line', { n: Math.round(s.rating), pct: `${pct > 0 ? '+' : pct < 0 ? '−' : '±'}${Math.abs(pct)}` }) },
     summary: [
       t('serve.waiting', { n: s.queue.length, max: c.settings.counterSpace }),
       t('serve.today', { served: s.report.served, lost: s.report.lost, revenue: s.report.revenue }),

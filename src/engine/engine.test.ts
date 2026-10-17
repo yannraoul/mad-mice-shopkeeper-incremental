@@ -3,7 +3,7 @@ import { loadContent } from '../content/load.ts';
 import { readContentFiles } from '../../scripts/lib/readContent.ts';
 import { batchCost } from './economy.ts';
 import { newGame, step } from './engine.ts';
-import { priceOf, serveChoices, unlockedCandies } from './economy.ts';
+import { priceOf, ratingMult, serveChoices, unlockedCandies } from './economy.ts';
 import type { Action, State } from './types.ts';
 
 const c = loadContent(readContentFiles(false));
@@ -388,5 +388,36 @@ describe('selling a better quality than asked for', () => {
     const opens = (unlocks: string[]) => unlockedCandies(c, { unlocks }).map((x) => x.id);
     expect(opens([])).toEqual(['candy-cane']);
     expect(opens(['sunflower'])).toEqual(['candy-cane', 'sunflower-brittle', 'sunflower-nougat']);
+  });
+});
+
+describe('the shop rating', () => {
+  it('starts neutral and does not change prices at 50', () => {
+    const s = newGame(c, { seed: 1 });
+    expect(s.rating).toBe(50);
+    expect(ratingMult(c, s)).toBe(1);
+  });
+  it('moves prices by at most 10 % either way', () => {
+    expect(ratingMult(c, { rating: 100 })).toBeCloseTo(1.1);
+    expect(ratingMult(c, { rating: 0 })).toBeCloseTo(0.9);
+    expect(ratingMult(c, { rating: 70 })).toBeCloseTo(1.05);
+  });
+  it('rises after a day of happy customers and falls after a day of walk-outs', () => {
+    const happy = afternoon();
+    happy.report.served = 10;
+    happy.report.happy = 10; // everyone fully happy
+    happy.queue = [];
+    happy.pending = [];
+    const up = run(happy, { type: 'endPhase' });
+    expect(up.rating).toBeGreaterThan(50);
+
+    const bad = afternoon();
+    bad.report.served = 0;
+    bad.report.happy = 0;
+    bad.report.lost = 10;
+    bad.queue = [];
+    bad.pending = [];
+    const down = run(bad, { type: 'endPhase' });
+    expect(down.rating).toBeLessThan(50);
   });
 });

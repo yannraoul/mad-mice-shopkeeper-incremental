@@ -53,6 +53,8 @@ export interface DayReport {
   refused: number;
   /** Customers who left impatient or were still waiting when the afternoon ended. */
   lost: number;
+  /** Sum over the customers served of how happy they were (hearts out of 3): the day's satisfaction score is this over the customers who came. */
+  happy: number;
   contractsDone: number;
   contractsExpired: number;
   /** What the automatic cauldrons made this morning, by `candy:quality`. */
@@ -106,6 +108,8 @@ export interface State {
   autoCandy: string | null;
   /** The daily routine is running: the mice make candy and serve the counter by themselves (needs the foreman mouse). */
   routine: boolean;
+  /** The shop's rating, 0 to 100 (50 at the start): happy customers raise it, those who leave unserved lower it; it moves prices a little. */
+  rating: number;
   /** Batches crafted by hand per candy id; workers can sell a recipe once enough exist. */
   batchesMade: Record<string, number>;
   /** Customers at the counter (bounded by settings.counterSpace). */

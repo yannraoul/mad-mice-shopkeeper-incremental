@@ -149,16 +149,22 @@ export const canAfford = (c: Content, cu: Pick<Customer, 'minQuality' | 'budget'
   priceOf(c, candy, cu.minQuality) <= cu.budget;
 
 /** What a customer pays for `candy` at `quality`: its price, but never more than their budget (a tip comes on top), plus the shop's reputation bonus. */
+/** What the shop's rating does to prices: 1 at the middle, up to plus or minus `ratingSwing` at the ends. */
+export const ratingMult = (c: Content, s: Pick<State, 'rating'>): number => {
+  const { ratingSwing, ratingMid, ratingRange } = c.settings;
+  return 1 + ratingSwing * Math.max(-1, Math.min(1, (s.rating - ratingMid) / ratingRange));
+};
+
 export const salePrice = (
   c: Content,
-  s: Pick<State, 'nodes' | 'errands'>,
+  s: Pick<State, 'nodes' | 'errands' | 'rating'>,
   cu: Pick<Customer, 'budget'>,
   candy: string,
   quality: string,
 ): number => {
   const base = Math.min(priceOf(c, candy, quality), cu.budget);
   // Rounded up, so that on cheap candies one level of reputation is worth at least a coin.
-  return Math.ceil(base * (1 + modifier(c, s, 'priceBonus') / 100) - 1e-9);
+  return Math.ceil(base * (1 + modifier(c, s, 'priceBonus') / 100) * ratingMult(c, s) - 1e-9);
 };
 
 /**
@@ -201,7 +207,7 @@ export interface ServeChoice {
 }
 
 /** Every stocked candy and quality that would serve this customer, most rewarding first (cheaper first on ties). */
-export function serveChoices(c: Content, s: Pick<State, 'stock' | 'nodes' | 'errands'>, cu: Customer): ServeChoice[] {
+export function serveChoices(c: Content, s: Pick<State, 'stock' | 'nodes' | 'errands' | 'rating'>, cu: Customer): ServeChoice[] {
   const out: ServeChoice[] = [];
   for (const [key, qty] of Object.entries(s.stock)) {
     if (qty < 1) continue;

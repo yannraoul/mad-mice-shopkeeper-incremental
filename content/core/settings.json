@@ -23,5 +23,9 @@
   "alternateUnits": 3,
   "routineStock": 12,
   "sceneStepMs": 1400,
-  "stuckLeaveTurns": 2
+  "stuckLeaveTurns": 2,
+  "ratingSwing": 0.1,
+  "ratingMid": 50,
+  "ratingRange": 40,
+  "ratingSmoothing": 0.3
 }

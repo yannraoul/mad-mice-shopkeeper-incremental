@@ -70,6 +70,7 @@ export function newGame(c: Content, opts: NewGameOptions): State {
     handSteps: [],
     autoCandy: null,
     routine: false,
+    rating: 50,
     batchesMade: {},
     pending: [],
     queue: [],
@@ -103,6 +104,7 @@ export function endgameGame(c: Content, opts: NewGameOptions): State {
   }
   s.places = c.places.map((p) => p.id);
   s.revenueTotal = 49797;
+  s.rating = 72;
   s.money = 234;
   s.supply = deliverSupply(c, s);
   s.supplyToday = { ...s.supply };
@@ -243,6 +245,7 @@ function sell(c: Content, s: State, cu: Customer, candy: string, quality: string
   s.report.revenue += price + tip;
   s.report.tips += tip;
   s.report.served += 1;
+  s.report.happy += h / 3;
   if (auto) s.report.autoServed += 1;
   ev.push({ type: 'sold', customer: cu.id, customerType: cu.type, candy, quality, price, tip, hearts: h, auto });
 }
@@ -576,6 +579,7 @@ function endPhase(c: Content, s: State, ev: GameEvent[]): Fail | null {
   } else if (s.phase === 'afternoon') {
     const left = s.queue.length + s.pending.length;
     s.report.lost += left;
+    updateRating(c, s);
     for (const cu of [...s.queue, ...s.pending]) ev.push({ type: 'left', customer: cu.id, customerType: cu.type });
     s.queue = [];
     s.pending = [];
@@ -590,6 +594,19 @@ function endPhase(c: Content, s: State, ev: GameEvent[]): Fail | null {
     ev.push({ type: 'phase', phase, day: s.day });
   }
   return null;
+}
+
+/**
+ * The day's satisfaction: customers served count for how happy they were, everyone who came and went unserved (turned away,
+ * impatient, still waiting at closing) for nothing. The rating moves part of the way to it, so one bad day does not undo
+ * a good week.
+ */
+function updateRating(c: Content, s: State) {
+  const came = s.report.served + s.report.refused + s.report.lost;
+  if (came === 0) return;
+  const score = (s.report.happy / came) * 100;
+  const k = c.settings.ratingSmoothing;
+  s.rating = Math.max(0, Math.min(100, Math.round((s.rating * (1 - k) + score * k) * 10) / 10));
 }
 
 /** Every open place on the map pays its income each morning. */
@@ -632,6 +649,7 @@ function emptyReport(day: number, stage: number, forecast: string): DayReport {
     autoServed: 0,
     refused: 0,
     lost: 0,
+    happy: 0,
     contractsDone: 0,
     contractsExpired: 0,
     autoMade: {},

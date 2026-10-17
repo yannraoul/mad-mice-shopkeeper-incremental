@@ -98,4 +98,15 @@ describe('save migration', () => {
     expect(r.state.nodes).toEqual(s.nodes);
     expect(r.state.history).toHaveLength(s.history.length);
   });
+  it('upgrades a v12 save: the rating starts neutral and old day reports count as zero happy', () => {
+    const env = JSON.parse(serialize(played()));
+    env.v = 12;
+    delete env.state.rating;
+    delete env.state.report.happy;
+    for (const h of env.state.history) delete h.happy;
+    const r = deserialize(c, JSON.stringify(env));
+    if (!r.ok) throw new Error(r.error);
+    expect(r.state.rating).toBe(50);
+    expect(r.state.report.happy).toBe(0);
+  });
 });

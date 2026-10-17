@@ -5,7 +5,7 @@ import type { State } from '../engine/types.ts';
 
 // Saves are a versioned envelope around the plain engine State. Bump SAVE_VERSION whenever the
 // State shape changes and add a step to `migrate`, so old saves keep loading.
-export const SAVE_VERSION = 12;
+export const SAVE_VERSION = 13;
 const EXPORT_PREFIX = 'CST1:';
 
 const num = z.number();
@@ -20,7 +20,7 @@ const Customer = z.object({
 });
 const Report = z.object({
   day: num, stage: num.default(0), forecast: z.string(), crafted: num, arrivals: num, served: num, tips: num.default(0), surplus: num.default(0), income: num.default(0), autoServed: num,
-  refused: num, lost: num, contractsDone: num, contractsExpired: num, revenue: num,
+  refused: num, lost: num, happy: num.default(0), contractsDone: num, contractsExpired: num, revenue: num,
   autoMade: z.record(z.string(), num).default({}),
 });
 const StateSchema = z.object({
@@ -48,6 +48,7 @@ const StateSchema = z.object({
   handSteps: z.array(z.string()).default([]),
   autoCandy: z.string().nullable().default(null),
   routine: z.boolean().default(false),
+  rating: num.default(50),
   batchesMade: rec(num),
   pending: z.array(Customer),
   queue: z.array(Customer),
@@ -190,6 +191,11 @@ const MIGRATIONS: Record<number, (state: unknown) => unknown> = {
     for (let i = 1; i <= done; i++) quests[`q${i}`] = 1;
     const history = (rest.history ?? []) as { revenue?: number }[];
     return { ...rest, quests, revenueTotal: history.reduce((n, r) => n + (r.revenue ?? 0), 0) };
+  },
+  // v12 -> v13 (MMSIM-27): the shop's rating (neutral at the start); day reports gain `happy` (defaulted by the schema).
+  12: (state) => {
+    if (typeof state !== 'object' || state === null) return state;
+    return { rating: 50, ...(state as Record<string, unknown>) };
   },
   // v11 -> v12 (MMSIM-20): places bought with coins.
   11: (state) => {

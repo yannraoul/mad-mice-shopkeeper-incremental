@@ -21,6 +21,10 @@
   <div class="head">
     <h2 id="counter-title">{v.title}</h2>
     <span class="muted summary">{v.summary}</span>
+    <span class="rating" title={t('rating.title')}>
+      <span class="gauge" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(v.rating.value)} aria-label={t('rating.title')}><span class="fill" style:width="{v.rating.value}%"></span></span>
+      <span class="mono small">{v.rating.text}</span>
+    </span>
     <button class="btn3 drawerbtn" onclick={() => (drawer = !drawer)}>{t('craft.openBoard')}</button>
   </div>
 
@@ -103,6 +107,9 @@
   .head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
   .drawerbtn { margin-left: auto; align-self: center; }
   .summary { font-size: 14px; }
+  .rating { display: inline-flex; align-items: center; gap: 8px; }
+  .gauge { width: 90px; height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; }
+  .fill { display: block; height: 100%; background: linear-gradient(to right, var(--warn), var(--accent), var(--ok)); }
   .small { font-size: 13px; }
   /* The scene on the left and the queue list on the right; the list is as tall as the scene and scrolls inside it. */
   .top { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: stretch; }
