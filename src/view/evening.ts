@@ -48,7 +48,8 @@ export interface EveningView {
     /** The same numbers as big figures with captions; `highlight` marks the coins earned. */
     stats: { value: number; label: string; highlight: boolean }[];
   };
-  journal: { title: string; dayLine: string; text: string } | null;
+  /** The note of the day; `accountant` says whether the accounting mouse is at work tonight (hired, and the routine is on). */
+  journal: { title: string; dayLine: string; text: string; accountant: boolean } | null;
   tree: { title: string; branches: TreeBranch[] };
   map: MapView | null;
   errands: ErrandsView | null;
@@ -124,7 +125,7 @@ export function buildEveningView(c: Content, s: State, t: Translate): EveningVie
         { value: Math.round(s.rating), label: t('evening.k.rating'), highlight: false },
       ],
     },
-    journal: journal ? { title: t('journal.title'), dayLine: t('ui.day', { n: s.day }), text: t(journal) } : null,
+    journal: journal ? { title: t('journal.title'), dayLine: t('ui.day', { n: s.day }), text: t(journal), accountant: s.unlocks.includes('accountant') && s.routine } : null,
     tree: {
       title: `${t('tree.title')} · ${t('ui.money', { n: s.money })}`,
       branches: BRANCHES.map((id) => {

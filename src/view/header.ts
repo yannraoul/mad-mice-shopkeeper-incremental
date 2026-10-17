@@ -55,7 +55,7 @@ export function buildHeaderView(c: Content, s: State, t: Translate): HeaderView 
       ? {
           label: t(s.routine ? 'routine.on' : 'routine.off'),
           on: s.routine,
-          status: s.routine ? t(`routine.status.${s.phase}`) : '',
+          status: s.routine ? t(s.phase === 'evening' && s.unlocks.includes('accountant') ? 'routine.status.eveningAccounting' : `routine.status.${s.phase}`) : '',
           action: { type: 'setRoutine', on: !s.routine },
         }
       : null,

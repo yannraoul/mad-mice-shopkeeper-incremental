@@ -74,3 +74,34 @@ describe('a whole day on routine', () => {
     expect(session.tickRoutine()).toBe('off');
   });
 });
+
+describe('the accounting mouse', () => {
+  const evening = (unlocks: string[], money: number) => {
+    const s = run(game(unlocks), { type: 'endPhase' }, { type: 'endPhase' });
+    s.money = money;
+    return s;
+  };
+  it('leaves the evening to the player without it', () => {
+    expect(nextRoutineAction(c, evening([], 5000))).toBeNull();
+  });
+  it('buys the cheapest affordable upgrade, then ends the day when nothing is affordable', () => {
+    const s = evening(['accountant'], 40);
+    const a = nextRoutineAction(c, s);
+    expect(a).toMatchObject({ type: 'buy' });
+    const node = c.skillNodes.find((n) => n.id === (a as { node: string }).node)!;
+    expect(node.costs[s.nodes[node.id] ?? 0]).toBeLessThanOrEqual(40);
+    expect(nextRoutineAction(c, evening(['accountant'], 0))).toEqual({ type: 'endPhase' });
+  });
+  it('spends until nothing is left and sleeps, a whole evening in routine', () => {
+    let s = evening(['accountant'], 300);
+    for (let i = 0; i < 50 && s.phase === 'evening'; i++) {
+      const a = nextRoutineAction(c, s);
+      if (!a) break;
+      const r = step(c, s, a);
+      if (!r.ok) throw new Error(r.error);
+      s = r.state;
+    }
+    expect(s.phase).toBe('morning');
+    expect(Object.keys(s.nodes).length).toBeGreaterThan(0);
+  });
+});

@@ -628,5 +628,23 @@
       }
     ],
     "quest": "q3"
+  },
+  {
+    "id": "accounting-mouse",
+    "branch": "shop",
+    "nameKey": "node.accounting-mouse",
+    "descKey": "node.accounting-mouse.desc",
+    "costs": [
+      1500
+    ],
+    "requires": [
+      "foreman-mouse"
+    ],
+    "effects": [
+      {
+        "type": "unlock",
+        "id": "accountant"
+      }
+    ]
   }
 ]

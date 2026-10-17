@@ -39,3 +39,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-25](features/MMSIM-25.md) — Day transitions: the shop sign (open, closed) and the night sky, as CSS placeholders
 - [MMSIM-26](features/MMSIM-26.md) — The animated counter, part A: a placeholder shop scene (moving rectangles, order bubbles) and the accounting picture
 - [MMSIM-27](features/MMSIM-27.md) — The shop rating: happy customers raise it, walk-outs lower it, prices move plus or minus 10 %
+- [MMSIM-28](features/MMSIM-28.md) — The accounting mouse: the routine buys the cheapest upgrades in the evening and puts the shop to sleep

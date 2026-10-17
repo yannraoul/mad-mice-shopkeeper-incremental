@@ -6,7 +6,8 @@ import type { Action, State } from './types.ts';
 // The daily routine ("foreman mouse"): the next thing the mice would do, as a pure function of the state, so the app can
 // play a whole day by asking for one action at a time. It only uses what the player has hired: a quality is made only
 // when every one of its steps has a helper (the whisper of Perfect never has), and rare ingredients are never spent.
-// The evening is the player's: upgrades are theirs to pick.
+// The evening is the player's: upgrades are theirs to pick, unless they hired the accounting mouse, which buys the cheapest
+// upgrade the shop can afford until none is left, then ends the day.
 
 const total = (s: State, candy: string) =>
   Object.entries(s.stock).reduce((n, [k, v]) => n + (k.startsWith(`${candy}:`) ? v : 0), 0);
@@ -49,7 +50,8 @@ function nextCraft(c: Content, s: State): Action | null {
 /**
  * The next action of the routine for the current phase. Morning: hand in what stock covers, make batches, then end the
  * morning. Afternoon: serve the most impatient customer with the best payout, turn away those nothing fits, then end
- * the afternoon. Evening: null (the player picks upgrades and ends the day).
+ * the afternoon. Evening: null (the player picks upgrades and ends the day), or with the accounting mouse the cheapest
+ * affordable upgrade, then the end of the day.
  */
 export function nextRoutineAction(c: Content, s: State): Action | null {
   if (s.phase === 'morning') {
@@ -72,6 +74,17 @@ export function nextRoutineAction(c: Content, s: State): Action | null {
       if (best) return { type: 'serve', customer: cu.id, candy: best.candy, quality: best.quality };
     }
     return { type: 'refuse', customer: s.queue[0]!.id };
+  }
+  if (s.unlocks.includes('accountant')) {
+    const next = c.skillNodes
+      .map((n) => ({ n, cost: n.costs[s.nodes[n.id] ?? 0] }))
+      .filter((x): x is { n: (typeof c.skillNodes)[number]; cost: number } => x.cost !== undefined && x.cost <= s.money)
+      .sort((a, b) => a.cost - b.cost);
+    for (const { n } of next) {
+      const a: Action = { type: 'buy', node: n.id };
+      if (step(c, s, a).ok) return a;
+    }
+    return { type: 'endPhase' };
   }
   return null;
 }
