@@ -2,6 +2,7 @@ import type { Content } from '../content/schema.ts';
 import type { Translate } from '../i18n/core.ts';
 import { modifier, serveChoices } from '../engine/economy.ts';
 import type { Action, GameEvent, State } from '../engine/types.ts';
+import { stockTable } from './board.ts';
 
 export interface ServeOption {
   candy: string;
@@ -50,6 +51,8 @@ export interface CustomerCard {
   nothingFits: string | null;
   /** The order in a nutshell, for the counter scene's bubble: the candy art (null = "something rich"), the least quality, can we serve them. */
   bubble: { art: string | null; quality: string; canServe: boolean };
+  /** The best offer we can make them now (the one that pays most): "9+2" (price + tip) and the action, null when nothing fits. */
+  best: { text: string; total: number; action: Action } | null;
 }
 
 export interface ClerkPanel {
@@ -66,7 +69,14 @@ export interface ServeView {
   title: string;
   /** "At the counter: 3 / 4 · Today: 5 served, 0 lost, 25 coins" */
   summary: string;
+  /** In counter order (the scene lines them up in this order). */
   customers: CustomerCard[];
+  /** The same customers, those who would pay most right now first (those we cannot serve last, the most impatient first among equals). */
+  ranked: CustomerCard[];
+  /** Customers still outside, not at the counter yet. */
+  outside: { n: number; text: string };
+  /** What is in stock, per candy and quality, to choose what to hand over. */
+  stock: { title: string; legend: string; empty: string; rows: { candy: string; art: string; name: string; text: string }[] };
   nobody: string;
   /** Warning that waiting customers leave if the shop closes now. */
   closeWarning: string | null;
@@ -158,6 +168,7 @@ export function buildServeView(c: Content, s: State, t: Translate, feed: GameEve
       options,
       refuse: { label: t('serve.refuse'), action: { type: 'refuse', customer: cu.id } },
       nothingFits: options.length === 0 ? t('serve.nothingFits') : null,
+      best: options[0] ? { text: options[0].tipText ? `${options[0].price}+${options[0].tip}` : `${options[0].price}`, total: options[0].price + options[0].tip, action: options[0].action } : null,
       bubble: {
         art: w.kind === 'candy' ? `candy-${w.candy}` : w.kind === 'ingredient' ? `ingredient-${w.ingredient}` : null,
         quality: t(`quality.short.${cu.minQuality}`),
@@ -204,6 +215,17 @@ export function buildServeView(c: Content, s: State, t: Translate, feed: GameEve
       t('serve.today', { served: s.report.served, lost: s.report.lost, revenue: s.report.revenue }),
     ].join(' · '),
     customers,
+    ranked: [...customers].sort((a, b) => (b.best?.total ?? -1) - (a.best?.total ?? -1) || a.patience - b.patience),
+    outside: { n: s.pending.length, text: t('serve.outside', { n: s.pending.length }) },
+    stock: (() => {
+      const st = stockTable(c, s, t);
+      return {
+        title: t('ui.stock'),
+        legend: st.cols.map((q) => q.short).join('/'),
+        empty: t('ui.stockEmpty'),
+        rows: st.rows.map((r) => ({ candy: r.candy, art: r.art, name: r.name, text: r.cells.join('/') })),
+      };
+    })(),
     nobody: t('serve.nobody'),
     closeWarning: s.queue.length > 0 ? t('serve.closeWarning', { n: s.queue.length }) : null,
     workers,

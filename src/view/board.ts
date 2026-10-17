@@ -86,7 +86,7 @@ export function buildBoardView(c: Content, s: State, t: Translate): BoardView {
 }
 
 /** Only candies with stock get a row; only qualities that are unlocked (or have stock) get a column. */
-function stockTable(c: Content, s: State, t: Translate): BoardView['stockTable'] {
+export function stockTable(c: Content, s: State, t: Translate): BoardView['stockTable'] {
   const have = (candy: string, quality: string) => s.stock[stockKey(candy, quality)] ?? 0;
   const cols = c.qualities
     .slice()

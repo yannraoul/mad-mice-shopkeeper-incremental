@@ -3,176 +3,125 @@
   import { t } from '../i18n/i18n.svelte.ts';
   import { buildServeView } from '../view/serve.ts';
   import { game, dispatch } from './game.svelte.ts';
-  import { media } from './media.svelte.ts';
   import Board from './Board.svelte';
   import CounterScene from './CounterScene.svelte';
   import ImageSlot from './ImageSlot.svelte';
   import Pips from './Pips.svelte';
+  import QueueList from './QueueList.svelte';
 
   const v = $derived(buildServeView(content, game.s, t, game.feed));
-  const tierColor = { ok: 'var(--ok)', low: 'var(--accent)', urgent: 'var(--warn)' } as const;
-  let clerkOpen = $state(false);
-  // The customer whose order is open under the scene (none once they have left or been served).
+  // The customer whose row is open (none once they have left or been served).
   let selectedId = $state<number | null>(null);
-  const sel = $derived(v.customers.find((c) => c.id === selectedId) ?? null);
+  const selected = $derived(v.customers.some((c) => c.id === selectedId) ? selectedId : null);
+  // Today's board waits in a drawer so the counter has the room.
+  let drawer = $state(false);
 </script>
 
-{#snippet clerk()}
-  {#each v.workers as w (w.id)}
-    <section class="card clerk" class:collapsed={media.narrow && !clerkOpen}>
-      {#if media.narrow}
-        <div class="clerkhead">
-          <button class="exp" aria-expanded={clerkOpen} onclick={() => (clerkOpen = !clerkOpen)}>
-            <span class="who"><b class="title">{w.name}</b>{#if w.toggles[0]}<span class="muted small">{w.toggles[0].shortLabel}</span>{/if}</span>
-            <span aria-hidden="true">{clerkOpen ? '▴' : '▾'}</span>
-          </button>
+<section class="frame counter" aria-labelledby="counter-title">
+  <div class="head">
+    <h2 id="counter-title">{v.title}</h2>
+    <span class="muted summary">{v.summary}</span>
+    <button class="btn3 drawerbtn" onclick={() => (drawer = !drawer)}>{t('craft.openBoard')}</button>
+  </div>
+
+  <div class="top">
+    <CounterScene
+      customers={v.customers}
+      outside={v.outside}
+      clerks={v.workers.map((w) => ({ id: w.id, active: w.toggles.some((tg) => tg.on) }))}
+      {selected}
+      onselect={(id) => (selectedId = id)}
+    />
+    <div class="listcol">
+      <QueueList ranked={v.ranked} {selected} onselect={(id) => (selectedId = id)} serveLabel={t('serve.serveBest')} nobody={v.nobody} pick={t('serve.pickOne')} />
+    </div>
+  </div>
+
+  <div class="stock">
+    <div class="shead"><span class="overline">{v.stock.title}</span><span class="mono muted legend">{v.stock.legend}</span></div>
+    {#if v.stock.rows.length === 0}
+      <span class="muted small">{v.stock.empty}</span>
+    {:else}
+      <div class="chips">
+        {#each v.stock.rows as r (r.candy)}
+          <span class="chip" title={r.name}><ImageSlot id={r.art} width={26} /><span class="mono">{r.text}</span></span>
+        {/each}
+      </div>
+    {/if}
+  </div>
+
+  {#if v.closeWarning}<p class="warn"><span aria-hidden="true">▲</span>{v.closeWarning}</p>{/if}
+
+  <div class="bottom">
+    {#each v.workers as w (w.id)}
+      {@const todo = w.training.filter((x) => !x.trained)}
+      <section class="clerk">
+        <div class="crow">
+          <span class="art"><ImageSlot id={w.art} width={36} /></span>
+          <b class="cname">{w.name}</b>
           {#each w.toggles as tg (tg.customerType)}
-            <label class="switch" aria-label={tg.label}>
+            <label class="switch" aria-label={tg.label} title={tg.label}>
               <input type="checkbox" role="switch" checked={tg.on} onchange={(e) => dispatch(e.currentTarget.checked ? tg.setOn : tg.setOff)} />
               <span class="track"><span class="knob"></span></span>
+              <span class="lbl">{tg.shortLabel}</span>
             </label>
           {/each}
         </div>
-      {/if}
-      {#if !media.narrow || clerkOpen}
-        <div class="clerkbody">
-          <div class="top">
-            <span class="clerkart"><ImageSlot id={w.art} /></span>
-            <div class="side">
-              {#if !media.narrow}<h3>{w.name}</h3>{/if}
-              {#each w.toggles as tg (tg.customerType)}
-                <label class="switch withlabel">
-                  <input type="checkbox" role="switch" checked={tg.on} onchange={(e) => dispatch(e.currentTarget.checked ? tg.setOn : tg.setOff)} />
-                  <span class="track"><span class="knob"></span></span>
-                  <span class="lbl">{tg.label}</span>
-                </label>
-              {/each}
-            </div>
-          </div>
-          {#each w.training.filter((x) => x.trained) as tr (tr.candy)}<div class="muted small">{tr.text}</div>{/each}
-          {#each w.training.filter((x) => !x.trained) as tr (tr.candy)}
-            <div class="bar">
-              <div class="barhead"><span>{tr.name}</span><span class="mono muted">{tr.byHand}</span></div>
-              <Pips n={tr.made} total={tr.need} height={6} />
-            </div>
-          {/each}
-        </div>
-      {/if}
-    </section>
-  {/each}
-{/snippet}
-
-{#snippet latest()}
-  {#if v.feed && !media.narrow}
-    <section class="card latest">
-      <h3>{v.feed.title}</h3>
-      {#each v.feed.lines as line, i (i)}
-        <div class="line" class:dim={i > 0}><span class:acc={i === 0} aria-hidden="true">●</span>{line}</div>
-      {/each}
-    </section>
-  {/if}
-{/snippet}
-
-<div class="cols">
-  {#if media.narrow}<Board variant="serve" feed={v.feed} />{/if}
-
-  <section class="frame counter" aria-labelledby="counter-title">
-    <div class="head">
-      <h2 id="counter-title">{v.title}</h2>
-      <span class="muted summary">{v.summary}</span>
-    </div>
-
-    <CounterScene
-      customers={v.customers}
-      clerks={v.workers.map((w) => ({ id: w.id, active: w.toggles.some((tg) => tg.on) }))}
-      selected={selectedId}
-      onselect={(id) => (selectedId = id)}
-    />
-
-    {#if sel}
-      {@const cu = sel}
-      {@const m = cu.patienceMeter}
-    <article class="orderp" class:urgent={m.tier === 'urgent'}>
-        <div class="body">
-          <ImageSlot id={cu.portrait} />
-          <div class="main">
-            <div class="who">
-              <b class="type">{cu.name}</b>
-              <span class="mono muted small">{cu.budgetText}</span>
-            </div>
-            <div class="wants">
-                {#if cu.art}<ImageSlot id={cu.art} width={48} />{/if}
-              <div class="wtext">
-                <span class="muted small">{cu.wantsLabel}</span>
-                <b>{cu.candyName}</b>
-                <span class="small">{cu.atLeastLabel} <b>{cu.qualityName}</b></span>
+        {#if todo.length > 0}
+          <details class="train">
+            <summary class="muted small">{todo[0]!.text}{todo.length > 1 ? ` (+${todo.length - 1})` : ''}</summary>
+            {#each todo as tr (tr.candy)}
+              <div class="bar">
+                <div class="barhead"><span>{tr.name}</span><span class="mono muted">{tr.byHand}</span></div>
+                <Pips n={tr.made} total={tr.need} height={6} />
               </div>
-            </div>
-            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax={m.max} aria-valuenow={m.left} aria-label={m.label}>
-              <span class="mlabel" style:color={tierColor[m.tier]}>{m.label}</span>
-              <Pips n={m.left} total={m.max} color={tierColor[m.tier]} height={10} />
-            </div>
-          </div>
-        </div>
-        <div class="acts">
-            {#each cu.options as o (o.candy + o.quality)}
-            <button class="btn opt" disabled={!o.enabled} onclick={() => dispatch(o.action)}>
-              <span>{o.label}</span>
-              <span class="hearts" aria-hidden="true">{o.heartsText}</span>
-                {#if o.tipText}<span class="tip">{o.tipText}</span>{/if}
-            </button>
             {/each}
-            {#if cu.nothingFits}<span class="reason"><span aria-hidden="true">⊘</span>{cu.nothingFits}</span>{/if}
-          <button class="btn3 refuse" onclick={() => dispatch(cu.refuse.action)}>{cu.refuse.label}</button>
-        </div>
-      </article>
-    {:else}
-      <p class="muted pick">{v.customers.length === 0 ? v.nobody : t('serve.pickOne')}</p>
+          </details>
+        {/if}
+      </section>
+    {/each}
+    {#if v.feed}
+      <section class="latest" aria-label={v.feed.title}>
+        {#each v.feed.lines.slice(0, 2) as line, i (i)}
+          <div class="line" class:dim={i > 0}><span class:acc={i === 0} aria-hidden="true">●</span>{line}</div>
+        {/each}
+      </section>
     {/if}
+  </div>
+</section>
 
-    {#if v.closeWarning}<p class="warn"><span aria-hidden="true">▲</span>{v.closeWarning}</p>{/if}
-  </section>
-
-  <aside class="rail">
-    {@render clerk()}
-    {#if !media.narrow}<Board variant="serve" />{/if}
-    {@render latest()}
+{#if drawer}
+  <button class="scrim" aria-label={t('craft.closeBoard')} onclick={() => (drawer = false)}></button>
+  <aside class="drawer" aria-label={t('craft.openBoard')}>
+    <button class="btn3 close" onclick={() => (drawer = false)}>{t('craft.closeBoard')}</button>
+    <Board variant="serve" feed={v.feed} />
   </aside>
-</div>
+{/if}
 
 <style>
-  .cols { display: flex; flex-wrap: wrap; gap: var(--gap); align-items: flex-start; }
-  .cols > :global(.today) { flex: 1 1 100%; }
-  .counter { flex: 3 1 560px; display: flex; flex-direction: column; gap: 18px; }
-  .rail { flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+  .counter { display: flex; flex-direction: column; gap: 14px; }
   .head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .drawerbtn { margin-left: auto; align-self: center; }
   .summary { font-size: 14px; }
   .small { font-size: 13px; }
-  .pick { text-align: center; }
-  .orderp { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-  .orderp.urgent { border-color: var(--warn); box-shadow: 0 0 0 3px color-mix(in srgb, var(--warn) 22%, transparent); }
-  .body { display: flex; gap: 14px; align-items: flex-start; }
-  .main { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
-  .who { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-  .type { font: 400 20px/1.2 var(--display); }
-  .wants { display: flex; align-items: center; gap: 10px; background: var(--panel2); border-radius: 12px; padding: 8px; }
-  .wtext { display: flex; flex-direction: column; font-size: 14px; min-width: 0; }
-  .meter { display: flex; align-items: center; gap: 8px; }
-  .mlabel { font: 700 12px/1.2 var(--body); min-width: 70px; }
-  .acts { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .reason { flex: 1; font-size: 13px; color: var(--muted); line-height: 1.3; display: flex; gap: 6px; min-width: 120px; }
-  .refuse { margin-left: auto; }
-  .opt { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
-  .hearts { letter-spacing: 1px; }
-  .tip { font-size: 12px; opacity: 0.85; }
-  .warn { color: var(--warn); font-size: 14px; display: flex; gap: 8px; }
+  /* The scene on the left and the queue list on the right; the list is as tall as the scene and scrolls inside it. */
+  .top { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: stretch; }
+  .listcol { position: relative; min-height: 260px; }
+  .listcol > :global(*) { position: absolute; inset: 0; overflow-y: auto; }
 
-  .card { display: flex; flex-direction: column; gap: 12px; }
-  .clerk .top { display: flex; gap: 12px; align-items: center; }
-  .clerkart :global(.slot) { background: var(--slotC); border-radius: 14px; }
-  .side { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-  .side h3 { font-size: 20px; }
-  .switch { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; position: relative; }
+  .stock { display: flex; flex-direction: column; gap: 6px; }
+  .shead { display: flex; align-items: baseline; justify-content: space-between; }
+  .legend { font-size: 12px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px 3px 4px; border-radius: 10px; background: var(--panel2); border: 1px solid var(--line); font-size: 13px; }
+  .warn { color: var(--warn); font-size: 14px; display: flex; gap: 8px; margin: 0; }
+
+  .bottom { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+  .clerk { flex: 1 1 320px; display: flex; flex-direction: column; gap: 6px; background: var(--panel2); border: 1px solid var(--line); border-radius: 14px; padding: 8px 12px; min-width: 0; }
+  .crow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .art :global(.slot), .art :global(img) { border-radius: 10px; }
+  .cname { font: 400 17px/1.2 var(--display); }
+  .switch { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; position: relative; }
   .switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
   .track { width: 46px; height: 26px; border-radius: 999px; background: var(--line); position: relative; flex: none; transition: background 0.12s; }
   .knob { position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--ink); transition: left 0.12s; }
@@ -180,26 +129,28 @@
   input:checked + .track .knob { left: 23px; background: var(--accentInk); }
   input:focus-visible + .track { box-shadow: var(--focusRing); }
   .lbl { font-size: 13px; line-height: 1.25; }
-  .bar { display: flex; flex-direction: column; gap: 4px; }
+  .train summary { cursor: pointer; }
+  .bar { display: flex; flex-direction: column; gap: 4px; padding-top: 6px; }
   .barhead { display: flex; justify-content: space-between; font-size: 13px; gap: 8px; }
-  .clerkbody { display: flex; flex-direction: column; gap: 12px; }
-  .clerkhead { display: flex; align-items: center; gap: 12px; }
-  .exp { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; background: transparent; border: 0; padding: 0; text-align: left; color: var(--ink); }
-  .exp .who { display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; }
-  .exp .title { font: 400 18px/1.2 var(--display); }
-  .clerk.collapsed { min-height: 60px; justify-content: center; padding: 8px 14px; }
-
-  .latest { gap: 8px; }
+  .latest { flex: 1 1 260px; display: flex; flex-direction: column; gap: 4px; padding: 8px 4px; min-width: 0; }
   .latest .line { font-size: 14px; display: flex; gap: 8px; }
   .latest .line.dim { color: var(--muted); }
   .latest .acc { color: var(--accent); }
 
-  @media (max-width: 640px) {
-    .counter { flex-basis: 100%; }
-    .rail { flex-basis: 100%; }
-    .orderp { background: var(--panel2); border-radius: 16px; }
-    .type { font-size: 19px; }
-    .acts .btn { flex: 1; min-height: 48px; }
-    .refuse { min-height: 48px; }
+  .scrim { position: fixed; inset: 0; z-index: 20; border: 0; background: rgba(0, 0, 0, 0.45); cursor: default; }
+  .drawer {
+    position: fixed; z-index: 21; top: 0; right: 0; bottom: 0; width: min(380px, 100%); overflow-y: auto; padding: 16px;
+    background: var(--bg); display: flex; flex-direction: column; gap: 16px; box-shadow: -8px 0 24px rgba(0, 0, 0, 0.4); animation: slide 0.2s ease-out;
   }
+  .close { align-self: flex-end; }
+  @keyframes slide { from { transform: translateX(100%); } }
+
+  @media (max-width: 640px) {
+    .top { grid-template-columns: minmax(0, 1fr); }
+    .listcol { min-height: 0; }
+    .listcol > :global(*) { position: static; }
+    .drawer { top: auto; left: 0; width: auto; max-height: 85vh; border-radius: 16px 16px 0 0; animation-name: rise; }
+    @keyframes rise { from { transform: translateY(100%); } }
+  }
+  @media (prefers-reduced-motion: reduce) { .drawer { animation: none; } }
 </style>
