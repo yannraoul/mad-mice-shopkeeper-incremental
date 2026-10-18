@@ -233,18 +233,20 @@ state with many unlocks, to show as many elements as possible.
 
 | File | Shows |
 |---|---|
-| `desktop-dark/01-morning-craft-form.png` | Morning, rich game: board, errands, recipe form, rival heads-up in the stage bar |
-| `desktop-dark/02-morning-craft-bench.png` | Mid-batch: ingredient in hand (selected), cauldron armed, steps waiting |
-| `desktop-dark/03-afternoon-serve.png` | Afternoon: four customers (some with nothing in stock to serve them), the clerk panel, the latest-events feed |
-| `desktop-dark/04-evening-tree-and-report.png` | Evening: report, journal line, the skill tree with owned, affordable and locked cards, map strip, errands |
-| `desktop-dark/05-settings.png` | Settings: language, New game with seed, save tools |
-| `desktop-dark/06-first-day-morning.png` | A brand-new game: how bare it starts |
-| `desktop-dark/07-first-day-afternoon.png` | First afternoon of a new game |
-| `desktop-dark/08-rival-active-morning.png` | Stage 2, rival hive now stealing honey: warning plus hint to the errand |
-| `desktop-dark/09-final-stage-cleared.png` | Final stage cleared: the ending line in the stage bar |
-| `desktop-light/01, 03, 04` | The same screens in the light theme |
-| `mobile-dark/01, 02, 03, 04, 05` | Phone layout: craft form, bench, serve, evening, settings |
+| `desktop-dark/01-morning-workshop.png` | Morning in the end-game shop (`?endgame=1`): the pixel workshop with its hover zones and mice, the action bar with recipes and stock, ingredients under the scene |
+| `desktop-dark/02-morning-craft-bench.png` | A hand-crafted batch under way: the steps in the right column |
+| `desktop-dark/03-afternoon-counter.png` | Afternoon: the placeholder shop scene, the ranked queue list (best payout, patience pips, Serve best), stock row, clerk strip, rating gauge |
+| `desktop-dark/04-afternoon-order-open.png` | The same with one customer's order open: all offers and Refuse |
+| `desktop-dark/05-evening-tree-and-report.png` | Evening: journal card with the accounting picture, report with the rating, the skill tree, map strip, errands |
+| `desktop-dark/06-settings.png` | Settings: language, New game with seed, save tools |
+| `desktop-dark/07-first-day-morning.png`, `08-first-day-afternoon.png` | A brand-new game: how bare it starts |
+| `desktop-dark/09-rival-active-morning.png` | Rival hive stealing honey (rich mid-game URL) |
+| `desktop-dark/10-final-stage-cleared.png` | Final stage cleared: the ending line in the stage bar |
+| `desktop-dark/11-board-drawer.png` | Today's board and errands in the side drawer |
+| `desktop-dark/12-routine-switches.png` | Accounting and Sleep switched on in the action bar (the Foreman switch off) |
+| `desktop-light/01, 03, 05` | The same screens in the light theme |
+| `mobile-dark/01, 02, 03, 04, 05, 11, 12` | Phone layout of the same screens (the three routine switches share one row above the phase button) |
 
 To look at a state yourself, run `npm run dev` and open one of these (they never touch a real save):
 - `http://localhost:5173/?seed=11&stage=2&money=420&unlocks=oven,clerk,errandsBoard,map,contractBoard,recipe-2,dark-garden,tonic-recipe` (rich mid-game)
-- `http://localhost:5173/?seed=3` (new game) and `...?seed=5&stage=3&completed=1&money=50&unlocks=oven,clerk,errandsBoard,map` (ending)
+- `http://localhost:5173/?endgame=1` (everything bought and done: the late game), `http://localhost:5173/?seed=3` (new game) and `...?seed=5&stage=3&completed=1&money=50&unlocks=oven,clerk,errandsBoard,map` (ending)

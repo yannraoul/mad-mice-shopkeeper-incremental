@@ -97,6 +97,7 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | --- | --- | --- | --- | --- | --- |
 | Honey yield | 5 | 15 / 40 / 100 / 250 / 550 | - | +1 supply:honey | More honey delivered each morning. |
 | Bigger cauldrons | 5 | 40 / 150 / 450 / 1000 / 2400 | - | +1 capacity | Each batch makes more candies. |
+| An extra batch | 1 | 6000 | - | +1 batches | One more batch of the hand cauldron each day. |
 | Second cauldron | 1 | 250 | Honey yield | adds station Second cauldron | A cauldron that makes Plain honey drops by itself every morning, using the day's honey. |
 | Oven | 1 | 60 | - | unlocks `oven` | Unlocks Fine quality. |
 | Pulling machine | 1 | 250 | Oven | unlocks `pulling-machine` | Unlocks Excellent quality: more ingredients, a pulling step, a better price. |
@@ -125,7 +126,8 @@ tables for what grants them. Part of the design brief: see `README.md`.
 | Hire a clerk | 1 | 100 | - | unlocks `clerk` | Serves Faithful customers for you. |
 | Contract board | 1 | 120 | - | unlocks `contractBoard` | Merchants post orders with a quantity and a deadline. |
 | Reputation | 7 | 120 / 300 / 700 / 1500 / 3000 / 5500 / 9000 | - | +6 priceBonus | Pilgrims talk: every sale brings 6% more, rounded up (at least a coin more on cheap candies), per level. |
-| Foreman mouse | 1 | 600 | Hire a clerk, Porter mouse, Stirrer mouse, Sculptor mouse | unlocks `routine` | A mouse that runs the day: with your helpers it makes candy, serves the counter and waits for you in the evening. A switch lets you take over at any moment. |
+| Foreman mouse | 1 | 600 | Hire a clerk, Porter mouse, Stirrer mouse, Sculptor mouse | unlocks `routine` | A mouse that runs the day: with your helpers it makes candy, serves the counter and waits for you in the evening, unless you hire an accounting mouse. A switch lets you take over at any moment. |
+| Accounting mouse | 1 | 1500 | Foreman mouse | unlocks `accountant` | With the routine on, a mouse with round glasses runs the evening too: it buys the cheapest upgrade you can afford, again and again, then puts the shop to sleep. |
 
 **Temple / Hive**
 
