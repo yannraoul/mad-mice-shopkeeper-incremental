@@ -122,6 +122,7 @@ Today a wooden sign flips Closed / Open, and a sky of gradients carries a sun an
 Done: `scenes/accounting-idle.png` and `scenes/accounting.png` (208 x 128). Optional: a writing loop, 4 frames, a strip of the mouse alone at the size of its
 frame over the empty desk (see `prompt-accounting-mouse.md`).
 
-## 7. The end screen
+## 7. The ending sequence
 
-Not designed yet: the summoning of Sweet Tooth and the mice turning to candy. Pictures come after the design.
+Built from what exists (the workshop picture, the mice's idle strips, the Sweet Tooth candy icon), so it needs no art to run. To make it richer: a pixel version of
+each mouse as a candy (`public/art/sprites/<role>-candy.png`, 64 x 64, one frame) to replace the pink fade, and a drawn Sweet Tooth. Not wired yet; say which you make.

@@ -124,4 +124,12 @@ describe('save migration', () => {
     if (!off.ok) throw new Error(off.error);
     expect([off.state.routineAccounting, off.state.routineSleep]).toEqual([false, false]);
   });
+  it('upgrades a v14 save: a finished game has not seen the ending yet', () => {
+    const env = JSON.parse(serialize(played()));
+    env.v = 14;
+    delete env.state.endingSeen;
+    const r = deserialize(c, JSON.stringify(env));
+    if (!r.ok) throw new Error(r.error);
+    expect(r.state.endingSeen).toBe(false);
+  });
 });

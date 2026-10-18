@@ -57,6 +57,7 @@ export function newGame(c: Content, opts: NewGameOptions): State {
     places: [],
     revenueTotal: 0,
     completed: false,
+    endingSeen: false,
     errands: {},
     nodes: {},
     unlocks: [...(opts.unlocks ?? [])],
@@ -92,6 +93,7 @@ export function endgameGame(c: Content, opts: NewGameOptions): State {
   const s = newGame(c, opts);
   s.day = 82;
   s.completed = true;
+  s.endingSeen = true; // the developer shop does not play the sequence by itself (Settings can replay it)
   for (const q of c.quests) {
     s.quests[q.id] = 64;
     applyEffects(c, s, q.reward);
@@ -162,6 +164,9 @@ function apply(c: Content, s: State, a: Action, ev: GameEvent[]): Fail | null {
       return deliverErrand(c, s, a.errand, ev);
     case 'endPhase':
       return endPhase(c, s, ev);
+    case 'ackEnding':
+      s.endingSeen = true;
+      return null;
   }
 }
 

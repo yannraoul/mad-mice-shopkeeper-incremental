@@ -5,7 +5,7 @@ import type { State } from '../engine/types.ts';
 
 // Saves are a versioned envelope around the plain engine State. Bump SAVE_VERSION whenever the
 // State shape changes and add a step to `migrate`, so old saves keep loading.
-export const SAVE_VERSION = 14;
+export const SAVE_VERSION = 15;
 const EXPORT_PREFIX = 'CST1:';
 
 const num = z.number();
@@ -33,6 +33,7 @@ const StateSchema = z.object({
   revenueTotal: num.min(0).default(0),
   places: z.array(z.string()).default([]),
   completed: z.boolean(),
+  endingSeen: z.boolean().default(false),
   errands: rec(z.object({ status: z.enum(['active', 'done']), daysLeft: num.optional() })),
   nodes: rec(num),
   unlocks: z.array(z.string()),
@@ -193,6 +194,11 @@ const MIGRATIONS: Record<number, (state: unknown) => unknown> = {
     for (let i = 1; i <= done; i++) quests[`q${i}`] = 1;
     const history = (rest.history ?? []) as { revenue?: number }[];
     return { ...rest, quests, revenueTotal: history.reduce((n, r) => n + (r.revenue ?? 0), 0) };
+  },
+  // v14 -> v15 (MMSIM-31): the ending sequence. A finished game has not seen it yet, so it plays once on the next load.
+  14: (state) => {
+    if (typeof state !== 'object' || state === null) return state;
+    return { endingSeen: false, ...(state as Record<string, unknown>) };
   },
   // v13 -> v14 (MMSIM-29): the routine has three switches. A game that had the accounting mouse running the evening keeps
   // doing so (accounting and auto sleep on).

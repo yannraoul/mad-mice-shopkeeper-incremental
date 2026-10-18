@@ -5,8 +5,9 @@
   import './app.css';
   import { content } from '../content/index.ts';
   import { t } from '../i18n/i18n.svelte.ts';
-  import { buildHeaderView, describeFail, screenFor } from '../view/index.ts';
+  import { buildEndingView, buildHeaderView, describeFail, screenFor } from '../view/index.ts';
   import { game, dispatch } from './game.svelte.ts';
+  import EndingSequence from './EndingSequence.svelte';
   import PhaseTransition from './PhaseTransition.svelte';
   import CraftScreen from './CraftScreen.svelte';
   import Serve from './Serve.svelte';
@@ -17,17 +18,33 @@
 
   const header = $derived(buildHeaderView(content, game.s, t));
   const screen = $derived(screenFor(game.s.phase));
+  // The ending plays by itself once, when the final offering has been made; Settings can play it again.
+  const ending = $derived(buildEndingView(content, game.s, t));
+  let replay = $state(false);
   // Navigation between the game and the settings page is a UI concern, so it lives here.
   let page = $state<'game' | 'settings'>('game');
 </script>
 
 <PhaseTransition />
 
+{#if ending.available && (ending.due || replay)}
+  <EndingSequence
+    {ending}
+    onclose={() => {
+      if (ending.due) dispatch({ type: 'ackEnding' });
+      replay = false;
+    }}
+  />
+{/if}
+
 <main class:bar={page === 'game'}>
   <Header {header} onsettings={() => (page = page === 'settings' ? 'game' : 'settings')} />
 
   {#if page === 'settings'}
-    <Settings onclose={() => (page = 'game')} />
+    <Settings
+      onclose={() => (page = 'game')}
+      replay={ending.available ? { label: ending.replayLabel, run: () => { page = 'game'; replay = true; } } : null}
+    />
   {:else}
     <StageStrip />
 

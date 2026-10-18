@@ -6,7 +6,7 @@
   import { buildMenuView, describeImportResult, parseSeedInput } from '../view/menu.ts';
   import { game, exportSave, importSave, newGameNow } from './game.svelte.ts';
 
-  let { onclose }: { onclose: () => void } = $props();
+  let { onclose, replay = null }: { onclose: () => void; replay?: { label: string; run: () => void } | null } = $props();
 
   const v = $derived(buildMenuView(content, t, !game.devMode));
   const langNames: Record<Lang, string> = { en: 'English', fr: 'Français' };
@@ -102,6 +102,7 @@
     <span class="note2">{v.save.note}</span>
   </div>
 
+  {#if replay}<button class="btn3" onclick={replay.run}>{replay.label}</button>{/if}
   <button class="btn big back" onclick={onclose}>{v.back}</button>
 </section>
 

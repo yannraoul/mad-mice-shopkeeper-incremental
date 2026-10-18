@@ -42,3 +42,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-28](features/MMSIM-28.md) — The accounting mouse: the routine buys the cheapest upgrades in the evening and puts the shop to sleep
 - [MMSIM-29](features/MMSIM-29.md) — Three routine switches (foreman, accounting, auto sleep) and a timed, visible accounting mouse
 - [MMSIM-30](features/MMSIM-30.md) — Counter tokens, a fifth (placeholder) mouse, drop-in art files and the art pack
+- [MMSIM-31](features/MMSIM-31.md) — The ending sequence: a one-time cutscene over the workshop (mice turn to candy), replayable from Settings

@@ -83,6 +83,8 @@ export interface State {
   revenueTotal: number;
   /** True once the final quest was delivered (play can continue). */
   completed: boolean;
+  /** The ending sequence has been watched (or skipped) once; it only plays by itself while this is false. */
+  endingSeen: boolean;
   /** Errands taken or finished, by errand id. */
   errands: Record<string, ErrandState>;
   /** Skill tree levels owned, by node id. */
@@ -140,7 +142,9 @@ export type Action =
   | { type: 'buy'; node: string }
   | { type: 'acceptErrand'; errand: string }
   | { type: 'deliverErrand'; errand: string }
-  | { type: 'endPhase' };
+  | { type: 'endPhase' }
+  /** The player has seen the ending sequence. */
+  | { type: 'ackEnding' };
 
 export type GameEvent =
   | { type: 'crafted'; candy: string; quality: string; qty: number }
