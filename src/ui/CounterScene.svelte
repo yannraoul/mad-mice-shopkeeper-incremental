@@ -32,6 +32,10 @@
   const SEATED = 24;
   const DOOR_Y = H + 4;
   const TURNS_SEATED = 2;
+  // The clerk stands behind the counter: a slice of the counter picture is drawn over the clerk's lower half, so the token does
+  // not float above the counter. The slice is the middle of the counter, from its top edge down.
+  const CLERK = { x: 112, y: 20 };
+  const FRONT = { x: 104, y: 42, w: 48, h: 28 };
   const SLOTS = 6;
   // Two tokens wide down the middle, over the carpet that runs from the door up to the counter, three rows.
   const slotAt = (i: number) => ({ x: 92 + (i % 2) * 32, y: 72 + Math.floor(i / 2) * 32 });
@@ -114,8 +118,22 @@
   <img class="bg" src="{base}art/scenes/counter.png" alt="" onload={() => (hasBackground = true)} onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
   <div class="counter" style:left={pctX(42)} style:top={pctY(42)} style:width={pctX(174)} style:height={pctY(26)}></div>
   {#each clerks as cl (cl.id)}
-    <div class="clerk" class:off={!cl.active} class:face={clerkFace} style:left={pctX(112)} style:top={pctY(18)} style:width={pctX(32)} style:height={pctY(32)} title={cl.id}>C<img class="face" src="{base}art/tokens/clerk.png" alt="" onload={() => (clerkFace = true)} onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} /></div>
+    <div class="clerk" class:off={!cl.active} class:face={clerkFace} style:left={pctX(CLERK.x)} style:top={pctY(CLERK.y)} style:width={pctX(32)} style:height={pctY(32)} title={cl.id}>C<img class="face" src="{base}art/tokens/clerk.png" alt="" onload={() => (clerkFace = true)} onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} /></div>
   {/each}
+  {#if hasBackground}
+    <!-- Same picture, cropped to the slice: background-size and -position are in percentages of the whole 256 x 176 picture. -->
+    <div
+      class="front"
+      style:left={pctX(FRONT.x)}
+      style:top={pctY(FRONT.y)}
+      style:width={pctX(FRONT.w)}
+      style:height={pctY(FRONT.h)}
+      style:background-image="url({base}art/scenes/counter.png)"
+      style:background-size="{(W / FRONT.w) * 100}% {(H / FRONT.h) * 100}%"
+      style:background-position="{(FRONT.x / (W - FRONT.w)) * 100}% {(FRONT.y / (H - FRONT.h)) * 100}%"
+      aria-hidden="true"
+    ></div>
+  {/if}
   {#each TABLES as tb}
     <div class="table" style:left={pctX(tb.x - TABLE_W / 2)} style:top={pctY(tb.y - TABLE_H / 2)} style:width={pctX(TABLE_W)} style:height={pctY(TABLE_H)}></div>
   {/each}
@@ -174,6 +192,7 @@
   .counter { position: absolute; background: #a8743f; border-bottom: 4px solid #4d3220; border-radius: 6px; }
   .clerk { position: absolute; display: grid; place-items: center; background: #7b5cb0; color: #fff; font: 700 14px/1 var(--body); border-radius: 6px; z-index: 1; }
   .clerk.off { opacity: 0.35; }
+  .front { position: absolute; z-index: 2; image-rendering: pixelated; background-repeat: no-repeat; pointer-events: none; }
   .table { position: absolute; background: #7a4f30; border-radius: 12px; opacity: 0.85; }
   .door { position: absolute; background: #4d3220; border-radius: 6px 6px 0 0; }
   .more { position: absolute; right: 8px; bottom: 6px; padding: 2px 8px; border-radius: 999px; background: rgba(0, 0, 0, 0.6); color: #fff; font: 700 12px/1.3 var(--body); }
