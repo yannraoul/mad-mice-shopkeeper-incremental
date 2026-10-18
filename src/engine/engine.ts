@@ -34,7 +34,7 @@ import {
   autoQuality,
   routineBlockers,
 } from './economy.ts';
-import type { Action, Customer, DayReport, Want, Fail, FailCode, GameEvent, State, StepResult } from './types.ts';
+import type { Action, Customer, DayReport, Want, Fail, FailCode, GameEvent, State, StepResult, RoutinePart } from './types.ts';
 import type { Effect } from '../content/schema.ts';
 
 // Pure TypeScript, no UI imports. `step` never mutates its input: it clones the
@@ -70,6 +70,8 @@ export function newGame(c: Content, opts: NewGameOptions): State {
     handSteps: [],
     autoCandy: null,
     routine: false,
+    routineAccounting: false,
+    routineSleep: false,
     rating: 50,
     batchesMade: {},
     pending: [],
@@ -149,7 +151,7 @@ function apply(c: Content, s: State, a: Action, ev: GameEvent[]): Fail | null {
     case 'setAutoCandy':
       return setAutoCandy(c, s, a.candy);
     case 'setRoutine':
-      return setRoutine(c, s, a.on);
+      return setRoutine(c, s, a.on, a.part ?? 'day');
     case 'buyPlace':
       return buyPlace(c, s, a.place);
     case 'buy':
@@ -535,8 +537,17 @@ function buyPlace(c: Content, s: State, id: string): Fail | null {
 }
 
 /** Switch the daily routine on (needs the foreman mouse and a helper for every basic step) or off. */
-function setRoutine(c: Content, s: State, on: boolean): Fail | null {
+function setRoutine(c: Content, s: State, on: boolean, part: RoutinePart): Fail | null {
+  if (part === 'accounting') {
+    if (!s.unlocks.includes('accountant')) return fail('no-accountant', {}, 'nobody keeps the books yet');
+    s.routineAccounting = on;
+    return null;
+  }
   if (!s.unlocks.includes('routine')) return fail('no-routine', {}, 'nobody can run the day yet');
+  if (part === 'sleep') {
+    s.routineSleep = on;
+    return null;
+  }
   if (on && routineBlockers(c, s).length > 0) return fail('routine-needs-helpers', {}, 'a basic crafting step has no helper');
   s.routine = on;
   return null;

@@ -6,8 +6,9 @@ import type { Action, State } from './types.ts';
 // The daily routine ("foreman mouse"): the next thing the mice would do, as a pure function of the state, so the app can
 // play a whole day by asking for one action at a time. It only uses what the player has hired: a quality is made only
 // when every one of its steps has a helper (the whisper of Perfect never has), and rare ingredients are never spent.
-// The evening is the player's: upgrades are theirs to pick, unless they hired the accounting mouse, which buys the cheapest
-// upgrade the shop can afford until none is left, then ends the day.
+// Three switches, three jobs: the foreman runs the morning and the afternoon, the accounting mouse buys the cheapest upgrade
+// the shop can afford in the evening (until none is left), and auto sleep ends the evening when the work is done. Without
+// them the evening is the player's.
 
 const total = (s: State, candy: string) =>
   Object.entries(s.stock).reduce((n, [k, v]) => n + (k.startsWith(`${candy}:`) ? v : 0), 0);
@@ -50,10 +51,12 @@ function nextCraft(c: Content, s: State): Action | null {
 /**
  * The next action of the routine for the current phase. Morning: hand in what stock covers, make batches, then end the
  * morning. Afternoon: serve the most impatient customer with the best payout, turn away those nothing fits, then end
- * the afternoon. Evening: null (the player picks upgrades and ends the day), or with the accounting mouse the cheapest
- * affordable upgrade, then the end of the day.
+ * the afternoon (both need the foreman switch on). Evening: the cheapest affordable upgrade while the accounting switch is on,
+ * then the end of the day while auto sleep is on; null when there is nothing for the routine to do (the player picks upgrades
+ * and ends the day).
  */
 export function nextRoutineAction(c: Content, s: State): Action | null {
+  if (s.phase !== 'evening' && !s.routine) return null;
   if (s.phase === 'morning') {
     for (const ct of s.contracts) {
       const a: Action = { type: 'fulfill', contract: ct.id };
@@ -75,7 +78,7 @@ export function nextRoutineAction(c: Content, s: State): Action | null {
     }
     return { type: 'refuse', customer: s.queue[0]!.id };
   }
-  if (s.unlocks.includes('accountant')) {
+  if (s.routineAccounting && s.unlocks.includes('accountant')) {
     const next = c.skillNodes
       .map((n) => ({ n, cost: n.costs[s.nodes[n.id] ?? 0] }))
       .filter((x): x is { n: (typeof c.skillNodes)[number]; cost: number } => x.cost !== undefined && x.cost <= s.money)
@@ -84,7 +87,6 @@ export function nextRoutineAction(c: Content, s: State): Action | null {
       const a: Action = { type: 'buy', node: n.id };
       if (step(c, s, a).ok) return a;
     }
-    return { type: 'endPhase' };
   }
-  return null;
+  return s.routineSleep ? { type: 'endPhase' } : null;
 }

@@ -107,6 +107,10 @@ export interface Clip {
  * Pure: the engine decides what happens, the scene only decides how long it takes to show it.
  */
 export function describeBeat(c: Content, s: State, a: Action, sceneId: string = WORKSHOP_SCENE): Clip[] {
+  // The accounting mouse: one beat per upgrade it buys, and at least a couple of seconds over the books before the shop sleeps.
+  if (a.type === 'buy') return [{ actor: 'accountant', ms: c.settings.accountingStepMs }];
+  if (a.type === 'endPhase' && s.phase === 'evening' && s.routineAccounting && s.unlocks.includes('accountant'))
+    return [{ actor: 'accountant', ms: c.settings.accountingMinMs }];
   if (a.type !== 'craft') return [];
   const scene = c.scenes.find((x) => x.id === sceneId);
   const quality = c.qualities.find((q) => q.id === a.quality);

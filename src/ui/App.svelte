@@ -47,15 +47,15 @@
 {#if page === 'game'}
   <footer class="actionbar">
     <div class="inner">
-      {#if header.routine}
-        <button class="routine" class:on={header.routine.on} aria-pressed={header.routine.on} onclick={() => dispatch(header.routine!.action)}>
+      {#each header.routines as r (r.part)}
+        <button class="routine" class:on={r.on} aria-pressed={r.on} title={r.status || r.label} onclick={() => dispatch(r.action)}>
           <span class="switch" aria-hidden="true"><span class="knob"></span></span>
           <span class="txt">
-            <b>{header.routine.label}</b>
-            {#if header.routine.status}<span class="status">{header.routine.status}</span>{/if}
+            <b>{r.label}</b>
+            {#if r.status}<span class="status">{r.status}</span>{/if}
           </span>
         </button>
-      {/if}
+      {/each}
       <button class="btn big pill" onclick={() => dispatch(header.endPhase.action)}>
         {header.endPhase.label}<span aria-hidden="true">→</span>
       </button>
@@ -77,7 +77,7 @@
     border-top: 1px solid var(--line);
     box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.3);
   }
-  .actionbar .inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+  .actionbar .inner { max-width: 1200px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px; }
   .routine {
     pointer-events: auto;
     display: flex; align-items: center; gap: 10px;
@@ -104,5 +104,7 @@
     main { padding: 12px 12px 24px; gap: 12px; }
     main.bar { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
     .actionbar .btn { flex: 1; }
+    .routine { padding: 4px 12px 4px 8px; min-height: 44px; }
+    .routine .status { display: none; }
   }
 </style>

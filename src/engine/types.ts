@@ -107,7 +107,12 @@ export interface State {
   /** The candy the Second cauldron makes with what the open orders leave (needs the order book); null = the station's default. */
   autoCandy: string | null;
   /** The daily routine is running: the mice make candy and serve the counter by themselves (needs the foreman mouse). */
+  /** The foreman mouse runs the morning and the afternoon (cooking, then serving). */
   routine: boolean;
+  /** The accounting mouse buys the upgrades in the evening. */
+  routineAccounting: boolean;
+  /** The shop goes to sleep by itself when the evening's work is done. */
+  routineSleep: boolean;
   /** The shop's rating, 0 to 100 (50 at the start): happy customers raise it, those who leave unserved lower it; it moves prices a little. */
   rating: number;
   /** Batches crafted by hand per candy id; workers can sell a recipe once enough exist. */
@@ -119,6 +124,8 @@ export interface State {
   history: DayReport[];
 }
 
+export type RoutinePart = 'day' | 'accounting' | 'sleep';
+
 export type Action =
   | { type: 'craft'; station: number; candy: string; quality: string }
   | { type: 'fulfill'; contract: number }
@@ -126,7 +133,8 @@ export type Action =
   | { type: 'refuse'; customer: number }
   | { type: 'setStepMode'; step: string; auto: boolean }
   | { type: 'setAutoCandy'; candy: string }
-  | { type: 'setRoutine'; on: boolean }
+  /** `part` picks which of the three routine switches: the foreman's day (default), the accounting mouse, or auto sleep. */
+  | { type: 'setRoutine'; on: boolean; part?: RoutinePart }
   | { type: 'buyPlace'; place: string }
   | { type: 'delegate'; customerType: string; on: boolean }
   | { type: 'buy'; node: string }
@@ -176,6 +184,7 @@ export type FailCode =
   | 'cannot-automate'
   | 'no-order-book'
   | 'no-routine'
+  | 'no-accountant'
   | 'unknown-place'
   | 'place-owned'
   | 'routine-needs-helpers'

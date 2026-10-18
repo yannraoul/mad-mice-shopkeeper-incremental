@@ -109,4 +109,19 @@ describe('save migration', () => {
     expect(r.state.rating).toBe(50);
     expect(r.state.report.happy).toBe(0);
   });
+  it('upgrades a v13 save: a running accounting mouse keeps the evening automated', () => {
+    const base = JSON.parse(serialize(played()));
+    base.v = 13;
+    delete base.state.routineAccounting;
+    delete base.state.routineSleep;
+    base.state.routine = true;
+    base.state.unlocks = [...new Set([...base.state.unlocks, 'accountant'])];
+    const r = deserialize(c, JSON.stringify(base));
+    if (!r.ok) throw new Error(r.error);
+    expect([r.state.routineAccounting, r.state.routineSleep]).toEqual([true, true]);
+    base.state.routine = false;
+    const off = deserialize(c, JSON.stringify(base));
+    if (!off.ok) throw new Error(off.error);
+    expect([off.state.routineAccounting, off.state.routineSleep]).toEqual([false, false]);
+  });
 });

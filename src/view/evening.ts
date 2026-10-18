@@ -125,7 +125,7 @@ export function buildEveningView(c: Content, s: State, t: Translate): EveningVie
         { value: Math.round(s.rating), label: t('evening.k.rating'), highlight: false },
       ],
     },
-    journal: journal ? { title: t('journal.title'), dayLine: t('ui.day', { n: s.day }), text: t(journal), accountant: s.unlocks.includes('accountant') && s.routine } : null,
+    journal: journal ? { title: t('journal.title'), dayLine: t('ui.day', { n: s.day }), text: t(journal), accountant: s.unlocks.includes('accountant') && s.routineAccounting } : null,
     tree: {
       title: `${t('tree.title')} · ${t('ui.money', { n: s.money })}`,
       branches: BRANCHES.map((id) => {

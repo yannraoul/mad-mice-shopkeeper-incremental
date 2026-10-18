@@ -121,15 +121,16 @@ export class GameSession {
    * The app calls this on a timer; tests call it in a loop.
    */
   tickRoutine(): 'off' | 'acted' | 'waiting' | 'stopped' {
-    if (!this.state.routine) return 'off';
-    if (routineBlockers(this.content, this.state).length > 0) {
+    const st = this.state;
+    if (!st.routine && !st.routineAccounting && !st.routineSleep) return 'off';
+    if (st.routine && routineBlockers(this.content, st).length > 0) {
       this.dispatch({ type: 'setRoutine', on: false }); // a helper was taken back: the mice cannot run the day
       return 'stopped';
     }
-    const a = nextRoutineAction(this.content, this.state);
+    const a = nextRoutineAction(this.content, st);
     if (!a) return 'waiting';
     if (this.dispatch(a)) return 'acted';
-    this.dispatch({ type: 'setRoutine', on: false });
+    for (const part of ['day', 'accounting', 'sleep'] as const) this.dispatch({ type: 'setRoutine', on: false, part });
     return 'stopped';
   }
 
@@ -138,8 +139,10 @@ export class GameSession {
    * A front end that plays the action first (the scene) asks for it here, plays it, then calls `tickRoutine()`.
    */
   peekRoutine(): Action | null {
-    if (!this.state.routine || routineBlockers(this.content, this.state).length > 0) return null;
-    return nextRoutineAction(this.content, this.state);
+    const st = this.state;
+    if (!st.routine && !st.routineAccounting && !st.routineSleep) return null;
+    if (st.routine && routineBlockers(this.content, st).length > 0) return null;
+    return nextRoutineAction(this.content, st);
   }
 
   private replace(state: State) {

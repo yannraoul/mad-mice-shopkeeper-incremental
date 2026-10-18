@@ -23,8 +23,8 @@ export interface HeaderView {
   coinsLabel: string;
   /** The button that moves the day along. */
   endPhase: { label: string; action: Action };
-  /** The daily routine switch; null until the foreman mouse is hired. */
-  routine: { label: string; on: boolean; status: string; action: Action } | null;
+  /** The routine switches that are available: the foreman (morning and afternoon), the accounting mouse (upgrades), auto sleep. */
+  routines: { part: 'day' | 'accounting' | 'sleep'; label: string; on: boolean; status: string; action: Action }[];
   languages: { value: Lang; label: string }[];
   language: Lang;
   languageLabel: string;
@@ -51,17 +51,22 @@ export function buildHeaderView(c: Content, s: State, t: Translate): HeaderView 
     coins: s.money,
     coinsLabel: t('ui.coins'),
     endPhase: { label: t(END_LABEL[s.phase]), action: { type: 'endPhase' } },
-    routine: s.unlocks.includes('routine')
-      ? {
-          label: t(s.routine ? 'routine.on' : 'routine.off'),
-          on: s.routine,
-          status: s.routine ? t(s.phase === 'evening' && s.unlocks.includes('accountant') ? 'routine.status.eveningAccounting' : `routine.status.${s.phase}`) : '',
-          action: { type: 'setRoutine', on: !s.routine },
-        }
-      : null,
+    routines: routineSwitches(s, t),
     languages: LANGS.map((l) => ({ value: l, label: l.toUpperCase() })),
     language: t.locale,
     languageLabel: t('ui.language'),
     settingsLabel: t('settings.open'),
   };
 }
+
+const routineSwitches = (s: State, t: Translate): HeaderView['routines'] => {
+  const day = s.phase !== 'evening';
+  const rows = [
+    { part: 'day', on: s.routine, has: s.unlocks.includes('routine'), status: s.routine && day ? t(`routine.status.${s.phase}`) : '' },
+    { part: 'accounting', on: s.routineAccounting, has: s.unlocks.includes('accountant'), status: s.routineAccounting && !day ? t('routine.status.eveningAccounting') : '' },
+    { part: 'sleep', on: s.routineSleep, has: s.unlocks.includes('routine'), status: '' },
+  ] as const;
+  return rows
+    .filter((r) => r.has)
+    .map((r) => ({ part: r.part, label: t(`routine.${r.part}`), on: r.on, status: r.status, action: { type: 'setRoutine', on: !r.on, part: r.part } }));
+};

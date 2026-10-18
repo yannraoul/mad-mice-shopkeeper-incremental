@@ -27,5 +27,7 @@
   "ratingSwing": 0.1,
   "ratingMid": 50,
   "ratingRange": 40,
-  "ratingSmoothing": 0.3
+  "ratingSmoothing": 0.3,
+  "accountingStepMs": 1400,
+  "accountingMinMs": 2000
 }

@@ -17,7 +17,7 @@ const run = (s: State, ...actions: Action[]) => {
   }
   return s;
 };
-const game = (unlocks: string[] = []) => newGame(c, { seed: 1, unlocks: ['routine', ...HELPERS, ...unlocks] });
+const game = (unlocks: string[] = []) => ({ ...newGame(c, { seed: 1, unlocks: ['routine', ...HELPERS, ...unlocks] }), routine: true });
 
 describe('switching the routine on', () => {
   it('needs the foreman mouse and a helper for every basic step', () => {
@@ -75,25 +75,29 @@ describe('a whole day on routine', () => {
   });
 });
 
-describe('the accounting mouse', () => {
-  const evening = (unlocks: string[], money: number) => {
+describe('the accounting mouse and auto sleep', () => {
+  // The evening of a game with the foreman, the accounting mouse and, as asked, accounting and auto sleep switched on.
+  const evening = (money: number, flags: { routineAccounting?: boolean; routineSleep?: boolean }, unlocks: string[] = ['accountant']) => {
     const s = run(game(unlocks), { type: 'endPhase' }, { type: 'endPhase' });
-    s.money = money;
-    return s;
+    return { ...s, money, ...flags };
   };
-  it('leaves the evening to the player without it', () => {
-    expect(nextRoutineAction(c, evening([], 5000))).toBeNull();
+  it('leaves the evening to the player with both switches off', () => {
+    expect(nextRoutineAction(c, evening(5000, {}))).toBeNull();
   });
-  it('buys the cheapest affordable upgrade, then ends the day when nothing is affordable', () => {
-    const s = evening(['accountant'], 40);
+  it('buys the cheapest affordable upgrade while accounting is on', () => {
+    const s = evening(40, { routineAccounting: true });
     const a = nextRoutineAction(c, s);
     expect(a).toMatchObject({ type: 'buy' });
     const node = c.skillNodes.find((n) => n.id === (a as { node: string }).node)!;
     expect(node.costs[s.nodes[node.id] ?? 0]).toBeLessThanOrEqual(40);
-    expect(nextRoutineAction(c, evening(['accountant'], 0))).toEqual({ type: 'endPhase' });
+  });
+  it('waits for the player when nothing is affordable unless auto sleep is on, then ends the day', () => {
+    expect(nextRoutineAction(c, evening(0, { routineAccounting: true }))).toBeNull();
+    expect(nextRoutineAction(c, evening(0, { routineAccounting: true, routineSleep: true }))).toEqual({ type: 'endPhase' });
+    expect(nextRoutineAction(c, evening(5000, { routineSleep: true }))).toEqual({ type: 'endPhase' });
   });
   it('spends until nothing is left and sleeps, a whole evening in routine', () => {
-    let s = evening(['accountant'], 300);
+    let s = evening(300, { routineAccounting: true, routineSleep: true });
     for (let i = 0; i < 50 && s.phase === 'evening'; i++) {
       const a = nextRoutineAction(c, s);
       if (!a) break;
@@ -103,5 +107,23 @@ describe('the accounting mouse', () => {
     }
     expect(s.phase).toBe('morning');
     expect(Object.keys(s.nodes).length).toBeGreaterThan(0);
+  });
+  it('is switched on and off one part at a time, each with its own hire', () => {
+    const none = step(c, game(), { type: 'setRoutine', on: true, part: 'accounting' });
+    expect(none.ok ? null : none.code).toBe('no-accountant');
+    expect(run(game(['accountant']), { type: 'setRoutine', on: true, part: 'accounting' }).routineAccounting).toBe(true);
+    const noForeman = step(c, newGame(c, { seed: 1 }), { type: 'setRoutine', on: true, part: 'sleep' });
+    expect(noForeman.ok ? null : noForeman.code).toBe('no-routine');
+    expect(run(game(), { type: 'setRoutine', on: true, part: 'sleep' }).routineSleep).toBe(true);
+  });
+  it('is played by the session without the foreman: the day stays with the player', () => {
+    const session = new GameSession({ content: c, start: { seed: 4, unlocks: ['routine', 'accountant', ...HELPERS] } });
+    session.dispatch({ type: 'setRoutine', on: true, part: 'accounting' });
+    session.dispatch({ type: 'setRoutine', on: true, part: 'sleep' });
+    expect(session.peekRoutine()).toBeNull(); // morning: the foreman is off
+    session.dispatch({ type: 'endPhase' });
+    session.dispatch({ type: 'endPhase' });
+    expect(session.state.phase).toBe('evening');
+    expect(session.peekRoutine()).toEqual({ type: 'endPhase' }); // nothing to buy with no coins: it sleeps
   });
 });

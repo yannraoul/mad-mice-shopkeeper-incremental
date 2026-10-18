@@ -5,7 +5,7 @@ import type { State } from '../engine/types.ts';
 
 // Saves are a versioned envelope around the plain engine State. Bump SAVE_VERSION whenever the
 // State shape changes and add a step to `migrate`, so old saves keep loading.
-export const SAVE_VERSION = 13;
+export const SAVE_VERSION = 14;
 const EXPORT_PREFIX = 'CST1:';
 
 const num = z.number();
@@ -48,6 +48,8 @@ const StateSchema = z.object({
   handSteps: z.array(z.string()).default([]),
   autoCandy: z.string().nullable().default(null),
   routine: z.boolean().default(false),
+  routineAccounting: z.boolean().default(false),
+  routineSleep: z.boolean().default(false),
   rating: num.default(50),
   batchesMade: rec(num),
   pending: z.array(Customer),
@@ -191,6 +193,14 @@ const MIGRATIONS: Record<number, (state: unknown) => unknown> = {
     for (let i = 1; i <= done; i++) quests[`q${i}`] = 1;
     const history = (rest.history ?? []) as { revenue?: number }[];
     return { ...rest, quests, revenueTotal: history.reduce((n, r) => n + (r.revenue ?? 0), 0) };
+  },
+  // v13 -> v14 (MMSIM-29): the routine has three switches. A game that had the accounting mouse running the evening keeps
+  // doing so (accounting and auto sleep on).
+  13: (state) => {
+    if (typeof state !== 'object' || state === null) return state;
+    const s = state as Record<string, unknown> & { routine?: boolean; unlocks?: string[] };
+    const both = Boolean(s.routine) && (s.unlocks ?? []).includes('accountant');
+    return { routineAccounting: both, routineSleep: both, ...s };
   },
   // v12 -> v13 (MMSIM-27): the shop's rating (neutral at the start); day reports gain `happy` (defaulted by the schema).
   12: (state) => {

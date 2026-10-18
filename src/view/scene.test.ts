@@ -58,6 +58,15 @@ describe('describeBeat', () => {
   });
 });
 
+describe('the accounting mouse beats', () => {
+  const evening = { ...game(['accountant']), phase: 'evening' as const, routineAccounting: true };
+  it('has one beat for each upgrade bought and a minimum one for the end of the evening', () => {
+    expect(describeBeat(c, evening, { type: 'buy', node: 'clerk' })).toEqual([{ actor: 'accountant', ms: c.settings.accountingStepMs }]);
+    expect(describeBeat(c, evening, { type: 'endPhase' })).toEqual([{ actor: 'accountant', ms: c.settings.accountingMinMs }]);
+    expect(describeBeat(c, { ...evening, routineAccounting: false }, { type: 'endPhase' })).toEqual([]);
+  });
+});
+
 describe('peekRoutine', () => {
   it('names the next routine action without applying it', () => {
     const session = new GameSession({ content: c, start: { seed: 1, unlocks: ['routine', ...HELPERS] } });

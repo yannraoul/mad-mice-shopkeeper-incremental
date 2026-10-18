@@ -264,6 +264,9 @@ export const Settings = z.object({
   delegateAfterBatches: z.number().int().min(0),
   /** A customer nothing in stock can satisfy leaves on their own after this many turns (no patience cost for the others). */
   stuckLeaveTurns: z.number().int().positive(),
+  /** How long the accounting mouse takes over each upgrade it buys, and the least time it spends on the books in an evening, in ms. */
+  accountingStepMs: z.number().int().positive(),
+  accountingMinMs: z.number().int().positive(),
   /** The shop's rating (0 to 100, 50 at the start) moves prices by at most this fraction either way (0.1 = plus or minus 10 %). */
   ratingSwing: z.number().min(0).max(0.5),
   /** The rating at which prices are unchanged, and how far from it the full swing is reached (50 and 40: 10 or less = -10 %, 90 or more = +10 %). */
