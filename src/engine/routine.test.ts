@@ -27,6 +27,13 @@ describe('switching the routine on', () => {
     expect(partial.ok ? null : partial.code).toBe('routine-needs-helpers');
     expect(run(game(), { type: 'setRoutine', on: true }).routine).toBe(true);
   });
+  it('puts back to work a helper the player took back, as long as every helper is hired', () => {
+    const hand = run(newGame(c, { seed: 1, unlocks: ['routine', ...HELPERS] }), { type: 'setStepMode', step: 'stir', auto: false }, { type: 'setStepMode', step: 'fill', auto: false });
+    expect(hand.handSteps.sort()).toEqual(['fill', 'stir']);
+    const on = run(hand, { type: 'setRoutine', on: true });
+    expect(on.routine).toBe(true);
+    expect(on.handSteps).toEqual([]);
+  });
 });
 
 describe('what the routine makes', () => {

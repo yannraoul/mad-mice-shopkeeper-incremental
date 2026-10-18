@@ -416,7 +416,7 @@
   "routine.status.afternoon": "Les souris servent la boutique…",
   "routine.status.evening": "Choisissez vos améliorations, puis terminez la journée.",
   "error.no-routine": "Personne ne peut encore mener la journée.",
-  "error.routine-needs-helpers": "Engagez une souris porteuse, une remueuse et une sculptrice, et laissez-les aider, avant que la routine puisse préparer des bonbons.",
+  "error.routine-needs-helpers": "Engagez une souris porteuse, une remueuse et une sculptrice avant que la contremaîtresse puisse mener la journée.",
   "quest.q1": "Les premiers pas",
   "quest.q2": "Les pèlerins affluent",
   "quest.q3": "Un nom sur la route",

@@ -416,7 +416,7 @@
   "routine.status.afternoon": "The mice are serving the shop…",
   "routine.status.evening": "Pick your upgrades, then end the day.",
   "error.no-routine": "Nobody can run the day yet.",
-  "error.routine-needs-helpers": "Hire a porter, a stirrer and a sculptor mouse, and keep them helping, before the routine can make candy.",
+  "error.routine-needs-helpers": "Hire a porter, a stirrer and a sculptor mouse before the foreman can run the day.",
   "quest.q1": "The first steps",
   "quest.q2": "Gathering pilgrims",
   "quest.q3": "A name on the road",

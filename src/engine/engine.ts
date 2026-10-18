@@ -33,6 +33,7 @@ import {
   openDemands,
   autoQuality,
   routineBlockers,
+  routineMissingHelpers,
 } from './economy.ts';
 import type { Action, Customer, DayReport, Want, Fail, FailCode, GameEvent, State, StepResult, RoutinePart } from './types.ts';
 import type { Effect } from '../content/schema.ts';
@@ -553,7 +554,11 @@ function setRoutine(c: Content, s: State, on: boolean, part: RoutinePart): Fail 
     s.routineSleep = on;
     return null;
   }
-  if (on && routineBlockers(c, s).length > 0) return fail('routine-needs-helpers', {}, 'a basic crafting step has no helper');
+  if (on) {
+    // Every basic helper must be hired; one the player took back is put back to work: the switch forces them all on.
+    if (routineMissingHelpers(c, s).length > 0) return fail('routine-needs-helpers', {}, 'a basic crafting step has no helper');
+    s.handSteps = s.handSteps.filter((x) => !['fill', 'stir', 'form'].includes(x));
+  }
   s.routine = on;
   return null;
 }
