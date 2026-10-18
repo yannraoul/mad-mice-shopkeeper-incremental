@@ -38,25 +38,6 @@
     }
   },
   {
-    "id": "sculptor",
-    "width": 64,
-    "height": 64,
-    "actions": {
-      "idle": {
-        "file": "art/sprites/sculptor-idle.png",
-        "frames": 4,
-        "fps": 3,
-        "loop": true
-      },
-      "work": {
-        "file": "art/sprites/sculptor-work.png",
-        "frames": 4,
-        "fps": 6,
-        "loop": true
-      }
-    }
-  },
-  {
     "id": "stirrer",
     "width": 64,
     "height": 64,
@@ -76,18 +57,37 @@
     }
   },
   {
-    "id": "shaper",
+    "id": "puller",
     "width": 64,
     "height": 64,
     "actions": {
       "idle": {
-        "file": "art/sprites/shaper-idle.png",
+        "file": "art/sprites/puller-idle.png",
         "frames": 4,
         "fps": 3,
         "loop": true
       },
       "work": {
-        "file": "art/sprites/shaper-work.png",
+        "file": "art/sprites/puller-work.png",
+        "frames": 4,
+        "fps": 6,
+        "loop": true
+      }
+    }
+  },
+  {
+    "id": "sculptor",
+    "width": 64,
+    "height": 64,
+    "actions": {
+      "idle": {
+        "file": "art/sprites/sculptor-idle.png",
+        "frames": 4,
+        "fps": 3,
+        "loop": true
+      },
+      "work": {
+        "file": "art/sprites/sculptor-work.png",
         "frames": 4,
         "fps": 6,
         "loop": true

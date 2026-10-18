@@ -28,18 +28,18 @@
         "y": 58
       },
       {
-        "id": "sculptor",
-        "sprite": "sculptor",
+        "id": "puller",
+        "sprite": "puller",
         "step": "pull",
         "x": 50,
         "y": 52
       },
       {
-        "id": "shaper",
-        "sprite": "shaper",
+        "id": "sculptor",
+        "sprite": "sculptor",
         "step": "form",
-        "x": 146,
-        "y": -6
+        "x": 183,
+        "y": -20
       }
     ],
     "zones": [
@@ -75,8 +75,8 @@
         "step": "form",
         "x": 140,
         "y": 3,
-        "width": 65,
-        "height": 40
+        "width": 92,
+        "height": 41
       }
     ]
   }

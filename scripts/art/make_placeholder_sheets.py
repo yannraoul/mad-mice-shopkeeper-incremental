@@ -12,7 +12,7 @@ from PIL import Image
 
 SRC = Path('assets/mice-crops')
 OUT = Path('public/art/sprites')
-ROLES = {'baker': 'baker.png', 'porter': 'porter.png', 'sculptor': 'sculptor-nostool.png', 'stirrer': 'stirrer-nostool.png'}
+ROLES = {'baker': 'baker.png', 'porter': 'porter.png', 'puller': 'puller-nostool.png', 'sculptor': 'sculptor.png', 'stirrer': 'stirrer-nostool.png'}
 # (dy, dx) of the upper body per frame; dx is never negative so nothing is pushed off the left edge of the frame.
 ACTIONS = {
     'idle': [(0, 0), (1, 0), (1, 0), (0, 0)],

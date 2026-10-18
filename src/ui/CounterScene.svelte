@@ -28,21 +28,22 @@
 
   const W = 256;
   const H = 176;
-  const SIZE = 32;
+  const SIZE = 28;
   const SEATED = 22;
   const DOOR_Y = H + 4;
   const TURNS_SEATED = 2;
-  const SLOTS = 8;
-  const slotAt = (i: number) => ({ x: 88 + (i % 2) * 48, y: 40 + Math.floor(i / 2) * 34 });
-  // Four tables, two seats each.
+  const SLOTS = 6;
+  // Two tokens wide on the carpet that runs from the door up to the counter, three rows.
+  const slotAt = (i: number) => ({ x: 98 + (i % 2) * 30, y: 74 + Math.floor(i / 2) * 31 });
+  // Four round tables on rugs (centres at the picture's tables), two chairs each: left and right of the table.
   const TABLES = [
-    { x: 6, y: 44 }, { x: 6, y: 108 }, { x: 202, y: 44 }, { x: 202, y: 108 },
+    { x: 52, y: 98 }, { x: 52, y: 146 }, { x: 204, y: 98 }, { x: 204, y: 146 },
   ];
-  const TABLE_W = 48;
-  const TABLE_H = 52;
+  const TABLE_W = 56;
+  const TABLE_H = 40;
   const seatAt = (k: number) => {
     const tb = TABLES[Math.floor(k / 2) % TABLES.length]!;
-    return { x: tb.x + 2 + (k % 2) * 24, y: tb.y + 15 };
+    return { x: tb.x - 36 + (k % 2) * 50, y: tb.y - 12 };
   };
   const SEATS = TABLES.length * 2;
   const pctX = (x: number) => `${(x / W) * 100}%`;
@@ -108,12 +109,12 @@
 <div class="scene" class:art={hasBackground} role="group" aria-label={t('serve.title')}>
   <!-- The picture of the shop (256 x 176), when it exists: it replaces the placeholder counter, tables and door. -->
   <img class="bg" src="{base}art/scenes/counter.png" alt="" onload={() => (hasBackground = true)} onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
-  <div class="counter" style:left={pctX(24)} style:top={pctY(6)} style:width={pctX(208)} style:height={pctY(24)}></div>
+  <div class="counter" style:left={pctX(42)} style:top={pctY(42)} style:width={pctX(174)} style:height={pctY(26)}></div>
   {#each clerks as cl (cl.id)}
-    <div class="clerk" class:off={!cl.active} style:left={pctX(114)} style:top={pctY(4)} style:width={pctX(28)} style:height={pctY(26)} title={cl.id}>C<img class="face" src="{base}art/tokens/clerk.png" alt="" onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} /></div>
+    <div class="clerk" class:off={!cl.active} style:left={pctX(114)} style:top={pctY(24)} style:width={pctX(28)} style:height={pctY(26)} title={cl.id}>C<img class="face" src="{base}art/tokens/clerk.png" alt="" onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} /></div>
   {/each}
   {#each TABLES as tb}
-    <div class="table" style:left={pctX(tb.x)} style:top={pctY(tb.y)} style:width={pctX(TABLE_W)} style:height={pctY(TABLE_H)}></div>
+    <div class="table" style:left={pctX(tb.x - TABLE_W / 2)} style:top={pctY(tb.y - TABLE_H / 2)} style:width={pctX(TABLE_W)} style:height={pctY(TABLE_H)}></div>
   {/each}
   <div class="door" style:left={pctX(108)} style:top={pctY(H - 6)} style:width={pctX(40)} style:height={pctY(6)}></div>
   {#if hidden > 0}<span class="more">{outside.n > 0 && customers.length <= SLOTS ? outside.text : `+${hidden}`}</span>{/if}

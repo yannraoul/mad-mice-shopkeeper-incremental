@@ -17,19 +17,24 @@ animals, no people" (a first test painted mice into the scene when a background 
   pointed at the new file and the placeholder is left behind. Draw at the slot's size.
 - *Backgrounds and tokens* are picked up by file name when they exist; until then the placeholders stay.
 
+## 0. Keeping to the palette, whatever tool you use
+
+Any generator or editor: run `python scripts/art/palettize.py <files> [--size 256x144]` (`scripts/art/palettize.py` has the details) and every pixel is mapped to
+the nearest of the 32 colours, transparency kept; `--size` first shrinks an oversized output cleanly. Check the result at 1x before use.
+
 ## 1. The workshop (already has a background; mice are placeholders)
 
 Scene 256 x 144. Mice are **64 x 64 frames in a horizontal strip** (4 frames = a 256 x 64 file), facing the camera in three-quarter view,
 standing where the anchors in `scenes.json` put them. Today's strips are made by `scripts/art/make_placeholder_sheets.py` from your cleaned
-crops (a pixel of bob): replace them with real animation, same file names.
+crops in `assets/mice-crops/` (a pixel of bob): replace them with real animation, same file names.
 
 | Mouse | Does | Files | Where it stands |
 |---|---|---|---|
 | Porter | fills (brings the ingredients) | `public/art/sprites/porter-idle.png`, `porter-work.png` | on the floor in front of the hearth |
 | Stirrer | stirs the cauldron | `stirrer-idle.png`, `stirrer-work.png` | on the ladder platform at the cauldron |
 | Baker | the oven (and the oven timer) | `baker-idle.png`, `baker-work.png` | in front of the oven |
-| Sculptor (the *pulling* mouse) | rolls and stretches the paste | `sculptor-idle.png`, `sculptor-work.png` | at the work table, left |
-| **Shaper (new)** | shapes the candies in the jars (the fifth mouse) | `shaper-idle.png`, `shaper-work.png` (today copies of the porter) | at the jars, top right |
+| Puller | rolls and stretches the paste (the pull step) | `puller-idle.png`, `puller-work.png` | at the work table, left |
+| Sculptor | shapes the candies (the form step) | `sculptor-idle.png`, `sculptor-work.png` | on the wooden edge above the cauldron, looking left at the jars |
 
 Idle: 4 frames, 3 fps (a breath, a tail flick). Work: 4 frames, 6 fps (the gesture of the role: carrying a sack, stirring with a ladle, opening the
 oven door, pulling a rope of candy, filling a jar). Each role has its own apron and hat so the family reads as one cast. Optional later: `walk`
@@ -37,8 +42,8 @@ and `carry` strips (the scene does not use them yet).
 
 Prompt (one per role, change the role line): "{shared style words} A small cute mouse character, transparent background, 64x64, three-quarter
 front view, wearing a {role apron and hat}, {role gesture}. 4-frame animation strip." Roles: porter = a sack on the shoulder; stirrer = a
-chef hat and a long wooden ladle; baker = a tall white hat and oven mitts; pulling mouse = rolled sleeves, a long rope of pink candy paste in the
-paws; shaper = a small cap, filling a glass jar with candies.
+chef hat and a long wooden ladle; baker = a tall white hat and oven mitts; puller = rolled sleeves, a long rope of pink candy paste in the
+paws; sculptor = a small cap, shaping a candy with a little tool.
 
 ## 2. The counter (afternoon): a background and customer tokens
 
@@ -51,7 +56,7 @@ Top-down view, scene **256 x 176**. Today it is coloured rectangles; the layout 
 - The door: bottom centre, x 108 to 148.
 - Everything else is yours: shelves with candy jars against the top wall, a window, plants, lanterns.
 
-**Background**: `public/art/scenes/counter.png`, 256 x 176. Prompt: "{shared style words} A cozy candy shop seen from directly above (top-down):
+**Background**: `public/art/scenes/counter.png`, 256 x 176 (done; the layout below was fitted to it). Prompt: "{shared style words} A cozy candy shop seen from directly above (top-down):
 a long wooden counter across the top with glass candy jars on shelves behind it, a clear carpeted path running from the door at the bottom up to the
 counter, four small round wooden tables with chairs, two on each side, warm lantern light, no characters, no animals, no people. 256x176."
 
