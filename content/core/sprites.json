@@ -74,5 +74,24 @@
         "loop": true
       }
     }
+  },
+  {
+    "id": "shaper",
+    "width": 64,
+    "height": 64,
+    "actions": {
+      "idle": {
+        "file": "art/sprites/shaper-idle.png",
+        "frames": 4,
+        "fps": 3,
+        "loop": true
+      },
+      "work": {
+        "file": "art/sprites/shaper-work.png",
+        "frames": 4,
+        "fps": 6,
+        "loop": true
+      }
+    }
   }
 ]

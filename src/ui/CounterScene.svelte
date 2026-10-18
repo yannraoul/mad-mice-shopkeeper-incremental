@@ -51,7 +51,7 @@
   // Customers that have just arrived start at the door and walk to their place on the next frame.
   let arrived = $state<number[]>([]);
   type Spot = { x: number; y: number; size: number; out: boolean };
-  type Ghost = { key: number; type: string; from: Spot; tgt: Spot; moved: boolean; seat: number | null; until: number };
+  type Ghost = { key: number; type: string; from: Spot; tgt: Spot; moved: boolean; seat: number | null; until: number; hearts: number };
   let ghosts = $state<Ghost[]>([]);
   let known = new Map<number, { type: string; slot: number }>();
   let turn = 0;
@@ -65,12 +65,13 @@
       const gone = [...known].filter(([id]) => !ids.has(id));
       if (gone.length > 0) {
         turn += 1;
-        const fate = new Map(game.events.map((e) => [e.type === 'sold' || e.type === 'refused' || e.type === 'left' ? e.customer : -1, e.type]));
+        const fate = new Map(game.events.map((e) => [e.type === 'sold' || e.type === 'refused' || e.type === 'left' ? e.customer : -1, e]));
         // Whoever has had their turns leaves first; then the newly served sit down.
         const done = ghosts.filter((g) => g.seat !== null && g.until < turn).map((g) => g.key);
         ghosts = ghosts.map((g) => (done.includes(g.key) ? leave(g) : g));
         for (const [id, info] of gone) {
-          const sits = fate.get(id) === 'sold';
+          const outcome = fate.get(id);
+          const sits = outcome?.type === 'sold';
           const p = slotAt(info.slot);
           const from: Spot = { x: p.x, y: p.y, size: SIZE, out: false };
           let seat: number | null = null;
@@ -85,7 +86,7 @@
             }
           }
           const tgt: Spot = seat !== null ? { ...seatAt(seat), size: SEATED, out: false } : { x: p.x, y: DOOR_Y, size: SIZE, out: true };
-          const g: Ghost = { key: id, type: info.type, from, tgt, moved: false, seat, until: turn + TURNS_SEATED };
+          const g: Ghost = { key: id, type: info.type, from, tgt, moved: false, seat, until: turn + TURNS_SEATED, hearts: outcome?.type === 'sold' ? outcome.hearts : 0 };
           ghosts = [...ghosts, g];
           setTimeout(() => (ghosts = ghosts.map((x) => (x.key === id ? { ...x, moved: true } : x))), 40);
           if (seat === null) setTimeout(() => (ghosts = ghosts.filter((x) => x.key !== id)), 1300);
@@ -99,13 +100,17 @@
     });
   });
 
+  const base = import.meta.env.BASE_URL;
+  let hasBackground = $state(false);
   const hidden = $derived(Math.max(0, customers.length - SLOTS) + outside.n);
 </script>
 
-<div class="scene" role="group" aria-label={t('serve.title')}>
+<div class="scene" class:art={hasBackground} role="group" aria-label={t('serve.title')}>
+  <!-- The picture of the shop (256 x 176), when it exists: it replaces the placeholder counter, tables and door. -->
+  <img class="bg" src="{base}art/scenes/counter.png" alt="" onload={() => (hasBackground = true)} onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
   <div class="counter" style:left={pctX(24)} style:top={pctY(6)} style:width={pctX(208)} style:height={pctY(24)}></div>
   {#each clerks as cl (cl.id)}
-    <div class="clerk" class:off={!cl.active} style:left={pctX(114)} style:top={pctY(4)} style:width={pctX(28)} style:height={pctY(26)} title={cl.id}>C</div>
+    <div class="clerk" class:off={!cl.active} style:left={pctX(114)} style:top={pctY(4)} style:width={pctX(28)} style:height={pctY(26)} title={cl.id}>C<img class="face" src="{base}art/tokens/clerk.png" alt="" onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} /></div>
   {/each}
   {#each TABLES as tb}
     <div class="table" style:left={pctX(tb.x)} style:top={pctY(tb.y)} style:width={pctX(TABLE_W)} style:height={pctY(TABLE_H)}></div>
@@ -125,7 +130,9 @@
       style:height={pctY(p.size)}
       style:background={customerColor(g.type)}
       aria-hidden="true"
-    ></div>
+    >
+      {#if g.seat !== null && g.moved}<span class="mood">{'♥'.repeat(g.hearts)}</span>{/if}
+    </div>
   {/each}
 
   {#each customers.slice(0, SLOTS) as cu, i (cu.id)}
@@ -140,11 +147,14 @@
       style:width={pctX(SIZE)}
       style:height={pctY(SIZE)}
       style:background={customerColor(cu.type)}
+      style:--bob="{(cu.id % 7) * -0.4}s"
       aria-pressed={selected === cu.id}
       aria-label={`${cu.name}: ${cu.wants}, ${cu.minQuality}`}
       onclick={() => onselect(selected === cu.id ? null : cu.id)}
     >
       <span class="initial" aria-hidden="true">{cu.name[0]}</span>
+      <img class="face" src="{base}art/tokens/customer-{cu.type}.png" alt="" onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
+      {#if cu.patienceMeter.tier === 'urgent'}<span class="mood warn" aria-hidden="true">!</span>{/if}
       <span class="want" aria-hidden="true">{#if cu.art}<ImageSlot id={cu.art} width={14} />{:else}★{/if}</span>
     </button>
   {/each}
@@ -152,6 +162,8 @@
 
 <style>
   .scene { position: relative; aspect-ratio: 256 / 176; width: 100%; overflow: hidden; border-radius: 12px; background: linear-gradient(#e7d3a8 0 17%, #d9bf8c 17%); container-type: inline-size; }
+  .bg { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+  .scene.art .counter, .scene.art .table, .scene.art .door { display: none; }
   .counter { position: absolute; background: #a8743f; border-bottom: 4px solid #4d3220; border-radius: 6px; }
   .clerk { position: absolute; display: grid; place-items: center; background: #7b5cb0; color: #fff; font: 700 14px/1 var(--body); border-radius: 6px; z-index: 1; }
   .clerk.off { opacity: 0.35; }
@@ -160,7 +172,7 @@
   .more { position: absolute; right: 8px; bottom: 6px; padding: 2px 8px; border-radius: 999px; background: rgba(0, 0, 0, 0.6); color: #fff; font: 700 12px/1.3 var(--body); }
 
   .cust {
-    position: absolute; padding: 0; border: 2px solid #4d3220; border-radius: 8px; color: #2b1c0e; min-height: 0; display: block;
+    position: absolute; padding: 0; border: 2px solid #4d3220; border-radius: 50%; color: #2b1c0e; min-height: 0; display: block;
     transition: left 0.9s ease-in-out, top 0.9s ease-in-out, width 0.9s ease-in-out, height 0.9s ease-in-out, opacity 0.6s; cursor: pointer;
   }
   .initial { position: absolute; inset: 0; display: grid; place-items: center; font: 700 clamp(10px, 4cqw, 20px)/1 var(--body); }
@@ -170,12 +182,18 @@
   }
   .want :global(img) { display: block; width: 14px; height: auto; }
   .cust.ghost { cursor: default; pointer-events: none; }
-  .cust.ghost.seated { border-radius: 6px; }
   .cust.ghost.gone { opacity: 0; }
   .cust.can { box-shadow: 0 0 0 3px var(--ok); }
+  /* A token waits with a small bob, each out of step with the next; one about to leave shakes. */
+  button.cust:not(.urgent) { animation: bob 2.6s ease-in-out infinite; animation-delay: var(--bob, 0s); }
   .cust.urgent { animation: nudge 0.7s ease-in-out infinite; }
+  /* Customer art, when there is some: art/tokens/customer-<type>.png, drawn over the coloured circle. */
+  .face { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; image-rendering: pixelated; object-fit: cover; }
+  .mood { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); font: 700 10px/1 var(--body); color: #c4506b; white-space: nowrap; text-shadow: 0 1px 0 #fff7e0; }
+  .mood.warn { color: #fff; background: var(--warn); border-radius: 50%; min-width: 14px; height: 14px; line-height: 14px; text-align: center; text-shadow: none; }
+  @keyframes bob { 50% { transform: translateY(-2px); } }
   .cust.sel { outline: 3px solid var(--accent); outline-offset: 2px; z-index: 3; }
   .cust:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; z-index: 3; }
   @keyframes nudge { 50% { transform: translateX(3px); } }
-  @media (prefers-reduced-motion: reduce) { .cust { transition: none; } .cust.urgent { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .cust { transition: none; animation: none !important; } }
 </style>

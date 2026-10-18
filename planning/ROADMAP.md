@@ -41,3 +41,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-27](features/MMSIM-27.md) — The shop rating: happy customers raise it, walk-outs lower it, prices move plus or minus 10 %
 - [MMSIM-28](features/MMSIM-28.md) — The accounting mouse: the routine buys the cheapest upgrades in the evening and puts the shop to sleep
 - [MMSIM-29](features/MMSIM-29.md) — Three routine switches (foreman, accounting, auto sleep) and a timed, visible accounting mouse
+- [MMSIM-30](features/MMSIM-30.md) — Counter tokens, a fifth (placeholder) mouse, drop-in art files and the art pack

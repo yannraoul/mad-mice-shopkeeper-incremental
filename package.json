@@ -15,7 +15,8 @@
     "sim": "tsx scripts/simulate.ts",
     "balance": "tsx scripts/balance.ts",
     "screenshots": "tsx scripts/screenshots.ts",
-    "catalog": "tsx scripts/catalog.ts"
+    "catalog": "tsx scripts/catalog.ts",
+    "art:link": "tsx scripts/art/link-art.ts"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.3.1",

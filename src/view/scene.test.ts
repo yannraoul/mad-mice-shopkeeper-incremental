@@ -16,8 +16,8 @@ const game = (unlocks: string[] = []) => newGame(c, { seed: 1, unlocks: ['routin
 describe('the scene view', () => {
   it('shows a mouse only where a helper does the step', () => {
     expect(buildSceneView(c, newGame(c, { seed: 1 }), t)!.actors).toEqual([]);
-    expect(working(buildSceneView(c, game(), t)!)).toEqual(['porter', 'stirrer']);
-    expect(working(buildSceneView(c, game(['oven', 'auto-oven', 'auto-pull']), t)!)).toEqual(['baker', 'porter', 'sculptor', 'stirrer']);
+    expect(working(buildSceneView(c, game(), t)!)).toEqual(['porter', 'shaper', 'stirrer']);
+    expect(working(buildSceneView(c, game(['oven', 'auto-oven', 'auto-pull']), t)!)).toEqual(['baker', 'porter', 'sculptor', 'shaper', 'stirrer']);
     expect(buildSceneView(c, newGame(c, { seed: 1 }), t)!.zones).toEqual([]);
   });
   it('carries what a front end needs to draw it', () => {
@@ -44,16 +44,16 @@ describe('the zones', () => {
 
 describe('describeBeat', () => {
   const craft = (quality: string) => ({ type: 'craft' as const, station: 0, candy: c.candies[0]!.id, quality });
-  it('has each helper mouse work in turn for a batch: fill, stir (shaping has no mouse yet)', () => {
-    expect(describeBeat(c, game(), craft('plain')).map((x) => x.actor)).toEqual(['porter', 'stirrer']);
+  it('has each helper mouse work in turn for a batch: fill, stir, shape', () => {
+    expect(describeBeat(c, game(), craft('plain')).map((x) => x.actor)).toEqual(['porter', 'stirrer', 'shaper']);
   });
   it('adds the oven mouse after stir for a baked quality, and the pulling mouse for a pulled one', () => {
-    expect(describeBeat(c, game(['oven', 'auto-oven']), craft('fine')).map((x) => x.actor)).toEqual(['porter', 'stirrer', 'baker']);
+    expect(describeBeat(c, game(['oven', 'auto-oven']), craft('fine')).map((x) => x.actor)).toEqual(['porter', 'stirrer', 'baker', 'shaper']);
     expect(describeBeat(c, game(['oven', 'auto-oven', 'auto-pull']), craft('excellent')).map((x) => x.actor)).toContain('sculptor');
   });
   it('skips a step the player does by hand, and has no animation for other actions', () => {
     const s = { ...game(), handSteps: ['stir'] };
-    expect(describeBeat(c, s, craft('plain')).map((x) => x.actor)).toEqual(['porter']);
+    expect(describeBeat(c, s, craft('plain')).map((x) => x.actor)).toEqual(['porter', 'shaper']);
     expect(describeBeat(c, game(), { type: 'endPhase' })).toEqual([]);
   });
 });

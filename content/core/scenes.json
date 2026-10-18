@@ -33,6 +33,13 @@
         "step": "pull",
         "x": 50,
         "y": 52
+      },
+      {
+        "id": "shaper",
+        "sprite": "shaper",
+        "step": "form",
+        "x": 146,
+        "y": -6
       }
     ],
     "zones": [
