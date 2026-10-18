@@ -24,6 +24,10 @@
     queueMicrotask(() => document.getElementById(`queue-row-${id}`)?.scrollIntoView({ block: 'nearest' }));
   });
 
+  // Customer pictures that exist (art/tokens/customer-<type>.png): their chip shows the token instead of a coloured letter.
+  let faces = $state<Record<string, boolean>>({});
+  const base = import.meta.env.BASE_URL;
+
   const tierColor = { ok: 'var(--ok)', low: 'var(--accent)', urgent: 'var(--warn)' } as const;
 </script>
 
@@ -36,7 +40,9 @@
       <li class="row" id="queue-row-{cu.id}" class:sel={selected === cu.id} class:urgent={m.tier === 'urgent'}>
         <div class="line">
           <button class="who" aria-expanded={selected === cu.id} onclick={() => onselect(selected === cu.id ? null : cu.id)}>
-            <span class="chip" style:background={customerColor(cu.type)} aria-hidden="true">{cu.name[0]}</span>
+            <span class="chip" class:face={faces[cu.type]} style:background={customerColor(cu.type)} aria-hidden="true">
+              {cu.name[0]}<img src="{base}art/tokens/customer-{cu.type}.png" alt="" onload={() => (faces[cu.type] = true)} onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
+            </span>
             <span class="want">
               {#if cu.art}<ImageSlot id={cu.art} width={26} />{:else}<b class="star" aria-hidden="true">★</b>{/if}
               <span class="wname"><b>{cu.candyName}</b><span class="muted small">{cu.name} · {cu.bubble.quality}+ · {cu.budgetText}</span></span>
@@ -74,7 +80,9 @@
   .row.urgent { border-color: var(--warn); }
   .line { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center; gap: 8px; }
   .who { display: flex; align-items: center; gap: 8px; min-width: 0; background: transparent; border: 0; padding: 0; color: var(--ink); text-align: left; min-height: 40px; }
-  .chip { flex: none; width: 24px; height: 24px; border-radius: 6px; border: 2px solid #4d3220; display: grid; place-items: center; font: 700 12px/1 var(--body); color: #2b1c0e; }
+  .chip { position: relative; flex: none; width: 32px; height: 32px; border-radius: 6px; border: 2px solid #4d3220; display: grid; place-items: center; font: 700 12px/1 var(--body); color: #2b1c0e; }
+  .chip img { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+  .chip.face { background: transparent !important; border-color: transparent; font-size: 0; }
   .want { display: flex; align-items: center; gap: 6px; min-width: 0; }
   .star { font-size: 20px; width: 26px; text-align: center; }
   .wname { display: flex; flex-direction: column; min-width: 0; font-size: 14px; line-height: 1.2; }

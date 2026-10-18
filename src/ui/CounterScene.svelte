@@ -28,13 +28,13 @@
 
   const W = 256;
   const H = 176;
-  const SIZE = 28;
-  const SEATED = 22;
+  const SIZE = 32;
+  const SEATED = 24;
   const DOOR_Y = H + 4;
   const TURNS_SEATED = 2;
   const SLOTS = 6;
-  // Two tokens wide on the carpet that runs from the door up to the counter, three rows.
-  const slotAt = (i: number) => ({ x: 98 + (i % 2) * 30, y: 74 + Math.floor(i / 2) * 31 });
+  // Two tokens wide down the middle, over the carpet that runs from the door up to the counter, three rows.
+  const slotAt = (i: number) => ({ x: 92 + (i % 2) * 32, y: 72 + Math.floor(i / 2) * 32 });
   // Four round tables on rugs (centres at the picture's tables), two chairs each: left and right of the table.
   const TABLES = [
     { x: 52, y: 98 }, { x: 52, y: 146 }, { x: 204, y: 98 }, { x: 204, y: 146 },
@@ -43,7 +43,7 @@
   const TABLE_H = 40;
   const seatAt = (k: number) => {
     const tb = TABLES[Math.floor(k / 2) % TABLES.length]!;
-    return { x: tb.x - 36 + (k % 2) * 50, y: tb.y - 12 };
+    return { x: tb.x - 37 + (k % 2) * 50, y: tb.y - 12 };
   };
   const SEATS = TABLES.length * 2;
   const pctX = (x: number) => `${(x / W) * 100}%`;
@@ -103,6 +103,9 @@
 
   const base = import.meta.env.BASE_URL;
   let hasBackground = $state(false);
+  // Which token pictures exist (art/tokens/customer-<type>.png): a type with one drops its coloured circle and letter.
+  let faces = $state<Record<string, boolean>>({});
+  let clerkFace = $state(false);
   const hidden = $derived(Math.max(0, customers.length - SLOTS) + outside.n);
 </script>
 
@@ -111,7 +114,7 @@
   <img class="bg" src="{base}art/scenes/counter.png" alt="" onload={() => (hasBackground = true)} onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
   <div class="counter" style:left={pctX(42)} style:top={pctY(42)} style:width={pctX(174)} style:height={pctY(26)}></div>
   {#each clerks as cl (cl.id)}
-    <div class="clerk" class:off={!cl.active} style:left={pctX(114)} style:top={pctY(24)} style:width={pctX(28)} style:height={pctY(26)} title={cl.id}>C<img class="face" src="{base}art/tokens/clerk.png" alt="" onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} /></div>
+    <div class="clerk" class:off={!cl.active} class:face={clerkFace} style:left={pctX(112)} style:top={pctY(18)} style:width={pctX(32)} style:height={pctY(32)} title={cl.id}>C<img class="face" src="{base}art/tokens/clerk.png" alt="" onload={() => (clerkFace = true)} onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} /></div>
   {/each}
   {#each TABLES as tb}
     <div class="table" style:left={pctX(tb.x - TABLE_W / 2)} style:top={pctY(tb.y - TABLE_H / 2)} style:width={pctX(TABLE_W)} style:height={pctY(TABLE_H)}></div>
@@ -129,9 +132,11 @@
       style:top={pctY(p.y)}
       style:width={pctX(p.size)}
       style:height={pctY(p.size)}
+      class:face={faces[g.type]}
       style:background={customerColor(g.type)}
       aria-hidden="true"
     >
+      <img class="face" src="{base}art/tokens/customer-{g.type}.png" alt="" onload={() => (faces[g.type] = true)} onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
       {#if g.seat !== null && g.moved}<span class="mood">{'♥'.repeat(g.hearts)}</span>{/if}
     </div>
   {/each}
@@ -143,6 +148,7 @@
       class:sel={selected === cu.id}
       class:can={cu.bubble.canServe}
       class:urgent={cu.patienceMeter.tier === 'urgent'}
+      class:face={faces[cu.type]}
       style:left={pctX(here.x)}
       style:top={pctY(here.y)}
       style:width={pctX(SIZE)}
@@ -154,7 +160,7 @@
       onclick={() => onselect(selected === cu.id ? null : cu.id)}
     >
       <span class="initial" aria-hidden="true">{cu.name[0]}</span>
-      <img class="face" src="{base}art/tokens/customer-{cu.type}.png" alt="" onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
+      <img class="face" src="{base}art/tokens/customer-{cu.type}.png" alt="" onload={() => (faces[cu.type] = true)} onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
       {#if cu.patienceMeter.tier === 'urgent'}<span class="mood warn" aria-hidden="true">!</span>{/if}
       <span class="want" aria-hidden="true">{#if cu.art}<ImageSlot id={cu.art} width={14} />{:else}★{/if}</span>
     </button>
@@ -189,7 +195,11 @@
   button.cust:not(.urgent) { animation: bob 2.6s ease-in-out infinite; animation-delay: var(--bob, 0s); }
   .cust.urgent { animation: nudge 0.7s ease-in-out infinite; }
   /* Customer art, when there is some: art/tokens/customer-<type>.png, drawn over the coloured circle. */
-  .face { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; image-rendering: pixelated; object-fit: cover; }
+  .face { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; object-fit: contain; }
+  /* With its picture a token is just the picture (the green ring that says "can serve" stays). */
+  .cust.face { background: transparent !important; border-color: transparent; }
+  .cust.face .initial { display: none; }
+  .clerk.face { background: transparent; font-size: 0; }
   .mood { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); font: 700 10px/1 var(--body); color: #c4506b; white-space: nowrap; text-shadow: 0 1px 0 #fff7e0; }
   .mood.warn { color: #fff; background: var(--warn); border-radius: 50%; min-width: 14px; height: 14px; line-height: 14px; text-align: center; text-shadow: none; }
   @keyframes bob { 50% { transform: translateY(-2px); } }

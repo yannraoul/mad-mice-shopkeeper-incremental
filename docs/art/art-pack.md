@@ -60,13 +60,13 @@ Top-down view, scene **256 x 176**. Today it is coloured rectangles; the layout 
 a long wooden counter across the top with glass candy jars on shelves behind it, a clear carpeted path running from the door at the bottom up to the
 counter, four small round wooden tables with chairs, two on each side, warm lantern light, no characters, no animals, no people. 256x176."
 
-**Customer tokens** (a head or a round figure seen from above, **32 x 32**, transparent background; the game draws them as circles, so keep them round):
+**Customer tokens (done: 32 x 32 for the four types, and the clerk)** (a head or a round figure seen from above, **32 x 32**, transparent background; the game draws them as circles, so keep them round):
 `public/art/tokens/customer-faithful.png`, `customer-traveler.png`, `customer-merchant.png`, `customer-bee.png`. One token per customer type, no walk cycle:
 the game slides and bobs them. Prompt: "{shared style words} A small round top-down token of a {type}, 32x32, transparent background, readable at a
 glance": Faithful = a mouse pilgrim with a hood; Traveler = a mouse with a pointed hat and a backpack; Merchant = a mouse with a round hat and a coin
 purse; Bee = a round bee with striped back and small wings.
 
-**Clerk token**: `public/art/tokens/clerk.png`, 28 x 26, same style, a mouse in an apron seen from above.
+**Clerk token** (done at 32 x 32, drawn at that size behind the counter): `public/art/tokens/clerk.png`, same style, a mouse in an apron seen from above.
 
 **Mood marks (optional, 12 x 12 each, transparent)**: `public/art/tokens/mood-happy.png` (a heart), `mood-impatient.png` (a "!"), `mood-angry.png`.
 The game shows plain symbols for now (hearts above a seated customer, a "!" when about to leave); these would replace them (wired when delivered).
