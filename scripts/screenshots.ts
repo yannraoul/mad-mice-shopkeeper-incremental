@@ -84,35 +84,23 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const btn = (re) => [...document.querySelectorAll('button')].find((b) => re.test(b.textContent.trim()));
 const click = async (re, ms = 120) => { const b = btn(re); if (!b) throw new Error('no button ' + re); b.click(); await wait(ms); };
 const images = async () => { for (let i = 0; i < 40; i++) { if ([...document.images].every((m) => m.complete)) return; await wait(100); } };
-const craftBatch = async (quality) => {
-  if (quality) { const q = [...document.querySelectorAll('.workshop .seg .opt')].find((o) => o.textContent.toLowerCase().startsWith(quality)); q.click(); await wait(60); }
-  await click(/^Start batch$/);
-  const st = document.querySelector('button.cauldron');
-  for (let i = 0; i < 12; i++) {
-    const open = [...document.querySelectorAll('.inside b')].find((x) => { const m = x.textContent.match(/(\\d+) \\/ (\\d+)$/); return m && +m[1] < +m[2]; });
-    if (!open) break;
-    const name = open.textContent.replace(/ \\d+ \\/ \\d+$/, '');
-    [...document.querySelectorAll('button.tile')].find((b) => b.textContent.includes(name)).click(); await wait(40);
-    st.click(); await wait(40);
-  }
-  for (let i = 0; i < 6; i++) {
-    if (!document.querySelector('.bench')) break; // the batch is finished and the form is back
-    const next = [...document.querySelectorAll('.workshop .actions button.btn3')].find((b) => !b.disabled && !b.classList.contains('cancel'));
-    if (!next) break; next.click(); await wait(70);
-  }
+// A phase change plays a short overlay (the shop sign, the night sky): wait it out so it is not in the picture.
+const openShop = () => click(/Open the shop/, 2800);
+const closeShop = () => click(/Close the shop/, 2800);
+const sleepNow = () => click(/Go to sleep/, 4600);
+const endDay = async () => { await openShop(); await closeShop(); await sleepNow(); };
+// With every helper hired a batch plays on the scene (about a second per step): wait until Start is available again.
+const craftBatch = async () => {
+  await click(/^Start batch$/, 300);
+  for (let i = 0; i < 80; i++) { const b = btn(/^(Start batch|Make another)/); if (b && !b.disabled) return; await wait(100); }
 };
-const openShop = () => click(/Open the shop/, 300);
-const closeShop = () => click(/Close the shop/, 300);
-const clerkOn = async () => { const c = document.querySelector('.rail input[role=switch]'); if (c && !c.checked) { c.click(); await wait(200); } };
-const serveOne = async () => { const b = [...document.querySelectorAll('.cust button')].find((x) => /^Serve/.test(x.textContent.trim()) && !x.disabled); if (b) { b.click(); await wait(150); } };
-const buy = async (name) => { const n = [...document.querySelectorAll('.node')].find((x) => x.querySelector('.nhead b').textContent.trim() === name); const b = n && n.querySelector('.buy:not([disabled])'); if (b) { b.click(); await wait(120); } };
-const endDay = async () => { await click(/Open the shop/, 200); await click(/Close the shop/, 200); await click(/Go to sleep/, 200); };
 const settings = async () => { document.querySelector('button[aria-label=Settings]').click(); await wait(200); };
+const drawer = async () => { await click(/Board & errands/, 400); };
 `;
 
+// The first days are played by hand; the late game is a developer end-game shop (every upgrade, quest and helper).
 const RICH = '?seed=11&stage=2&money=420&unlocks=oven,clerk,errandsBoard,map,contractBoard,sunflower,dark-garden,royal-jelly';
-const AFTERNOON = `await craftBatch(); await craftBatch(); await openShop(); await clerkOn(); await serveOne();`;
-const EVENING = `${AFTERNOON} await closeShop(); await buy('Honey yield'); await buy('Honey yield'); await buy('Counter space'); await buy('Faithful'); await buy('Patience');`;
+const END = '?endgame=1';
 
 interface Scenario {
   name: string;
@@ -120,15 +108,18 @@ interface Scenario {
   steps: string;
 }
 const SCENARIOS: Scenario[] = [
-  { name: '01-morning-craft-form', query: RICH, steps: '' },
-  { name: '02-morning-craft-bench', query: RICH, steps: `await click(/^Start batch$/); document.querySelector('button.tile').click(); await wait(80); document.querySelector('button.cauldron').click(); await wait(100);` },
-  { name: '03-afternoon-serve', query: RICH, steps: AFTERNOON },
-  { name: '04-evening-tree-and-report', query: RICH, steps: EVENING },
-  { name: '05-settings', query: RICH, steps: `${EVENING} await settings();` },
-  { name: '06-first-day-morning', query: '?seed=3', steps: '' },
-  { name: '07-first-day-afternoon', query: '?seed=3', steps: `await craftBatch(); await openShop();` },
-  { name: '08-rival-active-morning', query: RICH, steps: `await endDay(); await endDay();` },
-  { name: '09-final-stage-cleared', query: '?seed=5&stage=3&completed=1&money=50&unlocks=oven,clerk,errandsBoard,map', steps: '' },
+  { name: '01-morning-workshop', query: END, steps: '' },
+  { name: '02-morning-craft-bench', query: RICH, steps: `await click(/^Start batch$/); document.querySelector('button.tile').click(); await wait(80);` },
+  { name: '03-afternoon-counter', query: END, steps: `await openShop();` },
+  { name: '04-afternoon-order-open', query: END, steps: `await openShop(); document.querySelector('.list .who').click(); await wait(300);` },
+  { name: '05-evening-tree-and-report', query: END, steps: `await openShop(); await closeShop();` },
+  { name: '06-settings', query: END, steps: `await settings();` },
+  { name: '07-first-day-morning', query: '?seed=3', steps: '' },
+  { name: '08-first-day-afternoon', query: '?seed=3', steps: `await openShop();` },
+  { name: '09-rival-active-morning', query: RICH, steps: `await endDay(); await endDay();` },
+  { name: '10-final-stage-cleared', query: '?seed=5&stage=3&completed=1&money=50&unlocks=oven,clerk,errandsBoard,map', steps: '' },
+  { name: '11-board-drawer', query: END, steps: `await drawer();` },
+  { name: '12-routine-switches', query: END, steps: `await click(/Accounting/, 150); await click(/Auto sleep/, 150);` },
 ];
 
 interface Variant {
@@ -143,8 +134,8 @@ interface Variant {
 }
 const VARIANTS: Variant[] = [
   { dir: 'desktop-dark', width: 1200, height: 800, scale: 1, mobile: false, scheme: 'dark' },
-  { dir: 'desktop-light', width: 1200, height: 800, scale: 1, mobile: false, scheme: 'light', only: ['01-morning-craft-form', '03-afternoon-serve', '04-evening-tree-and-report'] },
-  { dir: 'mobile-dark', width: 390, height: 844, scale: 2, mobile: true, scheme: 'dark', only: ['01-morning-craft-form', '02-morning-craft-bench', '03-afternoon-serve', '04-evening-tree-and-report', '05-settings'] },
+  { dir: 'desktop-light', width: 1200, height: 800, scale: 1, mobile: false, scheme: 'light', only: ['01-morning-workshop', '03-afternoon-counter', '05-evening-tree-and-report'] },
+  { dir: 'mobile-dark', width: 390, height: 844, scale: 2, mobile: true, scheme: 'dark', only: ['01-morning-workshop', '02-morning-craft-bench', '03-afternoon-counter', '04-afternoon-order-open', '05-evening-tree-and-report', '11-board-drawer', '12-routine-switches'] },
 ];
 
 // ----------------------------------------------------------------------------- run

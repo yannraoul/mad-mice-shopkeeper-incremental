@@ -102,9 +102,15 @@
   }
   @media (max-width: 640px) {
     main { padding: 12px 12px 24px; gap: 12px; }
-    main.bar { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-    .actionbar .btn { flex: 1; }
-    .routine { padding: 4px 12px 4px 8px; min-height: 44px; }
+    main.bar { padding-bottom: calc(140px + env(safe-area-inset-bottom)); }
+    .actionbar .btn { flex: 1 1 100%; }
+    /* Three switches share one row above the phase button: just the names, a small switch each. */
+    .routine { flex: 1 1 0; min-width: 0; gap: 6px; padding: 4px 8px 4px 6px; min-height: 44px; }
     .routine .status { display: none; }
+    .routine .switch { width: 28px; height: 16px; border-radius: 8px; }
+    .routine .knob { top: 2px; left: 2px; width: 12px; height: 12px; }
+    .routine.on .knob { transform: translateX(12px); }
+    .txt b { font-size: 13px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .txt { min-width: 0; align-items: flex-start; text-align: left; }
   }
 </style>

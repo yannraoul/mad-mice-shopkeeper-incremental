@@ -215,7 +215,7 @@ export function buildServeView(c: Content, s: State, t: Translate, feed: GameEve
     title: t('serve.title'),
     rating: { value: s.rating, text: t('rating.line', { n: Math.round(s.rating), pct: `${pct > 0 ? '+' : pct < 0 ? '−' : '±'}${Math.abs(pct)}` }) },
     summary: [
-      t('serve.waiting', { n: s.queue.length, max: c.settings.counterSpace }),
+      t('serve.waiting', { n: s.queue.length, max: c.settings.counterSpace + modifier(c, s, 'counterSpace') }),
       t('serve.today', { served: s.report.served, lost: s.report.lost, revenue: s.report.revenue }),
     ].join(' · '),
     customers,

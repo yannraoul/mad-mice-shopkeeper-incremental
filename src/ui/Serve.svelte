@@ -155,7 +155,7 @@
   @media (max-width: 640px) {
     .top { grid-template-columns: minmax(0, 1fr); }
     .listcol { min-height: 0; }
-    .listcol > :global(*) { position: static; }
+    .listcol > :global(*) { position: static; max-height: 440px; }
     .drawer { top: auto; left: 0; width: auto; max-height: 85vh; border-radius: 16px 16px 0 0; animation-name: rise; }
     @keyframes rise { from { transform: translateY(100%); } }
   }

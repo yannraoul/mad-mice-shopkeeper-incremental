@@ -93,7 +93,7 @@
   @media (max-width: 640px) {
     .line { grid-template-columns: minmax(0, 1fr) auto auto; }
     .pat { grid-column: 1 / 3; grid-row: 2; }
-    .serve { grid-column: 3; grid-row: 1 / 3; }
+    .serve { grid-column: 3; grid-row: 1 / 3; min-height: 44px; }
     .pay { grid-column: 2; grid-row: 1; }
   }
 </style>
