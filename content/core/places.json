@@ -4,42 +4,66 @@
     "nameKey": "place.millpond",
     "unlock": "map",
     "income": 3,
-    "quest": "q2"
+    "quest": "q2",
+    "at": {
+      "x": 160.2,
+      "y": 140.1
+    }
   },
   {
     "id": "old-orchard",
     "nameKey": "place.old-orchard",
     "unlock": "map",
     "income": 5,
-    "quest": "q3"
+    "quest": "q3",
+    "at": {
+      "x": 128,
+      "y": 84.9
+    }
   },
   {
     "id": "sunflower-hollow",
     "nameKey": "place.sunflower-hollow",
     "unlock": "map",
     "income": 8,
-    "quest": "q4"
+    "quest": "q4",
+    "at": {
+      "x": 95.8,
+      "y": 103.5
+    }
   },
   {
     "id": "stumpsville-road",
     "nameKey": "place.stumpsville-road",
     "unlock": "map",
     "income": 10,
-    "quest": "q5"
+    "quest": "q5",
+    "at": {
+      "x": 95.8,
+      "y": 140.1
+    }
   },
   {
     "id": "market-stall",
     "nameKey": "place.market-stall",
     "unlock": "map",
     "income": 12,
-    "quest": "q6"
+    "quest": "q6",
+    "at": {
+      "x": 160.2,
+      "y": 30.3
+    }
   },
   {
     "id": "roadside-inn",
     "nameKey": "place.roadside-inn",
     "unlock": "map",
     "income": 18,
-    "quest": "q7"
+    "quest": "q7",
+    "at": {
+      "x": 160.2,
+      "y": 103.5
+    }
   },
   {
     "id": "cobbled-market",
@@ -47,7 +71,11 @@
     "unlock": "map",
     "income": 30,
     "quest": "q5",
-    "cost": 600
+    "cost": 600,
+    "at": {
+      "x": 95.8,
+      "y": 30.3
+    }
   },
   {
     "id": "pilgrim-hostel",
@@ -55,7 +83,11 @@
     "unlock": "map",
     "income": 80,
     "quest": "q6",
-    "cost": 1600
+    "cost": 1600,
+    "at": {
+      "x": 192.5,
+      "y": 48.3
+    }
   },
   {
     "id": "fairground",
@@ -63,6 +95,10 @@
     "unlock": "map",
     "income": 190,
     "quest": "q7",
-    "cost": 3800
+    "cost": 3800,
+    "at": {
+      "x": 63.5,
+      "y": 121.5
+    }
   }
 ]

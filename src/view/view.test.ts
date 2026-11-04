@@ -188,8 +188,8 @@ describe('evening view', () => {
     expect(buildMapView(c, early, en)!.places[0]!.text).toBe('🔒 Unknown place'); // the first place opens with the third quest
     reachQuests(c, early, 2);
     const m = buildMapView(c, early, en)!;
-    expect(m.art).toBe('map-strip');
-    expect(m.places[0]).toMatchObject({ text: 'Millpond', income: '+3 coins a day' });
+    expect(m.places.every((p) => p.pin !== null)).toBe(true);
+    expect(m.places[0]).toMatchObject({ text: "River's Rest", income: '+3 coins a day' });
     expect(m.places[1]!.text).toBe('🔒 Unknown place'); // opens one stage later
   });
 });

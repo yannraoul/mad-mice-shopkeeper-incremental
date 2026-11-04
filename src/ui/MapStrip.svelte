@@ -1,7 +1,5 @@
 <script lang="ts">
   import type { MapView } from '../view/map.ts';
-  import { media } from './media.svelte.ts';
-  import ImageSlot from './ImageSlot.svelte';
   import { dispatch } from './game.svelte.ts';
 
   let { view }: { view: MapView | null } = $props();
@@ -10,7 +8,15 @@
 {#if view}
   <section class="frame small">
     <h3>{view.title}</h3>
-    <div class="strip"><ImageSlot id={view.art} height={media.narrow ? 72 : 96} /></div>
+    <!-- The hex-flower picture (256 x 176); each place has a pin on its hex: open, for sale, or still unknown. -->
+    <div class="map">
+      <img src="{import.meta.env.BASE_URL}art/scenes/map.png" alt="" width="256" height="176" />
+      {#each view.places as p (p.id)}
+        {#if p.pin}
+          <span class="pin" class:open={p.open} class:sale={!p.open && !!p.buy} style:left="{p.pin.x}%" style:top="{p.pin.y}%" title={p.text}>{p.open ? '★' : p.buy ? '+' : '?'}</span>
+        {/if}
+      {/each}
+    </div>
     <div class="places">
       {#each view.places as p (p.id)}
         <span class="place" class:locked={!p.open && !p.buy}>{p.text}{#if p.income} <span class="muted small">· {p.income}</span>{/if}
@@ -22,7 +28,14 @@
 
 <style>
   .frame { display: flex; flex-direction: column; gap: 10px; }
-  .strip { display: flex; justify-content: center; overflow: hidden; border-radius: 12px; }
+  .map { position: relative; width: 100%; max-width: 384px; align-self: center; aspect-ratio: 256 / 176; }
+  .map img { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+  .pin {
+    position: absolute; transform: translate(-50%, -50%); display: grid; place-items: center; width: 14px; height: 14px; border-radius: 50%;
+    background: #3a2a1d; border: 1.5px solid var(--line); color: var(--muted); font: 700 8px/1 var(--body);
+  }
+  .pin.open { background: var(--accent); border-color: #fff7e0; color: #2b1c0e; }
+  .pin.sale { border: 2px dashed var(--accent); color: var(--accent); }
   .places { display: flex; gap: 8px; flex-wrap: wrap; }
   .place {
     min-height: 36px;

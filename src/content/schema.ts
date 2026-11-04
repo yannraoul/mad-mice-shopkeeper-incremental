@@ -222,6 +222,8 @@ export const Place = z.object({
   income: z.number().int().min(0).default(0),
   /** Coins to open it (bought on the map in the evening); 0 = open as soon as its quest is done. */
   cost: z.number().int().min(0).default(0),
+  /** Where its pin sits on the map picture (256 x 176 px, from the top left). */
+  at: z.object({ x: z.number().min(0).max(256), y: z.number().min(0).max(176) }).optional(),
 });
 /** Evening journal line, shown when `when` matches the day's report; all conditions optional. */
 export const JournalLine = z.object({

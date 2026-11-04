@@ -46,3 +46,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-32](features/MMSIM-32.md) — Art drop: the puller and the sculptor mice, the counter picture, a palette tool
 - [MMSIM-33](features/MMSIM-33.md) — Customer token variants: Pixellab sheets cut per type, picked by customer id, new clerk token
 - [MMSIM-34](features/MMSIM-34.md) — Item icons cut from the sheets (64 x 64 slots), the sign, sun and moon transition sprites
+- [MMSIM-35](features/MMSIM-35.md) — The hex-flower map with a pin per place, replacing the map strip
