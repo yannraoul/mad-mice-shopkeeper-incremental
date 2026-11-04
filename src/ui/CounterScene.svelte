@@ -4,6 +4,7 @@
   import type { CustomerCard } from '../view/serve.ts';
   import { game } from './game.svelte.ts';
   import { customerColor } from './customerColor.ts';
+  import { tokenSrc } from './tokenArt.ts';
   import ImageSlot from './ImageSlot.svelte';
 
   // PLACEHOLDER counter scene (MMSIM-26): a top-down shop drawn with plain rectangles, in the units of a 256 x 176 scene
@@ -29,7 +30,7 @@
   const W = 256;
   const H = 176;
   const SIZE = 32;
-  const SEATED = 24;
+  const SEATED = SIZE;
   const DOOR_Y = H + 4;
   const TURNS_SEATED = 2;
   // The clerk stands behind the counter: a slice of the counter picture is drawn over the clerk's lower half, so the token does
@@ -47,7 +48,7 @@
   const TABLE_H = 40;
   const seatAt = (k: number) => {
     const tb = TABLES[Math.floor(k / 2) % TABLES.length]!;
-    return { x: tb.x - 37 + (k % 2) * 50, y: tb.y - 12 };
+    return { x: tb.x - 41 + (k % 2) * 50, y: tb.y - 20 };
   };
   const SEATS = TABLES.length * 2;
   const pctX = (x: number) => `${(x / W) * 100}%`;
@@ -107,7 +108,7 @@
 
   const base = import.meta.env.BASE_URL;
   let hasBackground = $state(false);
-  // Which token pictures exist (art/tokens/customer-<type>.png): a type with one drops its coloured circle and letter.
+  // Which token pictures exist (art/tokens/customer-<type>-<n>.png): a type with one drops its coloured circle and letter.
   let faces = $state<Record<string, boolean>>({});
   let clerkFace = $state(false);
   const hidden = $derived(Math.max(0, customers.length - SLOTS) + outside.n);
@@ -154,7 +155,7 @@
       style:background={customerColor(g.type)}
       aria-hidden="true"
     >
-      <img class="face" src="{base}art/tokens/customer-{g.type}.png" alt="" onload={() => (faces[g.type] = true)} onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
+      <img class="face" src={tokenSrc(base, g.type, g.key)} alt="" onload={() => (faces[g.type] = true)} onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
       {#if g.seat !== null && g.moved}<span class="mood">{'♥'.repeat(g.hearts)}</span>{/if}
     </div>
   {/each}
@@ -178,7 +179,7 @@
       onclick={() => onselect(selected === cu.id ? null : cu.id)}
     >
       <span class="initial" aria-hidden="true">{cu.name[0]}</span>
-      <img class="face" src="{base}art/tokens/customer-{cu.type}.png" alt="" onload={() => (faces[cu.type] = true)} onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
+      <img class="face" src={tokenSrc(base, cu.type, cu.id)} alt="" onload={() => (faces[cu.type] = true)} onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
       {#if cu.patienceMeter.tier === 'urgent'}<span class="mood warn" aria-hidden="true">!</span>{/if}
       <span class="want" aria-hidden="true">{#if cu.art}<ImageSlot id={cu.art} width={14} />{:else}★{/if}</span>
     </button>
@@ -203,17 +204,18 @@
   }
   .initial { position: absolute; inset: 0; display: grid; place-items: center; font: 700 clamp(10px, 4cqw, 20px)/1 var(--body); }
   .want {
-    position: absolute; right: -4px; bottom: -4px; display: grid; place-items: center; min-width: 14px; min-height: 14px; padding: 1px;
-    border-radius: 4px; background: #fff7e0; border: 1px solid #4d3220; font: 700 10px/1 var(--body); color: #2b1c0e; overflow: hidden;
+    position: absolute; right: -1.5cqw; bottom: -1.5cqw; display: grid; place-items: center; width: 7.2cqw; height: 7.2cqw; box-sizing: border-box;
+    border-radius: 50%; background: #f0c27a; border: 1px solid #7a4f30; font: 700 10px/1 var(--body); color: #2b1c0e;
   }
-  .want :global(img) { display: block; width: 14px; height: auto; }
+  /* The icons are centred on their 64 x 64 canvas and are scaled to 88% of the circle so even the widest (a wrapper, a sparkle) stays inside. */
+  .want :global(img) { display: block; width: 88% !important; max-width: none; height: auto; background: none; flex: none; }
   .cust.ghost { cursor: default; pointer-events: none; }
   .cust.ghost.gone { opacity: 0; }
   .cust.can { box-shadow: 0 0 0 3px var(--ok); }
   /* A token waits with a small bob, each out of step with the next; one about to leave shakes. */
   button.cust:not(.urgent) { animation: bob 2.6s ease-in-out infinite; animation-delay: var(--bob, 0s); }
   .cust.urgent { animation: nudge 0.7s ease-in-out infinite; }
-  /* Customer art, when there is some: art/tokens/customer-<type>.png, drawn over the coloured circle. */
+  /* Customer art, when there is some: art/tokens/customer-<type>-<n>.png, drawn over the coloured circle. */
   .face { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; object-fit: contain; }
   /* With its picture a token is just the picture (the green ring that says "can serve" stays). */
   .cust.face { background: transparent !important; border-color: transparent; }

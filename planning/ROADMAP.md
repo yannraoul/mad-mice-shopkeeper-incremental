@@ -44,3 +44,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-30](features/MMSIM-30.md) — Counter tokens, a fifth (placeholder) mouse, drop-in art files and the art pack
 - [MMSIM-31](features/MMSIM-31.md) — The ending sequence: a one-time cutscene over the workshop (mice turn to candy), replayable from Settings
 - [MMSIM-32](features/MMSIM-32.md) — Art drop: the puller and the sculptor mice, the counter picture, a palette tool
+- [MMSIM-33](features/MMSIM-33.md) — Customer token variants: Pixellab sheets cut per type, picked by customer id, new clerk token

@@ -2,6 +2,7 @@
   import type { CustomerCard } from '../view/serve.ts';
   import { dispatch } from './game.svelte.ts';
   import { customerColor } from './customerColor.ts';
+  import { tokenSrc } from './tokenArt.ts';
   import ImageSlot from './ImageSlot.svelte';
   import Pips from './Pips.svelte';
 
@@ -24,7 +25,7 @@
     queueMicrotask(() => document.getElementById(`queue-row-${id}`)?.scrollIntoView({ block: 'nearest' }));
   });
 
-  // Customer pictures that exist (art/tokens/customer-<type>.png): their chip shows the token instead of a coloured letter.
+  // Customer pictures that exist (art/tokens/customer-<type>-<n>.png): their chip shows the token instead of a coloured letter.
   let faces = $state<Record<string, boolean>>({});
   const base = import.meta.env.BASE_URL;
 
@@ -41,7 +42,7 @@
         <div class="line">
           <button class="who" aria-expanded={selected === cu.id} onclick={() => onselect(selected === cu.id ? null : cu.id)}>
             <span class="chip" class:face={faces[cu.type]} style:background={customerColor(cu.type)} aria-hidden="true">
-              {cu.name[0]}<img src="{base}art/tokens/customer-{cu.type}.png" alt="" onload={() => (faces[cu.type] = true)} onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
+              {cu.name[0]}<img src={tokenSrc(base, cu.type, cu.id)} alt="" onload={() => (faces[cu.type] = true)} onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} />
             </span>
             <span class="want">
               {#if cu.art}<ImageSlot id={cu.art} width={26} />{:else}<b class="star" aria-hidden="true">★</b>{/if}
