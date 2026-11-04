@@ -45,3 +45,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-31](features/MMSIM-31.md) — The ending sequence: a one-time cutscene over the workshop (mice turn to candy), replayable from Settings
 - [MMSIM-32](features/MMSIM-32.md) — Art drop: the puller and the sculptor mice, the counter picture, a palette tool
 - [MMSIM-33](features/MMSIM-33.md) — Customer token variants: Pixellab sheets cut per type, picked by customer id, new clerk token
+- [MMSIM-34](features/MMSIM-34.md) — Item icons cut from the sheets (64 x 64 slots), the sign, sun and moon transition sprites

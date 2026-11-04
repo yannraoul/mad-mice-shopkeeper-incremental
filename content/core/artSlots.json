@@ -8,30 +8,30 @@
   },
   {
     "id": "ingredient-honey",
-    "width": 96,
-    "height": 96,
-    "file": "art/ingredient-honey.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/ingredient-honey.png",
     "altKey": "ingredient.honey"
   },
   {
     "id": "ingredient-dark-seed",
-    "width": 96,
-    "height": 96,
-    "file": "art/ingredient-dark-seed.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/ingredient-dark-seed.png",
     "altKey": "ingredient.dark-seed"
   },
   {
     "id": "candy-candy-cane",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-candy-cane.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/candy-candy-cane.png",
     "altKey": "candy.candy-cane"
   },
   {
     "id": "candy-sunflower-brittle",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-sunflower-brittle.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/candy-sunflower-brittle.png",
     "altKey": "candy.sunflower-brittle"
   },
   {
@@ -92,135 +92,135 @@
   },
   {
     "id": "ingredient-royal-jelly",
-    "width": 96,
-    "height": 96,
-    "file": "art/ingredient-royal-jelly.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/ingredient-royal-jelly.png",
     "altKey": "ingredient.royal-jelly"
   },
   {
     "id": "ingredient-sunflower-seed",
-    "width": 96,
-    "height": 96,
-    "file": "art/ingredient-sunflower-seed.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/ingredient-sunflower-seed.png",
     "altKey": "ingredient.sunflower-seed"
   },
   {
     "id": "candy-sunflower-nougat",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-sunflower-nougat.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/candy-sunflower-nougat.png",
     "altKey": "candy.sunflower-nougat"
   },
   {
     "id": "ingredient-milk",
-    "width": 96,
-    "height": 96,
-    "file": "art/ingredient-milk.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/ingredient-milk.png",
     "altKey": "ingredient.milk"
   },
   {
     "id": "ingredient-stumpsville-cream",
-    "width": 96,
-    "height": 96,
-    "file": "art/ingredient-stumpsville-cream.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/ingredient-stumpsville-cream.png",
     "altKey": "ingredient.stumpsville-cream"
   },
   {
     "id": "ingredient-blueberry",
-    "width": 96,
-    "height": 96,
-    "file": "art/ingredient-blueberry.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/ingredient-blueberry.png",
     "altKey": "ingredient.blueberry"
   },
   {
     "id": "ingredient-cursed-blackberry",
-    "width": 96,
-    "height": 96,
-    "file": "art/ingredient-cursed-blackberry.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/ingredient-cursed-blackberry.png",
     "altKey": "ingredient.cursed-blackberry"
   },
   {
     "id": "candy-toffee",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-toffee.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/candy-toffee.png",
     "altKey": "candy.toffee"
   },
   {
     "id": "candy-berrycorice",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-berrycorice.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/candy-berrycorice.png",
     "altKey": "candy.berrycorice"
   },
   {
     "id": "candy-honey-fudge",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-honey-fudge.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/candy-honey-fudge.png",
     "altKey": "candy.honey-fudge"
   },
   {
     "id": "candy-honey-berry-gums",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-honey-berry-gums.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/candy-honey-berry-gums.png",
     "altKey": "candy.honey-berry-gums"
   },
   {
     "id": "candy-seed-praline",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-seed-praline.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/candy-seed-praline.png",
     "altKey": "candy.seed-praline"
   },
   {
     "id": "candy-berry-crunch",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-berry-crunch.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/candy-berry-crunch.png",
     "altKey": "candy.berry-crunch"
   },
   {
     "id": "candy-berry-cream-chews",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-berry-cream-chews.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/candy-berry-cream-chews.png",
     "altKey": "candy.berry-cream-chews"
   },
   {
     "id": "candy-golden-truffle",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-golden-truffle.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/candy-golden-truffle.png",
     "altKey": "candy.golden-truffle"
   },
   {
     "id": "candy-meadow-bar",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-meadow-bar.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/candy-meadow-bar.png",
     "altKey": "candy.meadow-bar"
   },
   {
     "id": "candy-berry-cloud",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-berry-cloud.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/candy-berry-cloud.png",
     "altKey": "candy.berry-cloud"
   },
   {
     "id": "candy-cheesecake-bites",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-cheesecake-bites.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/candy-cheesecake-bites.png",
     "altKey": "candy.cheesecake-bites"
   },
   {
     "id": "candy-sweet-tooth",
-    "width": 96,
-    "height": 96,
-    "file": "art/candy-sweet-tooth.svg",
+    "width": 64,
+    "height": 64,
+    "file": "art/candy-sweet-tooth.png",
     "altKey": "candy.sweet-tooth"
   }
 ]

@@ -41,7 +41,7 @@
 
 <style>
   /* The box is sized from the slot (aspect-ratio + width) so nothing moves when the file arrives. */
-  .slot { display: block; max-width: 100%; height: auto; background: var(--stripeBase); border-radius: 12px; flex: none; }
+  .slot { display: block; max-width: 100%; height: auto; border-radius: 12px; flex: none; image-rendering: pixelated; }
   .missing {
     display: grid;
     place-items: center;

@@ -124,7 +124,7 @@
                   <span class="rrow">
                     <span class="cost" title={r.costText}>
                       {#each r.cost as ci (ci.ingredient)}
-                        <span class="ci"><ImageSlot id={ci.art} width={22} /><i>{ci.qty}</i></span>
+                        <span class="ci"><ImageSlot id={ci.art} width={44} /><i>{ci.qty}</i></span>
                       {/each}
                       <span class="sr">{r.costText}</span>
                     </span>
@@ -276,9 +276,9 @@
   .rinfo { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
   .rrow { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
   .rname { font-size: 13px; line-height: 1.15; overflow-wrap: break-word; }
-  .cost { display: flex; flex-wrap: wrap; gap: 4px; }
+  .cost { display: flex; flex-wrap: wrap; gap: 0; }
   .ci { position: relative; display: block; line-height: 0; }
-  .ci i { position: absolute; right: -3px; bottom: -3px; min-width: 13px; height: 13px; padding: 0 2px; border-radius: 7px; background: var(--ink); color: var(--bg); font: 700 10px/13px var(--mono); text-align: center; box-sizing: border-box; }
+  .ci i { position: absolute; right: 2px; bottom: 2px; min-width: 12px; height: 12px; padding: 0 2px; border-radius: 6px; background: var(--ink); color: var(--bg); font: 700 9px/12px var(--mono); text-align: center; box-sizing: border-box; }
   .radio { display: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); flex: none; margin-left: auto; }
   .recipe.selected .radio { border-color: var(--accent); background: radial-gradient(var(--accent) 0 45%, transparent 50%); }
 
