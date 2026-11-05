@@ -80,12 +80,11 @@
   .scene { position: relative; image-rendering: pixelated; flex: none; }
   .bg { display: block; image-rendering: pixelated; }
   .actor { image-rendering: pixelated; background-repeat: no-repeat; }
-  .pop { position: absolute; animation: pop 0.25s ease-out; transform-origin: 50% 100%; }
+  .pop { position: absolute; }
   .pop.ghost { opacity: 0.75; }
   /* While one mouse works, the others fade back: the eye follows the active step. */
   .pop { transition: opacity 0.3s; }
   .pop.dim { opacity: 0.3; }
-  @keyframes pop { from { transform: scale(0.4); opacity: 0; } }
 
   /* A zone is invisible until the pointer or focus is on it; then it shows the area and what a click does. */
   .zone {

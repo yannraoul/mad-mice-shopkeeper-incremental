@@ -24,8 +24,8 @@
         "id": "baker",
         "sprite": "baker",
         "step": "oven",
-        "x": 122,
-        "y": 58
+        "x": 116,
+        "y": 49
       },
       {
         "id": "puller",
