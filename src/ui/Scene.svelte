@@ -24,9 +24,46 @@
   // The zone under the pointer or focus: it lights up and its mouse shows (as a preview if the step is by hand).
   const SPARKS = [[24, 30], [68, 22], [52, 68]]; // where the glints sit in a zone, in percent
   let hot = $state<string | null>(null);
-  const shown = $derived(
-    v ? v.actors.filter((a) => a.on || v.zones.some((z) => z.step === hot && z.actors.includes(a.id))) : [],
-  );
+  // Every hired mouse is on the scene: one whose step is by hand sleeps (dim) until its zone is pointed at.
+  const shown = $derived(v ? v.actors : []);
+
+  // Where to click (MMSIM-37): a bobbing arrow over each zone the player has never clicked, and a few seconds of
+  // call-out (pulse and label) on a zone that has just appeared because its helper was hired. Per-browser, not saved.
+  const TOUCHED_KEY = 'zonesTouched';
+  const FRESH_MS = 8000;
+  const readTouched = (): string[] => {
+    try {
+      const x = JSON.parse(localStorage.getItem(TOUCHED_KEY) ?? '[]');
+      return Array.isArray(x) ? x.filter((i) => typeof i === 'string') : [];
+    } catch {
+      return [];
+    }
+  };
+  let touched = $state<string[]>(readTouched());
+  const touch = (step: string) => {
+    if (touched.includes(step)) return;
+    touched = [...touched, step];
+    try {
+      localStorage.setItem(TOUCHED_KEY, JSON.stringify(touched));
+    } catch {
+      /* private window: the arrow just comes back next time */
+    }
+  };
+  let fresh = $state<string[]>([]);
+  let known: Set<string> | null = null; // the zones already seen, so a loaded game does not call everything out
+  $effect(() => {
+    const steps = (v?.zones ?? []).map((z) => z.step);
+    if (known === null) {
+      if (v) known = new Set(steps);
+      return;
+    }
+    for (const step of steps) {
+      if (known.has(step)) continue;
+      known.add(step);
+      fresh = [...fresh, step];
+      setTimeout(() => (fresh = fresh.filter((x) => x !== step)), FRESH_MS);
+    }
+  });
 </script>
 
 {#if v}
@@ -35,7 +72,7 @@
       <img class="bg" src="{base}{v.file}" alt="" width={v.width * scale} height={v.height * scale} />
       {#each shown as a (a.id)}
         {@const act = a.on && sceneClock.working.includes(a.id) ? a.work : hot === a.step && !a.on ? a.work : a.idle}
-        <div class="pop" class:ghost={!a.on} class:dim={a.on && sceneClock.working.length > 0 && !sceneClock.working.includes(a.id)} style:left="{a.x * scale}px" style:top="{a.y * scale}px">
+        <div class="pop" class:ghost={!a.on && hot === a.step} class:asleep={!a.on && hot !== a.step} class:dim={a.on && sceneClock.working.length > 0 && !sceneClock.working.includes(a.id)} style:left="{a.x * scale}px" style:top="{a.y * scale}px">
           <div
             class="actor"
             style:width="{a.width * scale}px"
@@ -52,6 +89,7 @@
           class="zone"
           class:on={z.on}
           class:hot={hot === z.step}
+          class:fresh={fresh.includes(z.step)}
           style:left="{z.x * scale}px"
           style:top="{z.y * scale}px"
           style:width="{z.width * scale}px"
@@ -62,11 +100,15 @@
           onpointerleave={() => (hot = null)}
           onfocus={() => (hot = z.step)}
           onblur={() => (hot = null)}
-          onclick={() => dispatch(z.action)}
+          onclick={() => {
+            touch(z.step);
+            dispatch(z.action);
+          }}
         >
           {#each SPARKS as sp, k}
             <span class="spark" style:left="{sp[0]}%" style:top="{sp[1]}%" style:--px="{scale}px" style:--d="{(i * 1.3 + k * 1.7) % 4.8}s" aria-hidden="true"></span>
           {/each}
+          {#if !touched.includes(z.step)}<span class="hint" aria-hidden="true"></span>{/if}
           <span class="tag">{z.label}</span>
           <span class="dot" aria-hidden="true"></span>
         </button>
@@ -82,6 +124,7 @@
   .actor { image-rendering: pixelated; background-repeat: no-repeat; }
   .pop { position: absolute; }
   .pop.ghost { opacity: 0.75; }
+  .pop.asleep { opacity: 0.5; filter: saturate(0.4); }
   /* While one mouse works, the others fade back: the eye follows the active step. */
   .pop { transition: opacity 0.3s; }
   .pop.dim { opacity: 0.3; }
@@ -109,11 +152,24 @@
     padding: 2px 8px; border-radius: 999px; background: rgba(0, 0, 0, 0.75); font: 600 12px/1.3 var(--body);
     white-space: nowrap; opacity: 0; pointer-events: none;
   }
-  .zone:hover .tag, .zone:focus-visible .tag { opacity: 1; }
+  .zone:hover .tag, .zone:focus-visible .tag, .zone.fresh .tag { opacity: 1; }
+  /* "Click here": a rounded honey tile with a pointer, like the primary button, bobbing over a zone the player has never clicked. */
+  .hint { position: absolute; left: 50%; top: 2px; width: 22px; height: 18px; margin-left: -11px; pointer-events: none;
+    border-radius: 7px; background: var(--btn); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 3px 0 #8f5c0e;
+    animation: bob 0.9s steps(2) infinite; }
+  .hint::after { content: ''; position: absolute; left: 50%; bottom: -4px; width: 10px; height: 10px; margin-left: -5px; z-index: -1;
+    transform: rotate(45deg); border-radius: 0 0 3px 0; background: #eba526; box-shadow: 2px 2px 0 #8f5c0e; }
+  .zone:hover .hint, .zone:focus-visible .hint, .zone.hot .hint { display: none; }
+  .zone.fresh .hint { top: 26px; }
+  @keyframes bob { 50% { transform: translateY(6px); } }
+  /* A helper just hired: the zone pulses until the call-out ends. */
+  .zone.fresh { animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+    50% { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 30%, transparent); } }
   .dot { position: absolute; right: 4px; bottom: 4px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; background: #a33; display: none; }
   .zone.on .dot { background: var(--ok); }
   /* A touch screen has no hover: the dot says which steps a helper does. */
   @media (hover: none) { .dot { display: block; } }
   @keyframes -global-sheet { to { background-position-x: calc(var(--sheet) * -1); } }
-  @media (prefers-reduced-motion: reduce) { .actor, .pop, .spark { animation: none !important; } }
+  @media (prefers-reduced-motion: reduce) { .actor, .pop, .spark, .hint, .zone { animation: none !important; } }
 </style>
