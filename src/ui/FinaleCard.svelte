@@ -44,6 +44,8 @@
       <button class="btn sm" onclick={copy} disabled={!code}>{copied ? finale.copiedLabel : finale.copyLabel}</button>
     </div>
 
+    <p class="again">{finale.againNote}</p>
+
     <button class="btn big go" onclick={onclose}>{finale.closeLabel}</button>
   </div>
 </div>
@@ -59,6 +61,7 @@
   .label { font-size: 13px; opacity: 0.75; }
   .code { font: 700 26px/1.2 ui-monospace, Consolas, monospace; letter-spacing: 0.08em; user-select: all; }
   .code.empty { opacity: 0.35; }
+  .again { margin: 0; font-size: 13px; opacity: 0.7; }
   .go { align-self: center; margin-top: 6px; }
   @keyframes appear { from { opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { .finale { animation: none; } }

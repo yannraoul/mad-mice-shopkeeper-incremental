@@ -20,11 +20,11 @@
 
 {#snippet slot(item: ShelfItem)}
   {#if v.mode === 'bench'}
-    <button class="tile" class:dim={!item.enabled} disabled={!item.enabled} onclick={() => send({ type: 'tapShelf', ingredient: item.ingredient })}>
+    <button class="tile" class:dim={!item.enabled} disabled={!item.enabled} title={item.help ?? undefined} onclick={() => send({ type: 'tapShelf', ingredient: item.ingredient })}>
       {@render ingredient(item)}
     </button>
   {:else}
-    <div class="tile">{@render ingredient(item)}</div>
+    <div class="tile" title={item.help ?? undefined}>{@render ingredient(item)}</div>
   {/if}
 {/snippet}
 
@@ -69,6 +69,7 @@
           </button>
         {/each}
       </div>
+      {#if f.qualityNote}<p class="qnote">{f.qualityNote}</p>{/if}
       <button class="btn big start-btn" onclick={() => send({ type: 'start' })} disabled={!f.start.enabled || sceneClock.busy}>{f.start.label}</button>
     {/if}
   </div>
@@ -98,6 +99,7 @@
           {#if p.alt}{@render slot(p.alt)}{/if}
         {/each}
       </div>
+      {#if sc.altNote}<p class="surplus">{sc.altNote}</p>{/if}
       {#if sc.surplusNote}<p class="surplus">{sc.surplusNote}</p>{/if}
     </div>
     </div>
@@ -247,6 +249,7 @@
   .strip :global(.pips) { flex: none; flex-wrap: wrap; justify-content: center; gap: 3px; }
   .strip :global(.pip.round) { border-color: rgba(255, 255, 255, 0.6) !important; }
   .name { font-size: 14px; line-height: 1.15; overflow-wrap: break-word; }
+  .qnote { margin: 0; font-size: 12px; line-height: 1.35; color: var(--muted); }
   .surplus { margin: 0; padding: 4px 4px 0; font-size: 12px; line-height: 1.35; color: var(--muted); }
   button.tile:disabled { opacity: 1; }
   .tile.dim { opacity: 0.45; }

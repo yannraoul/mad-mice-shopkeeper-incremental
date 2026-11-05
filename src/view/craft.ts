@@ -119,6 +119,8 @@ export interface CraftIdleView {
   stockLegend: string;
   /** All qualities as a segmented control; locked ones are listed but not `enabled`. */
   qualityOptions: { value: string; label: string; note: string; selected: boolean; enabled: boolean }[];
+  /** What the selected quality needs, when it is a Perfect-style one (rare ingredients); null otherwise. */
+  qualityNote: string | null;
   start: { label: string; enabled: boolean };
   /** Helpers hired for crafting steps: each can be left to do its step or taken back (remembered). */
   helpersTitle: string;
@@ -144,6 +146,8 @@ export type ShelfItem = {
   alternateOf: string | null;
   /** Tapping it puts a unit in the cauldron: only while the recipe still needs some. */
   enabled: boolean;
+  /** Rare ingredients only: how they work and which unlocked candies use them (a tooltip). */
+  help: string | null;
 };
 
 export interface CraftScene {
@@ -156,6 +160,8 @@ export interface CraftScene {
   shelfPairs: { base: ShelfItem; alt: ShelfItem | null }[];
   /** True once any alternate is unlocked: the shelf is then laid out as base and alternate pairs. */
   shelfHasAlternates: boolean;
+  /** One visible line on how the rare ingredients work, once any is unlocked. */
+  altNote: string | null;
   cauldronTitle: string;
   stationArt: string;
   batchesTitle: string;
@@ -303,6 +309,21 @@ function buildScene(c: Content, s: State, ui: CraftUi, t: Translate): CraftScene
   return withPairs(buildSceneFlat(c, s, ui, t));
 }
 
+const altPct = (c: Content, s: State, ing: { id: string; chance: number }) =>
+  Math.round(Math.min(1, ing.chance + modifier(c, s, `altChance:${ing.id}`)) * 100);
+
+/** How one rare ingredient works, with the unlocked candies whose Perfect version uses it. */
+function altHelp(c: Content, s: State, ing: { id: string; nameKey: string; chance: number; store: number }, t: Translate): string {
+  const candies = unlockedCandies(c, s).filter((cd) => cd.perfect.includes(ing.id)).map((cd) => t(cd.nameKey));
+  const p = { name: t(ing.nameKey), pct: altPct(c, s, ing), store: altStore(c, s, ing) };
+  return candies.length > 0 ? t('craft.altTip', { ...p, candies: candies.join(', ') }) : t('craft.altTipNone', p);
+}
+
+/** The visible line about rare ingredients (the figures are in each one's tooltip: they differ per ingredient). */
+function altNote(c: Content, s: State, t: Translate): string | null {
+  return unlockedIngredients(c, s).some((i) => i.alternateOf) ? t('craft.altNote') : null;
+}
+
 function buildSceneFlat(c: Content, s: State, ui: CraftUi, t: Translate): CraftScene {
   const session = ui.session;
   const inst = s.stations[session ? session.station : ui.station] ?? s.stations[0]!;
@@ -323,10 +344,12 @@ function buildSceneFlat(c: Content, s: State, ui: CraftUi, t: Translate): CraftS
         total: ing.alternateOf ? Math.max(left, altStore(c, s, ing)) : Math.max(left, s.supplyToday[ing.id] ?? 0),
         alternateOf: ing.alternateOf ?? null,
         enabled: !!session && remaining(session, ing.id) > 0,
+        help: ing.alternateOf ? altHelp(c, s, ing, t) : null,
       };
     }),
     shelfPairs: [],
     shelfHasAlternates: false,
+    altNote: altNote(c, s, t),
     cauldronTitle: t('craft.cauldron'),
     stationArt: `station-${inst.type}`,
     batchesTitle: t('craft.batchesToday'),
@@ -462,6 +485,7 @@ function buildCraftBase(c: Content, s: State, ui: CraftUi, t: Translate): Omit<C
           selected: q.id === ui.quality,
           enabled: isQualityUnlocked(c, s, q.id),
         })),
+      qualityNote: c.qualities.find((q) => q.id === ui.quality)?.alternates ? t('craft.perfectNote') : null,
       start: { label: ui.note ? t('craft.again') : t('craft.start'), enabled: !blocked },
       helpersTitle: t('craft.helpers'),
       helpers: automatableSteps(c, s).map((row) => {

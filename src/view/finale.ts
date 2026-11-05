@@ -16,6 +16,8 @@ export interface FinaleView {
   copyLabel: string;
   copiedLabel: string;
   closeLabel: string;
+  /** Where the code can be found again. */
+  againNote: string;
   replayLabel: string;
   /** The code for a name, or null while the name is empty. Same name, same run: same code. */
   codeFor: (name: string) => string | null;
@@ -36,6 +38,7 @@ export function buildFinaleView(c: Content, s: State, t: Translate, secret: stri
     copyLabel: t('finale.copy'),
     copiedLabel: t('finale.copied'),
     closeLabel: t('finale.close'),
+    againNote: t('finale.again'),
     replayLabel: t('finale.replay'),
     codeFor: (name) => (normalizeName(name) && s.finale ? makeFinaleCode(secret, name, payloadFrom(s.finale, s.seed)) : null),
   };
