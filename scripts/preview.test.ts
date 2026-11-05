@@ -49,13 +49,13 @@ describe('preview build', () => {
 
       const preview = await bundleText(contentDir, join(tmp, 'out-preview'), false);
       expect(preview).not.toContain('SECRET-PLOT-MARKER');
-      // the real placeholder ending pack is excluded too
-      expect(preview).not.toContain('the real ending is yours to write');
+      // the ending pack is excluded too
+      expect(preview).not.toContain('Even the cauldron stops bubbling');
       expect(preview).toContain('Cult of Sweet Tooth'); // core content is there
 
       const full = await bundleText(contentDir, join(tmp, 'out-full'), true);
       expect(full).toContain('SECRET-PLOT-MARKER-EN-9137');
-      expect(full).toContain('the real ending is yours to write');
+      expect(full).toContain('Even the cauldron stops bubbling');
     } finally {
       rmSync(tmp, { recursive: true, force: true });
     }

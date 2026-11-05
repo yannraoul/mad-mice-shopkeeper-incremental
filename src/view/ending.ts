@@ -4,8 +4,8 @@ import type { State } from '../engine/types.ts';
 import type { ActorView } from './scene.ts';
 import { WORKSHOP_SCENE } from './scene.ts';
 
-/** How many lines the ending has at most: `ending.beat.1` to `ending.beat.5`, in the optional ending pack. */
-const MAX_BEATS = 5;
+/** How many lines the ending has at most: `ending.beat.1` to `ending.beat.6`, in the optional ending pack. */
+const MAX_BEATS = 6;
 
 export interface EndingView {
   /** The title and the lines, in the pack; empty when the pack is not part of this build (the preview build has none). */
