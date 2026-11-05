@@ -1,0 +1,48 @@
+# Publishes the PREVIEW build (no ending, no live-plot errands) to GitHub Pages on every push to main.
+# One-time setup: Settings > Pages > Source = "GitHub Actions", and a repository secret VITE_FINALE_SECRET
+# (the same value as in .env.local, so the author's `npm run verify-code` accepts the codes of this build).
+name: Publish preview
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      VITE_FINALE_SECRET: ${{ secrets.VITE_FINALE_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: The finale secret must be set (otherwise the build would sign codes with the public development secret)
+        run: test -n "$VITE_FINALE_SECRET"
+      # check:content, the preview build, then a scan that no pack text is in dist-preview/
+      - run: npm run build:preview
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-preview
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -57,6 +57,11 @@ same session down to one `feat: MMSIM-x` commit for that milestone.
 - **Never `git push` without asking first, every time** — this is not relaxed
   by any commit pre-authorization above.
 
+## Publishing the preview (decided 2026-11-06)
+
+- Friends play the **preview build** (`npm run build:preview`: no ending pack, no live-plot errands) hosted on GitHub Pages, deployed by `.github/workflows/pages.yml` on every push to `main`. The workflow needs the repository secret `VITE_FINALE_SECRET` (same value as in the local `.env.local`) and Pages set to "GitHub Actions" in the repository settings.
+- **The repository is public and `content/packs/` stays in it (decided 2026-11-06).** The packs (the ending, live-plot errands) are readable by anyone who opens the repository; the author accepts that and leaves it to the players not to look. The preview build and its leak scan only keep the packs out of the published site.
+
 ## Versioning
 
 Version format: **npm** (`package.json` semver), baseline **0.0.1**.
