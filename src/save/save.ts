@@ -5,7 +5,7 @@ import type { State } from '../engine/types.ts';
 
 // Saves are a versioned envelope around the plain engine State. Bump SAVE_VERSION whenever the
 // State shape changes and add a step to `migrate`, so old saves keep loading.
-export const SAVE_VERSION = 15;
+export const SAVE_VERSION = 16;
 const EXPORT_PREFIX = 'CST1:';
 
 const num = z.number();
@@ -34,6 +34,8 @@ const StateSchema = z.object({
   places: z.array(z.string()).default([]),
   completed: z.boolean(),
   endingSeen: z.boolean().default(false),
+  seed: num.default(0),
+  finale: z.object({ day: num, revenue: num }).nullable().default(null),
   errands: rec(z.object({ status: z.enum(['active', 'done']), daysLeft: num.optional() })),
   nodes: rec(num),
   unlocks: z.array(z.string()),
@@ -194,6 +196,17 @@ const MIGRATIONS: Record<number, (state: unknown) => unknown> = {
     for (let i = 1; i <= done; i++) quests[`q${i}`] = 1;
     const history = (rest.history ?? []) as { revenue?: number }[];
     return { ...rest, quests, revenueTotal: history.reduce((n, r) => n + (r.revenue ?? 0), 0) };
+  },
+  // v15 -> v16 (MMSIM-38): the finale code. The seed of an old game is lost (its current generator state stands in, which is
+  // just as unique); a game already completed gets its finale from today's numbers.
+  15: (state) => {
+    if (typeof state !== 'object' || state === null) return state;
+    const s = state as Record<string, unknown> & { rng?: number; day?: number; revenueTotal?: number; completed?: boolean };
+    return {
+      seed: s.rng ?? 0,
+      finale: s.completed ? { day: s.day ?? 0, revenue: s.revenueTotal ?? 0 } : null,
+      ...s,
+    };
   },
   // v14 -> v15 (MMSIM-31): the ending sequence. A finished game has not seen it yet, so it plays once on the next load.
   14: (state) => {

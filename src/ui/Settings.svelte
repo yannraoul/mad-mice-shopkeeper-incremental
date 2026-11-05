@@ -107,7 +107,7 @@
 </section>
 
 <style>
-  .settings { max-width: 620px; border-radius: 22px; padding: 24px 28px; display: flex; flex-direction: column; gap: 22px; }
+  .settings { width: 100%; border-radius: 22px; padding: 24px 28px; display: flex; flex-direction: column; gap: 22px; }
   .group { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .sep { padding-top: 18px; border-top: 1px solid var(--line); }
   .seg { display: flex; background: var(--panel2); border-radius: 12px; padding: 4px; gap: 2px; align-self: flex-start; }

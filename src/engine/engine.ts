@@ -59,6 +59,8 @@ export function newGame(c: Content, opts: NewGameOptions): State {
     revenueTotal: 0,
     completed: false,
     endingSeen: false,
+    seed: opts.seed | 0,
+    finale: null,
     errands: {},
     nodes: {},
     unlocks: [...(opts.unlocks ?? [])],
@@ -94,6 +96,7 @@ export function endgameGame(c: Content, opts: NewGameOptions): State {
   const s = newGame(c, opts);
   s.day = 82;
   s.completed = true;
+  s.finale = { day: s.day, revenue: 0 };
   s.endingSeen = true; // the developer shop does not play the sequence by itself (Settings can replay it)
   for (const q of c.quests) {
     s.quests[q.id] = 64;
@@ -461,7 +464,10 @@ function takeStock(c: Content, s: State, candy: string, minQuality: string, qty:
 function completeErrand(c: Content, s: State, id: string, ev: GameEvent[]) {
   const e = c.errands.find((x) => x.id === id)!;
   s.errands[id] = { status: 'done' };
-  if (e.final) s.completed = true;
+  if (e.final && !s.completed) {
+    s.completed = true;
+    s.finale = { day: s.day, revenue: s.revenueTotal };
+  }
   applyEffects(c, s, e.reward);
   ev.push({ type: 'errandDone', errand: id });
 }

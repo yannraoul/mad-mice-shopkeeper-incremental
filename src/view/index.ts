@@ -11,6 +11,7 @@ export * from './serve.ts';
 export * from './craft.ts';
 export * from './evening.ts';
 export * from './ending.ts';
+export * from './finale.ts';
 export * from './scene.ts';
 export * from './menu.ts';
 export { describeFail, unlockName, rivalErrands } from './text.ts';

@@ -5,9 +5,10 @@
   import './app.css';
   import { content } from '../content/index.ts';
   import { t } from '../i18n/i18n.svelte.ts';
-  import { buildEndingView, buildHeaderView, describeFail, screenFor } from '../view/index.ts';
+  import { buildEndingView, buildFinaleView, buildHeaderView, describeFail, screenFor } from '../view/index.ts';
   import { game, dispatch } from './game.svelte.ts';
   import EndingSequence from './EndingSequence.svelte';
+  import FinaleCard from './FinaleCard.svelte';
   import PhaseTransition from './PhaseTransition.svelte';
   import CraftScreen from './CraftScreen.svelte';
   import Serve from './Serve.svelte';
@@ -20,7 +21,11 @@
   const screen = $derived(screenFor(game.s.phase));
   // The ending plays by itself once, when the final offering has been made; Settings can play it again.
   const ending = $derived(buildEndingView(content, game.s, t));
+  // The preview build has no ending pack: its end is a card with a code to send back (MMSIM-38). The secret that signs the
+  // code is set at build time (VITE_FINALE_SECRET in .env.local); the fallback only serves development.
+  const finale = $derived(buildFinaleView(content, game.s, t, import.meta.env.VITE_FINALE_SECRET ?? 'dev-secret'));
   let replay = $state(false);
+  let replayFinale = $state(false);
   // Navigation between the game and the settings page is a UI concern, so it lives here.
   let page = $state<'game' | 'settings'>('game');
 </script>
@@ -37,13 +42,27 @@
   />
 {/if}
 
+{#if finale.available && (finale.due || replayFinale)}
+  <FinaleCard
+    {finale}
+    onclose={() => {
+      if (finale.due) dispatch({ type: 'ackEnding' });
+      replayFinale = false;
+    }}
+  />
+{/if}
+
 <main class:bar={page === 'game'}>
   <Header {header} onsettings={() => (page = page === 'settings' ? 'game' : 'settings')} />
 
   {#if page === 'settings'}
     <Settings
       onclose={() => (page = 'game')}
-      replay={ending.available ? { label: ending.replayLabel, run: () => { page = 'game'; replay = true; } } : null}
+      replay={ending.available
+        ? { label: ending.replayLabel, run: () => { page = 'game'; replay = true; } }
+        : finale.available
+          ? { label: finale.replayLabel, run: () => { page = 'game'; replayFinale = true; } }
+          : null}
     />
   {:else}
     <StageStrip />

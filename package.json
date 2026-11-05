@@ -16,6 +16,7 @@
     "balance": "tsx scripts/balance.ts",
     "screenshots": "tsx scripts/screenshots.ts",
     "catalog": "tsx scripts/catalog.ts",
+    "verify-code": "tsx scripts/verify-code.ts",
     "art:link": "tsx scripts/art/link-art.ts"
   },
   "devDependencies": {

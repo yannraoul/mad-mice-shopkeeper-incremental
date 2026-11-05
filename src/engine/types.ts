@@ -85,6 +85,10 @@ export interface State {
   completed: boolean;
   /** The ending sequence has been watched (or skipped) once; it only plays by itself while this is false. */
   endingSeen: boolean;
+  /** The seed the game started from (it makes the finale code unique per run). */
+  seed: number;
+  /** Set once, the moment the campaign is completed: the day and the lifetime revenue then (the finale code carries them). */
+  finale: { day: number; revenue: number } | null;
   /** Errands taken or finished, by errand id. */
   errands: Record<string, ErrandState>;
   /** Skill tree levels owned, by node id. */

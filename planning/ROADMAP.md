@@ -49,3 +49,4 @@ MMSIM vs MMSIB, etc).
 - [MMSIM-35](features/MMSIM-35.md) — The hex-flower map with a pin per place, replacing the map strip
 - [MMSIM-36](features/MMSIM-36.md) — The workshop mice animated from the author's GIFs, no pop-in
 - [MMSIM-37](features/MMSIM-37.md) — Where to click: sleeping mice, a bobbing arrow on unclicked zones, a call-out when a helper is hired
+- [MMSIM-38](features/MMSIM-38.md) — The preview build's end: a name and a signed finale code to send back
